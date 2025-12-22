@@ -168,6 +168,58 @@ export async function getMission(id: string) {
   return mission
 }
 
+// Default questionnaire questions
+const DEFAULT_QUESTIONNAIRE_QUESTIONS = [
+  { 
+    text: 'Quelle est votre disponibilite pour demarrer un nouveau poste?', 
+    type: 'SINGLE_CHOICE' as const, 
+    options: ['Immediate', '1 mois', '2-3 mois', 'Plus de 3 mois'], 
+    required: true,
+    shareableWithClient: true,
+    order: 0,
+  },
+  { 
+    text: 'Quelles sont vos pretentions salariales (brut annuel)?', 
+    type: 'TEXT' as const, 
+    options: [],
+    required: true,
+    shareableWithClient: true,
+    order: 1,
+  },
+  { 
+    text: 'Etes-vous ouvert a la mobilite geographique?', 
+    type: 'SINGLE_CHOICE' as const, 
+    options: ['Oui, partout en France', 'Oui, region uniquement', 'Non, poste local uniquement', 'Teletravail uniquement'], 
+    required: true,
+    shareableWithClient: true,
+    order: 2,
+  },
+  { 
+    text: 'Avez-vous d\'autres processus de recrutement en cours?', 
+    type: 'SINGLE_CHOICE' as const, 
+    options: ['Non', 'Oui, en phase initiale', 'Oui, en phase avancee', 'Oui, avec offre en cours'], 
+    required: true,
+    shareableWithClient: false,
+    order: 3,
+  },
+  { 
+    text: 'Qu\'est-ce qui vous motive dans cette opportunite?', 
+    type: 'TEXT' as const, 
+    options: [],
+    required: true,
+    shareableWithClient: true,
+    order: 4,
+  },
+  { 
+    text: 'Y a-t-il des elements qui pourraient etre bloquants pour vous?', 
+    type: 'TEXT' as const, 
+    options: [],
+    required: false,
+    shareableWithClient: false,
+    order: 5,
+  },
+]
+
 // Create mission
 export async function createMission(data: CreateMissionInput) {
   const organizationId = await getOrganizationId()
@@ -186,6 +238,7 @@ export async function createMission(data: CreateMissionInput) {
     throw new Error('Client non trouve')
   }
 
+  // Create mission with default questionnaire
   const mission = await prisma.mission.create({
     data: {
       title: validated.title,
@@ -214,6 +267,15 @@ export async function createMission(data: CreateMissionInput) {
       calendlyEmbed: validated.calendlyEmbed ?? false,
       scoreThreshold: validated.scoreThreshold ?? 60,
       shortlistDeadline: validated.shortlistDeadline,
+      // Create default questionnaire
+      questionnaire: {
+        create: {
+          name: 'Questionnaire standard',
+          questions: {
+            create: DEFAULT_QUESTIONNAIRE_QUESTIONS,
+          },
+        },
+      },
     },
   })
 

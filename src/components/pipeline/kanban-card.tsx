@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import Link from 'next/link'
@@ -12,6 +13,10 @@ import {
   ExternalLink,
   X,
   GripVertical,
+  Link2,
+  Copy,
+  Check,
+  Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -23,7 +28,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 import type { MissionCandidate, Candidate, Interaction, ContactStatus } from '@/generated/prisma'
 
 interface CandidateWithDetails extends MissionCandidate {
@@ -54,6 +68,9 @@ const contactStatusColors: Record<ContactStatus, string> = {
 }
 
 export function KanbanCard({ candidate, missionId, isDragging }: KanbanCardProps) {
+  const [copied, setCopied] = useState(false)
+  const [showInviteDialog, setShowInviteDialog] = useState(false)
+  
   const {
     attributes,
     listeners,
@@ -69,6 +86,31 @@ export function KanbanCard({ candidate, missionId, isDragging }: KanbanCardProps
   }
 
   const lastInteraction = candidate.interactions[0]
+  const hasPortalLink = candidate.contactStatus === 'OPEN' && candidate.portalToken
+  const portalUrl = hasPortalLink 
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/candidate/${candidate.portalToken}`
+    : null
+
+  const copyPortalLink = async () => {
+    if (!portalUrl) return
+    await navigator.clipboard.writeText(portalUrl)
+    setCopied(true)
+    toast.success('Lien copie!')
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const generateInviteMessage = () => {
+    const firstName = candidate.candidate.firstName
+    // Short message for LinkedIn connection request (max 200 chars)
+    return `Merci pour votre interet ${firstName}! Voici le lien pour completer votre profil et decouvrir l'opportunite: ${portalUrl}`
+  }
+
+  const copyInviteMessage = async () => {
+    const message = generateInviteMessage()
+    await navigator.clipboard.writeText(message)
+    toast.success('Message copie!')
+    setShowInviteDialog(false)
+  }
 
   return (
     <Card
@@ -105,7 +147,7 @@ export function KanbanCard({ candidate, missionId, isDragging }: KanbanCardProps
             )}
 
             {/* Status & Score */}
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
               <Badge 
                 variant="secondary" 
                 className={cn("text-xs", contactStatusColors[candidate.contactStatus])}
@@ -117,7 +159,66 @@ export function KanbanCard({ candidate, missionId, isDragging }: KanbanCardProps
                   {candidate.score}%
                 </span>
               )}
+              {hasPortalLink && (
+                <Badge variant="outline" className="text-xs bg-primary/5 text-primary border-primary/20">
+                  <Link2 className="h-3 w-3 mr-1" />
+                  Lien pret
+                </Badge>
+              )}
             </div>
+            
+            {/* Portal Link Actions */}
+            {hasPortalLink && (
+              <div className="flex items-center gap-1 mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs flex-1"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    copyPortalLink()
+                  }}
+                >
+                  {copied ? <Check className="h-3 w-3 mr-1" /> : <Copy className="h-3 w-3 mr-1" />}
+                  {copied ? 'Copie!' : 'Copier lien'}
+                </Button>
+                <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Message
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent onClick={(e) => e.stopPropagation()}>
+                    <DialogHeader>
+                      <DialogTitle>Message d&apos;invitation</DialogTitle>
+                      <DialogDescription>
+                        Copiez ce message pour LinkedIn (max 200 caracteres)
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="p-3 bg-muted rounded-lg text-sm">
+                        {generateInviteMessage()}
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
+                          {generateInviteMessage().length}/200 caracteres
+                        </span>
+                        <Button onClick={copyInviteMessage}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copier le message
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            )}
 
             {/* Last Interaction */}
             {lastInteraction && (

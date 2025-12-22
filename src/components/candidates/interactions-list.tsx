@@ -45,6 +45,7 @@ const interactionIcons: Record<InteractionType, React.ReactNode> = {
   INTERVIEW_DONE: <Calendar className="h-4 w-4" />,
   NOTE: <FileText className="h-4 w-4" />,
   PORTAL_COMPLETED: <FileText className="h-4 w-4" />,
+  PORTAL_INVITED: <Mail className="h-4 w-4" />,
   CLIENT_FEEDBACK: <MessageSquare className="h-4 w-4" />,
   STATUS_CHANGE: <FileText className="h-4 w-4" />,
 }
@@ -57,6 +58,7 @@ const interactionLabels: Record<InteractionType, string> = {
   INTERVIEW_DONE: 'Entretien réalisé',
   NOTE: 'Note',
   PORTAL_COMPLETED: 'Portail complété',
+  PORTAL_INVITED: 'Invitation portail',
   CLIENT_FEEDBACK: 'Feedback client',
   STATUS_CHANGE: 'Changement de statut',
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
+import { generateToken, getTokenExpiry } from '@/lib/utils/tokens'
 import type { PipelineStage, ContactStatus } from '@/generated/prisma'
 
 // Helper to get current user's organization
@@ -72,6 +73,9 @@ export async function updateContactStatus(missionCandidateId: string, status: Co
       mission: {
         select: { organizationId: true, id: true },
       },
+      candidate: {
+        select: { id: true, firstName: true },
+      },
     },
   })
 
@@ -79,12 +83,58 @@ export async function updateContactStatus(missionCandidateId: string, status: Co
     throw new Error('Candidat non trouvé')
   }
 
-  await prisma.missionCandidate.update({
+  // Update the contact status
+  const updated = await prisma.missionCandidate.update({
     where: { id: missionCandidateId },
     data: { contactStatus: status },
   })
 
+  // AUTO-GENERATE PORTAL LINK ON POSITIVE RESPONSE
+  let portalUrl: string | null = null
+  if (status === 'OPEN' && !mc.portalToken) {
+    const token = generateToken()
+    const expiry = getTokenExpiry('candidate')
+    
+    await prisma.missionCandidate.update({
+      where: { id: missionCandidateId },
+      data: {
+        portalToken: token,
+        portalTokenExpiry: expiry,
+        portalStep: 0,
+        portalCompleted: false,
+      },
+    })
+    
+    portalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/candidate/${token}`
+    
+    // Create interaction with the portal link ready to copy
+    await prisma.interaction.create({
+      data: {
+        candidateId: mc.candidate.id,
+        missionCandidateId,
+        type: 'PORTAL_INVITED',
+        content: portalUrl,
+      },
+    })
+  }
+
   revalidatePath(`/missions/${mc.mission.id}`)
+  
+  return { ...updated, portalUrl }
+}
+
+// Get portal URL for a mission candidate
+export async function getPortalUrl(missionCandidateId: string) {
+  const mc = await prisma.missionCandidate.findUnique({
+    where: { id: missionCandidateId },
+    select: { portalToken: true },
+  })
+  
+  if (!mc?.portalToken) {
+    return null
+  }
+  
+  return `${process.env.NEXT_PUBLIC_APP_URL}/candidate/${mc.portalToken}`
 }
 
 // Add candidate to mission

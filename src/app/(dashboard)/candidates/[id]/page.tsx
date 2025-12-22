@@ -30,6 +30,7 @@ import { getCandidate } from '@/lib/actions/candidates'
 import { CandidateTagsEditor } from '@/components/candidates/tags-editor'
 import { CandidateStatusBadge } from '@/components/candidates/status-badge'
 import { InteractionsList } from '@/components/candidates/interactions-list'
+import { EnrichmentPanel } from '@/components/candidates/enrichment-panel'
 import type { CandidateStatus, PipelineStage, MissionStatus } from '@/generated/prisma'
 
 interface CandidateDetailPageProps {
@@ -251,6 +252,12 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Enrichment */}
+          <EnrichmentPanel 
+            enrichment={candidate.enrichment} 
+            candidateId={candidate.id}
+          />
+
           {/* Tags */}
           <Card>
             <CardHeader>

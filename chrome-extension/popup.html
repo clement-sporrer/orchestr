@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ORCHESTR</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">ORCHESTR</div>
+      <div class="status-indicator" id="statusIndicator"></div>
+    </header>
+
+    <!-- Not on LinkedIn message -->
+    <div id="notLinkedIn" class="message-box hidden">
+      <div class="message-icon">🔗</div>
+      <p>Ouvrez un profil LinkedIn pour capturer les données</p>
+    </div>
+
+    <!-- Settings (when not configured) -->
+    <div id="settingsPanel" class="panel hidden">
+      <h2>Configuration</h2>
+      <div class="form-group">
+        <label for="apiUrl">URL de l'API</label>
+        <input type="url" id="apiUrl" placeholder="https://votre-app.vercel.app">
+      </div>
+      <div class="form-group">
+        <label for="apiKey">Clé API</label>
+        <input type="text" id="apiKey" placeholder="votre-email@exemple.com">
+        <small>Utilisez votre email de connexion ORCHESTR</small>
+      </div>
+      <button id="saveSettings" class="btn btn-primary">Enregistrer</button>
+    </div>
+
+    <!-- Main capture panel -->
+    <div id="capturePanel" class="panel hidden">
+      <!-- Profile preview -->
+      <div class="profile-preview" id="profilePreview">
+        <div class="profile-name" id="profileName">Chargement...</div>
+        <div class="profile-headline" id="profileHeadline"></div>
+      </div>
+
+      <!-- Mission selection -->
+      <div class="form-group">
+        <label for="missionSelect">Ajouter à une mission</label>
+        <select id="missionSelect">
+          <option value="">Vivier uniquement</option>
+        </select>
+      </div>
+
+      <!-- Capture button -->
+      <button id="captureBtn" class="btn btn-primary btn-large">
+        <span class="btn-icon">📥</span>
+        Capturer ce profil
+      </button>
+
+      <!-- Result message -->
+      <div id="resultMessage" class="result-message hidden"></div>
+    </div>
+
+    <!-- Loading state -->
+    <div id="loadingState" class="loading hidden">
+      <div class="spinner"></div>
+      <p>Capture en cours...</p>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <button id="settingsBtn" class="btn-link">⚙️ Paramètres</button>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
+

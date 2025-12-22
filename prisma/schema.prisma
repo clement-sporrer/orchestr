@@ -28,13 +28,14 @@ model Organization {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  users        User[]
-  clients      Client[]
-  missions     Mission[]
-  candidates   Candidate[]
-  pools        Pool[]
-  events       Event[]
-  subscription Subscription?
+  users           User[]
+  clients         Client[]
+  missions        Mission[]
+  candidates      Candidate[]
+  pools           Pool[]
+  events          Event[]
+  subscription    Subscription?
+  reportTemplates ReportTemplate[]
 
   @@map("organizations")
 }
@@ -286,10 +287,11 @@ model Candidate {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
-  organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization      Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   missionCandidates MissionCandidate[]
   interactions      Interaction[]
   poolMemberships   CandidatePool[]
+  enrichment        CandidateEnrichment?
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -305,6 +307,41 @@ enum CandidateStatus {
   TO_RECONTACT
   BLACKLIST
   DELETED  // For GDPR soft delete
+}
+
+// ============================================
+// CANDIDATE ENRICHMENT (LinkedIn Data)
+// ============================================
+
+model CandidateEnrichment {
+  id                  String   @id @default(cuid())
+  candidateId         String   @unique
+  
+  // LinkedIn data
+  linkedinUrl         String?
+  linkedinHeadline    String?
+  linkedinSummary     String?
+  linkedinConnections Int?
+  
+  // Structured data
+  experiences         Json?    // Array of {company, title, startDate, endDate, description}
+  education           Json?    // Array of {school, degree, field, year}
+  skills              String[] @default([])
+  languages           String[] @default([])
+  certifications      String[] @default([])
+  
+  // Metadata
+  lastEnrichedAt      DateTime?
+  enrichmentSource    String?  // "chrome_extension", "manual", "api"
+  rawData             Json?    // Raw data for reprocessing
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  
+  @@index([linkedinUrl])
+  @@map("candidate_enrichments")
 }
 
 // ============================================
@@ -341,6 +378,7 @@ model MissionCandidate {
   interactions         Interaction[]
   questionnaireResponses QuestionnaireResponse[]
   shortlistCandidates  ShortlistCandidate[]
+  interviews           Interview[]
 
   @@unique([missionId, candidateId])
   @@index([missionId])
@@ -426,6 +464,11 @@ model Interaction {
   calendlyEventId     String?
   calendlyEventUrl    String?
   
+  // Message tracking (for LinkedIn/Email messages)
+  messageFormat       MessageFormat?
+  messageContent      String?
+  messageCopiedAt     DateTime?
+  
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
 
@@ -448,8 +491,15 @@ enum InteractionType {
   INTERVIEW_DONE
   NOTE
   PORTAL_COMPLETED
+  PORTAL_INVITED
   CLIENT_FEEDBACK
   STATUS_CHANGE
+}
+
+enum MessageFormat {
+  LINKEDIN_CONNECTION
+  LINKEDIN_INMAIL
+  EMAIL
 }
 
 model Task {
@@ -587,6 +637,99 @@ model QuestionnaireAnswer {
   @@index([responseId])
   @@index([questionId])
   @@map("questionnaire_answers")
+}
+
+// ============================================
+// INTERVIEWS & REPORTS
+// ============================================
+
+model Interview {
+  id                  String           @id @default(cuid())
+  missionCandidateId  String
+  
+  // Scheduling
+  scheduledAt         DateTime
+  duration            Int              @default(45)  // minutes
+  type                InterviewType
+  location            String?
+  meetingUrl          String?
+  
+  // Status
+  status              InterviewStatus  @default(SCHEDULED)
+  startedAt           DateTime?
+  endedAt             DateTime?
+  
+  // Transcript
+  transcriptSource    TranscriptSource?
+  transcriptUrl       String?
+  transcriptText      String?
+  transcriptLanguage  String?          @default("fr")
+  
+  // Notes and report
+  recruiterNotes      String?
+  reportTemplateId    String?
+  reportContent       String?
+  reportGeneratedAt   DateTime?
+  
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  
+  missionCandidate MissionCandidate @relation(fields: [missionCandidateId], references: [id], onDelete: Cascade)
+  reportTemplate   ReportTemplate?  @relation(fields: [reportTemplateId], references: [id], onDelete: SetNull)
+  
+  @@index([missionCandidateId])
+  @@index([scheduledAt])
+  @@index([status])
+  @@map("interviews")
+}
+
+enum InterviewType {
+  PHONE_SCREEN
+  VIDEO_RECRUITER
+  VIDEO_CLIENT
+  ONSITE
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum TranscriptSource {
+  MANUAL
+  GOOGLE_MEET
+  ZOOM
+  TEAMS
+  OTHER
+}
+
+model ReportTemplate {
+  id              String     @id @default(cuid())
+  organizationId  String
+  
+  name            String
+  type            ReportType
+  sections        Json       // [{title, prompt, required, order}]
+  isDefault       Boolean    @default(false)
+  
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  interviews   Interview[]
+  
+  @@index([organizationId])
+  @@index([type])
+  @@map("report_templates")
+}
+
+enum ReportType {
+  INDIVIDUAL
+  SHORTLIST
+  CLIENT_SUMMARY
 }
 
 // ============================================
