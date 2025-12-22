@@ -108,3 +108,5 @@ export async function completePortal(missionCandidateId: string) {
   revalidatePath(`/missions/${mc.missionId}`)
 }
 
+
+

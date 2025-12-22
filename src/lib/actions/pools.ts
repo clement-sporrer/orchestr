@@ -175,3 +175,5 @@ export async function removeCandidateFromPool(poolId: string, candidateId: strin
   revalidatePath(`/pools/${poolId}`)
 }
 
+
+

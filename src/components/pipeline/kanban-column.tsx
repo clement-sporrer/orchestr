@@ -53,3 +53,5 @@ export function KanbanColumn({ stage, candidates, children }: KanbanColumnProps)
   )
 }
 
+
+

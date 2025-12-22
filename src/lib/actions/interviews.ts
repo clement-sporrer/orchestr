@@ -310,3 +310,5 @@ export const interviewStatusLabels: Record<InterviewStatus, string> = {
   NO_SHOW: 'Absent',
 }
 
+
+

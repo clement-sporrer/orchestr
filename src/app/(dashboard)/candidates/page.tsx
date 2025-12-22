@@ -217,3 +217,5 @@ export default async function CandidatesPage({ searchParams }: CandidatesPagePro
   )
 }
 
+
+

@@ -25,3 +25,5 @@ export async function getLocale(): Promise<Locale> {
   return locale && locales.includes(locale) ? locale : 'fr'
 }
 
+
+

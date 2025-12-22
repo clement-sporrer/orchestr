@@ -45,3 +45,5 @@ L'extension utilise Manifest V3 et comprend :
 - `content.js` : Script d'extraction des données LinkedIn
 - `background.js` : Service worker
 
+
+

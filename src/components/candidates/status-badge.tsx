@@ -86,3 +86,5 @@ export function CandidateStatusBadge({ candidateId, status }: CandidateStatusBad
   )
 }
 
+
+

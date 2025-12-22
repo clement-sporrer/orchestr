@@ -93,6 +93,19 @@ model User {
   name           String
   role           UserRole @default(RECRUITER)
   avatarUrl      String?
+  
+  // LinkedIn OAuth (chiffré)
+  linkedinConnected     Boolean   @default(false)
+  linkedinAccessToken   String?   // Chiffré
+  linkedinRefreshToken  String?   // Chiffré
+  linkedinExpiresAt     DateTime?
+  linkedinCookies       Json?     // Cookies de session (chiffrés)
+  linkedinLastUsed      DateTime?
+  linkedinRequestCount  Int       @default(0) // Compteur de requêtes (réinitialisé chaque heure)
+  linkedinLastReset     DateTime? // Dernière réinitialisation du compteur
+  linkedinRiskLevel     String?   // 'low', 'medium', 'high', 'blocked'
+  linkedinBlockedUntil  DateTime? // Si bloqué temporairement
+  
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -103,6 +116,8 @@ model User {
   messageTemplates    MessageTemplate[]
 
   @@index([organizationId])
+  @@index([linkedinConnected])
+  @@index([linkedinRiskLevel])
   @@map("users")
 }
 
@@ -205,7 +220,7 @@ model Mission {
   organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   client             Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
   recruiter          User?               @relation(fields: [recruiterId], references: [id], onDelete: SetNull)
-  missionCandidates  MissionCandidate[]
+  missionCandidates MissionCandidate[]
   questionnaire      Questionnaire?
   shortlists         Shortlist[]
 
@@ -332,7 +347,7 @@ model CandidateEnrichment {
   
   // Metadata
   lastEnrichedAt      DateTime?
-  enrichmentSource    String?  // "chrome_extension", "manual", "api"
+  enrichmentSource    String?  // "chrome_extension", "manual", "api", "scraper"
   rawData             Json?    // Raw data for reprocessing
   
   createdAt           DateTime @default(now())
@@ -342,6 +357,22 @@ model CandidateEnrichment {
   
   @@index([linkedinUrl])
   @@map("candidate_enrichments")
+}
+
+// ============================================
+// LINKEDIN CACHE (pour éviter les requêtes répétées)
+// ============================================
+
+model LinkedInCache {
+  id          String   @id @default(cuid())
+  linkedinUrl String   @unique
+  data        Json
+  cachedAt    DateTime @default(now())
+  expiresAt   DateTime
+  
+  @@index([linkedinUrl])
+  @@index([expiresAt])
+  @@map("linkedin_cache")
 }
 
 // ============================================

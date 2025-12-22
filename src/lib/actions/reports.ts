@@ -423,3 +423,5 @@ export const DEFAULT_INDIVIDUAL_TEMPLATE = {
   isDefault: true,
 }
 
+
+

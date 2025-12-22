@@ -54,3 +54,5 @@ export default async function ClientPortalPage({ params }: ClientPortalPageProps
   return <ClientPortalClient shortlist={shortlist} />
 }
 
+
+
