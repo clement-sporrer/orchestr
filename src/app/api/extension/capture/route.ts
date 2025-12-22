@@ -4,7 +4,7 @@ import { scoreCandidate } from '@/lib/ai/scoring'
 import type { Candidate, Mission } from '@/generated/prisma'
 
 // Types for LinkedIn profile data from extension
-interface LinkedInExperience {
+export interface LinkedInExperience {
   company: string
   title: string
   startDate?: string
@@ -13,14 +13,14 @@ interface LinkedInExperience {
   location?: string
 }
 
-interface LinkedInEducation {
+export interface LinkedInEducation {
   school: string
   degree?: string
   field?: string
   year?: string
 }
 
-interface LinkedInProfileData {
+export interface LinkedInProfileData {
   linkedinUrl: string
   firstName: string
   lastName: string
