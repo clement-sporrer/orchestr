@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       `client_id=${process.env.LINKEDIN_CLIENT_ID}&` +
       `redirect_uri=${encodeURIComponent((process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000') + '/api/auth/linkedin/callback')}&` +
       `state=${state}&` +
-      `scope=r_liteprofile%20r_emailaddress`
+      `scope=openid%20profile%20email`
     )
 
     // Stocker le state dans un cookie HTTP-only

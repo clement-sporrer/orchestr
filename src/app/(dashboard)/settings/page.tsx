@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import NextLink from 'next/link'
 import { Loader2, Building2, Link, Shield, Clock, CreditCard, ChevronRight, Linkedin, CheckCircle2, AlertCircle, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -20,15 +21,45 @@ interface LinkedInStatus {
   blockedUntil?: Date | null
 }
 
+const LINKEDIN_ERROR_MESSAGES: Record<string, string> = {
+  'not_configured': 'LinkedIn OAuth n\'est pas configuré. Vérifiez les variables d\'environnement LINKEDIN_CLIENT_ID et LINKEDIN_CLIENT_SECRET.',
+  'not_authenticated': 'Vous devez être connecté pour utiliser cette fonctionnalité.',
+  'user_not_found': 'Utilisateur non trouvé dans la base de données.',
+  'invalid_state': 'Erreur de sécurité OAuth. Veuillez réessayer.',
+  'no_code': 'Aucun code d\'autorisation reçu de LinkedIn.',
+  'connection_failed': 'Échec de la connexion à LinkedIn. Veuillez réessayer.',
+  'access_denied': 'Vous avez refusé l\'autorisation LinkedIn.',
+  'user_cancelled': 'Connexion annulée.',
+}
+
 export default function SettingsPage() {
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
   const [linkedInStatus, setLinkedInStatus] = useState<LinkedInStatus | null>(null)
   const [linkedInLoading, setLinkedInLoading] = useState(false)
+  const [linkedInError, setLinkedInError] = useState<string | null>(null)
 
-  // Charger le statut LinkedIn
+  // Charger le statut LinkedIn et vérifier les erreurs dans l'URL
   useEffect(() => {
     loadLinkedInStatus()
-  }, [])
+    
+    // Vérifier les erreurs LinkedIn dans l'URL
+    const linkedinError = searchParams.get('linkedin_error')
+    const linkedinConnected = searchParams.get('linkedin_connected')
+    
+    if (linkedinError) {
+      const errorMessage = LINKEDIN_ERROR_MESSAGES[linkedinError] || `Erreur LinkedIn: ${linkedinError}`
+      setLinkedInError(errorMessage)
+      toast.error(errorMessage)
+      // Nettoyer l'URL
+      window.history.replaceState({}, '', window.location.pathname)
+    } else if (linkedinConnected === 'true') {
+      toast.success('Compte LinkedIn connecté avec succès !')
+      loadLinkedInStatus()
+      // Nettoyer l'URL
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [searchParams])
 
   const loadLinkedInStatus = async () => {
     try {
@@ -314,6 +345,13 @@ export default function SettingsPage() {
               </>
             ) : (
               <>
+                {linkedInError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{linkedInError}</AlertDescription>
+                  </Alert>
+                )}
+
                 <Alert>
                   <Linkedin className="h-4 w-4" />
                   <AlertDescription>
