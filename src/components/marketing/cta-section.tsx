@@ -24,7 +24,7 @@ export function CTASection({
   return (
     <section className="py-20 lg:py-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 px-8 py-16 sm:px-16 sm:py-20 overflow-hidden">
+        <div className="relative rounded-3xl bg-primary px-8 py-16 sm:px-16 sm:py-20 overflow-hidden">
           {/* Background pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute inset-0" style={{
@@ -34,17 +34,18 @@ export function CTASection({
           </div>
 
           <div className="relative max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary-foreground">
               {title}
             </h2>
             {subtitle && (
-              <p className="mt-4 text-lg text-blue-100">{subtitle}</p>
+              <p className="mt-4 text-lg text-primary-foreground/80">{subtitle}</p>
             )}
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button
                 asChild
                 size="lg"
-                className="bg-white text-blue-600 hover:bg-blue-50 text-base px-8"
+                variant="secondary"
+                className="text-base px-8"
               >
                 <Link href={primaryCta.href}>
                   {primaryCta.label}
@@ -56,7 +57,7 @@ export function CTASection({
                   asChild
                   variant="outline"
                   size="lg"
-                  className="border-white/30 text-white hover:bg-white/10 text-base px-8"
+                  className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 text-base px-8"
                 >
                   <Link href={secondaryCta.href}>{secondaryCta.label}</Link>
                 </Button>
@@ -68,4 +69,3 @@ export function CTASection({
     </section>
   )
 }
-

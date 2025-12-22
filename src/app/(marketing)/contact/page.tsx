@@ -57,29 +57,29 @@ export default function ContactPage() {
     return (
       <div className="pt-32 pb-20 lg:pt-40 lg:pb-28">
         <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+          <div className="bg-card rounded-2xl border border-border p-8 text-center">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl font-bold text-foreground mb-4">
               Message received!
             </h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-muted-foreground mb-6">
               Thank you for reaching out. We typically respond within one business day. Check your inbox for a confirmation email.
             </p>
-            <div className="bg-gray-50 rounded-xl p-4 text-left">
-              <h3 className="font-medium text-gray-900 mb-2">What happens next?</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
+            <div className="bg-muted/50 rounded-xl p-4 text-left">
+              <h3 className="font-medium text-foreground mb-2">What happens next?</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600">1.</span>
+                  <span className="text-primary">1.</span>
                   Our team reviews your request
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600">2.</span>
+                  <span className="text-primary">2.</span>
                   We reach out to schedule a call or provide information
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600">3.</span>
+                  <span className="text-primary">3.</span>
                   For demos, we prepare a personalized walkthrough
                 </li>
               </ul>
@@ -96,45 +96,45 @@ export default function ContactPage() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
           {/* Left column - Info */}
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl font-bold text-foreground mb-4">
               Get in touch
             </h1>
-            <p className="text-lg text-gray-600 mb-8">
+            <p className="text-lg text-muted-foreground mb-8">
               Have a question or want to see ORCHESTR in action? Fill out the form and we will be in touch shortly.
             </p>
 
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Mail className="h-5 w-5 text-blue-600" />
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Mail className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">Email us directly</h3>
-                  <a href="mailto:hello@orchestr.io" className="text-blue-600 hover:text-blue-700">
+                  <h3 className="font-medium text-foreground">Email us directly</h3>
+                  <a href="mailto:hello@orchestr.io" className="text-primary hover:text-primary/80">
                     hello@orchestr.io
                   </a>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Building2 className="h-5 w-5 text-blue-600" />
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Building2 className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">For agencies</h3>
-                  <p className="text-gray-600 text-sm">
+                  <h3 className="font-medium text-foreground">For agencies</h3>
+                  <p className="text-muted-foreground text-sm">
                     We work with recruitment agencies of all sizes across Europe.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <MessageSquare className="h-5 w-5 text-blue-600" />
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <MessageSquare className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">Response time</h3>
-                  <p className="text-gray-600 text-sm">
+                  <h3 className="font-medium text-foreground">Response time</h3>
+                  <p className="text-muted-foreground text-sm">
                     We typically respond within one business day.
                   </p>
                 </div>
@@ -144,7 +144,7 @@ export default function ContactPage() {
 
           {/* Right column - Form */}
           <div>
-            <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-100 p-8">
+            <form onSubmit={handleSubmit} className="bg-card rounded-2xl border border-border p-8">
               <div className="space-y-5">
                 <div>
                   <Label htmlFor="name">Your name</Label>
@@ -217,7 +217,7 @@ export default function ContactPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full"
                 >
                   {loading ? (
                     <>
@@ -229,9 +229,9 @@ export default function ContactPage() {
                   )}
                 </Button>
 
-                <p className="text-xs text-gray-500 text-center">
+                <p className="text-xs text-muted-foreground text-center">
                   By submitting, you agree to our{' '}
-                  <a href="/legal/privacy" className="text-blue-600 hover:underline">
+                  <a href="/legal/privacy" className="text-primary hover:underline">
                     Privacy Policy
                   </a>
                 </p>
@@ -243,4 +243,3 @@ export default function ContactPage() {
     </div>
   )
 }
-

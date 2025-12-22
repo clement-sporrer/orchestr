@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -52,31 +52,31 @@ export default function CheckEmailPage() {
   return (
     <AuthCard title={title} subtitle={subtitle} showBackLink={false}>
       <div className="text-center">
-        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Mail className="h-8 w-8 text-blue-600" />
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Mail className="h-8 w-8 text-primary" />
         </div>
 
         {email && (
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             We sent an email to{' '}
-            <span className="font-medium text-gray-900">{email}</span>
+            <span className="font-medium text-foreground">{email}</span>
           </p>
         )}
 
-        <div className="bg-gray-50 rounded-xl p-4 text-left mb-6">
-          <p className="text-sm text-gray-600 mb-3">
+        <div className="bg-muted/50 rounded-xl p-4 text-left mb-6">
+          <p className="text-sm text-muted-foreground mb-3">
             {isReset
               ? 'Click the link in the email to reset your password. The link expires in 1 hour.'
               : 'Click the link in the email to verify your account and complete registration.'}
           </p>
-          <ul className="text-sm text-gray-500 space-y-1">
+          <ul className="text-sm text-muted-foreground/80 space-y-1">
             <li>Check your spam folder if you do not see it</li>
             <li>Make sure you entered the correct email</li>
           </ul>
         </div>
 
         {resent ? (
-          <div className="flex items-center justify-center gap-2 text-green-600 mb-6">
+          <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-6">
             <CheckCircle2 className="h-4 w-4" />
             <span className="text-sm">Email sent again</span>
           </div>
@@ -98,10 +98,10 @@ export default function CheckEmailPage() {
           </Button>
         )}
 
-        <div className="pt-4 border-t border-gray-100">
+        <div className="pt-4 border-t border-border">
           <Link
             href="/login"
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm text-primary hover:text-primary/80 font-medium"
           >
             Back to sign in
           </Link>
@@ -110,4 +110,3 @@ export default function CheckEmailPage() {
     </AuthCard>
   )
 }
-

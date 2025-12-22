@@ -36,7 +36,7 @@ export function MarketingHeader() {
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-200',
         isScrolled
-          ? 'bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm'
+          ? 'bg-background/95 backdrop-blur-sm border-b border-border shadow-sm'
           : 'bg-transparent'
       )}
     >
@@ -44,7 +44,7 @@ export function MarketingHeader() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <span className="text-xl font-bold tracking-tight text-gray-900">
+            <span className="text-xl font-bold tracking-tight text-primary">
               ORCHESTR
             </span>
           </Link>
@@ -58,8 +58,8 @@ export function MarketingHeader() {
                 className={cn(
                   'text-sm font-medium transition-colors',
                   pathname === link.href
-                    ? 'text-blue-600'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 {link.label}
@@ -72,7 +72,7 @@ export function MarketingHeader() {
             <Button variant="ghost" asChild>
               <Link href="/login">Log in</Link>
             </Button>
-            <Button asChild className="bg-blue-600 hover:bg-blue-700">
+            <Button asChild>
               <Link href="/contact?reason=demo">Request access</Link>
             </Button>
           </div>
@@ -80,7 +80,7 @@ export function MarketingHeader() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-gray-600 hover:text-gray-900"
+            className="md:hidden p-2 text-muted-foreground hover:text-foreground"
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -90,7 +90,7 @@ export function MarketingHeader() {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-gray-100">
+        <div className="md:hidden bg-background border-b border-border">
           <div className="px-4 py-4 space-y-3">
             {navLinks.map((link) => (
               <Link
@@ -99,18 +99,18 @@ export function MarketingHeader() {
                 className={cn(
                   'block py-2 text-base font-medium',
                   pathname === link.href
-                    ? 'text-blue-600'
-                    : 'text-gray-600'
+                    ? 'text-primary'
+                    : 'text-muted-foreground'
                 )}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="pt-4 space-y-3 border-t border-gray-100">
+            <div className="pt-4 space-y-3 border-t border-border">
               <Button variant="outline" asChild className="w-full">
                 <Link href="/login">Log in</Link>
               </Button>
-              <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
+              <Button asChild className="w-full">
                 <Link href="/contact?reason=demo">Request access</Link>
               </Button>
             </div>
@@ -120,4 +120,3 @@ export function MarketingHeader() {
     </header>
   )
 }
-

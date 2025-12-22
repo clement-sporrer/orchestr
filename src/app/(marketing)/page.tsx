@@ -97,22 +97,22 @@ export default function HomePage() {
       <section className="py-20 lg:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
               A clean interface for focused work
             </h2>
-            <p className="mt-4 text-lg text-gray-600">
+            <p className="mt-4 text-lg text-muted-foreground">
               Everything you need, nothing you do not. ORCHESTR is designed for recruiters who want to spend time on candidates, not on software.
             </p>
           </div>
           
           {/* Screenshot placeholder */}
-          <div className="relative aspect-[16/9] max-w-5xl mx-auto bg-gray-100 rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="relative aspect-[16/9] max-w-5xl mx-auto bg-muted rounded-2xl border border-border overflow-hidden">
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Briefcase className="h-8 w-8 text-blue-600" />
+                <div className="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Briefcase className="h-8 w-8 text-primary" />
                 </div>
-                <p className="text-gray-400">Dashboard screenshot</p>
+                <p className="text-muted-foreground">Dashboard screenshot</p>
               </div>
             </div>
           </div>
@@ -128,4 +128,3 @@ export default function HomePage() {
     </>
   )
 }
-

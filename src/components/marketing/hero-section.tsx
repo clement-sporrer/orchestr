@@ -23,15 +23,15 @@ export function HeroSection({
 }: HeroSectionProps) {
   return (
     <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-blue-50/50 to-white -z-10" />
+      {/* Background gradient - warm tones */}
+      <div className="absolute inset-0 bg-gradient-to-b from-accent/30 to-background -z-10" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight leading-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground tracking-tight leading-tight">
             {title}
           </h1>
-          <p className="mt-6 text-lg sm:text-xl text-gray-600 leading-relaxed">
+          <p className="mt-6 text-lg sm:text-xl text-muted-foreground leading-relaxed">
             {subtitle}
           </p>
           
@@ -41,7 +41,7 @@ export function HeroSection({
                 <Button
                   asChild
                   size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-base px-8"
+                  className="text-base px-8"
                 >
                   <Link href={primaryCta.href}>
                     {primaryCta.label}
@@ -66,4 +66,3 @@ export function HeroSection({
     </section>
   )
 }
-

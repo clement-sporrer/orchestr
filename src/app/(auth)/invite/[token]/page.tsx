@@ -50,11 +50,11 @@ export default async function InvitePage({ params }: InvitePageProps) {
         showBackLink={false}
       >
         <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="h-8 w-8 text-red-600" />
+          <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="h-8 w-8 text-destructive" />
           </div>
           
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             The link you followed has expired or is invalid. Please contact the person who sent you this link for a new one.
           </p>
           
@@ -77,28 +77,28 @@ export default async function InvitePage({ params }: InvitePageProps) {
       showBackLink={false}
     >
       <div className="text-center">
-        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <UserPlus className="h-8 w-8 text-blue-600" />
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <UserPlus className="h-8 w-8 text-primary" />
         </div>
         
-        <p className="text-gray-600 mb-6">
+        <p className="text-muted-foreground mb-6">
           {inviteType === 'candidate'
             ? 'You have been invited to complete your candidate profile. Click below to continue and provide your information.'
             : 'You have been invited to join ORCHESTR as a recruiter. Click below to create your account.'}
         </p>
 
         <div className="space-y-3">
-          <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
+          <Button asChild className="w-full">
             <Link href={`/candidate/${token}`}>Continue</Link>
           </Button>
           
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             By continuing, you agree to our{' '}
-            <Link href="/legal/terms" className="text-blue-600 hover:underline">
+            <Link href="/legal/terms" className="text-primary hover:underline">
               Terms
             </Link>{' '}
             and{' '}
-            <Link href="/legal/privacy" className="text-blue-600 hover:underline">
+            <Link href="/legal/privacy" className="text-primary hover:underline">
               Privacy Policy
             </Link>
           </p>
@@ -107,4 +107,3 @@ export default async function InvitePage({ params }: InvitePageProps) {
     </AuthCard>
   )
 }
-

@@ -28,23 +28,23 @@ export function FeatureSection({
           {/* Content */}
           <div className={imagePosition === 'left' ? 'lg:order-2' : ''}>
             {badge && (
-              <span className="inline-block text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full mb-4">
+              <span className="inline-block text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full mb-4">
                 {badge}
               </span>
             )}
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
               {title}
             </h2>
-            <p className="text-lg text-gray-600 mb-6 leading-relaxed">
+            <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
               {description}
             </p>
             <ul className="space-y-3">
               {bullets.map((bullet, index) => (
                 <li key={index} className="flex items-start gap-3">
-                  <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full" />
+                  <div className="w-5 h-5 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="w-2 h-2 bg-primary rounded-full" />
                   </div>
-                  <span className="text-gray-700">{bullet}</span>
+                  <span className="text-foreground/80">{bullet}</span>
                 </li>
               ))}
             </ul>
@@ -52,13 +52,13 @@ export function FeatureSection({
 
           {/* Image placeholder */}
           <div className={imagePosition === 'left' ? 'lg:order-1' : ''}>
-            <div className="relative aspect-[4/3] bg-gray-100 rounded-2xl overflow-hidden border border-gray-200">
+            <div className="relative aspect-[4/3] bg-muted rounded-2xl overflow-hidden border border-border">
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
-                  <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Icon className="h-10 w-10 text-blue-600" />
+                  <div className="w-20 h-20 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Icon className="h-10 w-10 text-primary" />
                   </div>
-                  <p className="text-sm text-gray-400">Screenshot placeholder</p>
+                  <p className="text-sm text-muted-foreground">Screenshot placeholder</p>
                 </div>
               </div>
             </div>
@@ -68,4 +68,3 @@ export function FeatureSection({
     </section>
   )
 }
-

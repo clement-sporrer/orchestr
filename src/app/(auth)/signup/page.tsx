@@ -89,7 +89,7 @@ export default function SignupPage() {
     >
       <form onSubmit={handleSignup} className="space-y-5">
         {error && (
-          <Alert variant="destructive" className="bg-red-50 border-red-200">
+          <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
@@ -138,7 +138,7 @@ export default function SignupPage() {
             disabled={loading}
             className="mt-1.5"
           />
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             Must be at least 8 characters
           </p>
         </div>
@@ -150,13 +150,13 @@ export default function SignupPage() {
             onCheckedChange={(checked) => setAcceptTerms(checked === true)}
             className="mt-1"
           />
-          <label htmlFor="terms" className="text-sm text-gray-600 cursor-pointer">
+          <label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer">
             I agree to the{' '}
-            <Link href="/legal/terms" className="text-blue-600 hover:underline">
+            <Link href="/legal/terms" className="text-primary hover:underline">
               Terms of Service
             </Link>{' '}
             and{' '}
-            <Link href="/legal/privacy" className="text-blue-600 hover:underline">
+            <Link href="/legal/privacy" className="text-primary hover:underline">
               Privacy Policy
             </Link>
           </label>
@@ -165,7 +165,7 @@ export default function SignupPage() {
         <Button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700"
+          className="w-full"
         >
           {loading ? (
             <>
@@ -179,9 +179,9 @@ export default function SignupPage() {
       </form>
 
       <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+          <Link href="/login" className="text-primary hover:text-primary/80 font-medium">
             Sign in
           </Link>
         </p>
@@ -189,4 +189,3 @@ export default function SignupPage() {
     </AuthCard>
   )
 }
-

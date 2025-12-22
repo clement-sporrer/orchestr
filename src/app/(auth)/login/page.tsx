@@ -60,7 +60,7 @@ export default function LoginPage() {
     >
       <form onSubmit={handleLogin} className="space-y-5">
         {error && (
-          <Alert variant="destructive" className="bg-red-50 border-red-200">
+          <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
@@ -86,7 +86,7 @@ export default function LoginPage() {
             <Label htmlFor="password">Password</Label>
             <Link
               href="/reset-password"
-              className="text-sm text-blue-600 hover:text-blue-700"
+              className="text-sm text-primary hover:text-primary/80"
             >
               Forgot password?
             </Link>
@@ -109,7 +109,7 @@ export default function LoginPage() {
             checked={rememberMe}
             onCheckedChange={(checked) => setRememberMe(checked === true)}
           />
-          <label htmlFor="remember" className="text-sm text-gray-600 cursor-pointer">
+          <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
             Remember me for 30 days
           </label>
         </div>
@@ -117,7 +117,7 @@ export default function LoginPage() {
         <Button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700"
+          className="w-full"
         >
           {loading ? (
             <>
@@ -131,9 +131,9 @@ export default function LoginPage() {
       </form>
 
       <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Do not have an account?{' '}
-          <Link href="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+          <Link href="/signup" className="text-primary hover:text-primary/80 font-medium">
             Sign up
           </Link>
         </p>

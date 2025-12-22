@@ -83,21 +83,21 @@ export default function PricingPage() {
                 key={plan.name}
                 className={`relative rounded-2xl p-8 ${
                   plan.highlighted
-                    ? 'bg-blue-600 text-white ring-4 ring-blue-600 ring-offset-4'
-                    : 'bg-white border border-gray-200'
+                    ? 'bg-primary text-primary-foreground ring-4 ring-primary ring-offset-4 ring-offset-background'
+                    : 'bg-card border border-border'
                 }`}
               >
                 {plan.highlighted && (
-                  <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-800 text-white text-sm font-medium px-4 py-1 rounded-full">
+                  <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-foreground text-background text-sm font-medium px-4 py-1 rounded-full">
                     Most popular
                   </span>
                 )}
 
                 <div className="mb-6">
-                  <h3 className={`text-xl font-bold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
+                  <h3 className={`text-xl font-bold ${plan.highlighted ? 'text-primary-foreground' : 'text-foreground'}`}>
                     {plan.name}
                   </h3>
-                  <p className={`mt-1 text-sm ${plan.highlighted ? 'text-blue-100' : 'text-gray-600'}`}>
+                  <p className={`mt-1 text-sm ${plan.highlighted ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                     {plan.description}
                   </p>
                 </div>
@@ -105,13 +105,13 @@ export default function PricingPage() {
                 <div className="mb-6">
                   <div className="flex items-baseline">
                     {plan.price !== 'Custom' && (
-                      <span className={`text-lg ${plan.highlighted ? 'text-blue-100' : 'text-gray-500'}`}>€</span>
+                      <span className={`text-lg ${plan.highlighted ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>€</span>
                     )}
-                    <span className={`text-4xl font-bold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
+                    <span className={`text-4xl font-bold ${plan.highlighted ? 'text-primary-foreground' : 'text-foreground'}`}>
                       {plan.price}
                     </span>
                   </div>
-                  <p className={`text-sm ${plan.highlighted ? 'text-blue-100' : 'text-gray-500'}`}>
+                  <p className={`text-sm ${plan.highlighted ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                     {plan.period}
                   </p>
                 </div>
@@ -119,8 +119,8 @@ export default function PricingPage() {
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start gap-3">
-                      <Check className={`h-5 w-5 flex-shrink-0 ${plan.highlighted ? 'text-blue-200' : 'text-blue-600'}`} />
-                      <span className={`text-sm ${plan.highlighted ? 'text-blue-50' : 'text-gray-700'}`}>
+                      <Check className={`h-5 w-5 flex-shrink-0 ${plan.highlighted ? 'text-primary-foreground/80' : 'text-primary'}`} />
+                      <span className={`text-sm ${plan.highlighted ? 'text-primary-foreground/90' : 'text-foreground/80'}`}>
                         {feature}
                       </span>
                     </li>
@@ -129,11 +129,8 @@ export default function PricingPage() {
 
                 <Button
                   asChild
-                  className={`w-full ${
-                    plan.highlighted
-                      ? 'bg-white text-blue-600 hover:bg-blue-50'
-                      : 'bg-blue-600 hover:bg-blue-700'
-                  }`}
+                  variant={plan.highlighted ? 'secondary' : 'default'}
+                  className="w-full"
                 >
                   <Link href={plan.cta.href}>{plan.cta.label}</Link>
                 </Button>
@@ -143,25 +140,25 @@ export default function PricingPage() {
 
           {/* Footnotes */}
           <div className="mt-16 max-w-2xl mx-auto">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">
+            <h4 className="text-lg font-semibold text-foreground mb-4 text-center">
               Frequently asked questions
             </h4>
             <div className="space-y-4">
-              <div className="bg-gray-50 rounded-xl p-6">
-                <h5 className="font-medium text-gray-900 mb-2">What does fair-use AI mean?</h5>
-                <p className="text-sm text-gray-600">
+              <div className="bg-muted/50 rounded-xl p-6">
+                <h5 className="font-medium text-foreground mb-2">What does fair-use AI mean?</h5>
+                <p className="text-sm text-muted-foreground">
                   AI features like scoring and message generation are included in all plans. We monitor usage to ensure the system remains fast for everyone. Heavy users may be asked to upgrade or reduce usage. In practice, this only affects automated workflows, not normal daily use.
                 </p>
               </div>
-              <div className="bg-gray-50 rounded-xl p-6">
-                <h5 className="font-medium text-gray-900 mb-2">Can I switch plans later?</h5>
-                <p className="text-sm text-gray-600">
+              <div className="bg-muted/50 rounded-xl p-6">
+                <h5 className="font-medium text-foreground mb-2">Can I switch plans later?</h5>
+                <p className="text-sm text-muted-foreground">
                   Yes. You can upgrade or downgrade at any time. Changes take effect at the start of your next billing cycle. Your data is always preserved.
                 </p>
               </div>
-              <div className="bg-gray-50 rounded-xl p-6">
-                <h5 className="font-medium text-gray-900 mb-2">Is there a free trial?</h5>
-                <p className="text-sm text-gray-600">
+              <div className="bg-muted/50 rounded-xl p-6">
+                <h5 className="font-medium text-foreground mb-2">Is there a free trial?</h5>
+                <p className="text-sm text-muted-foreground">
                   We offer personalized demos and pilot programs for agencies evaluating ORCHESTR. Contact us to discuss your needs and we will find the right approach.
                 </p>
               </div>
@@ -178,4 +175,3 @@ export default function PricingPage() {
     </>
   )
 }
-

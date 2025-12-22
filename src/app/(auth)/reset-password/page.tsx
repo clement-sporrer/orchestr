@@ -57,7 +57,7 @@ export default function ResetPasswordPage() {
     >
       <form onSubmit={handleReset} className="space-y-5">
         {error && (
-          <Alert variant="destructive" className="bg-red-50 border-red-200">
+          <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
@@ -81,7 +81,7 @@ export default function ResetPasswordPage() {
         <Button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700"
+          className="w-full"
         >
           {loading ? (
             <>
@@ -97,7 +97,7 @@ export default function ResetPasswordPage() {
       <div className="mt-6 text-center">
         <Link
           href="/login"
-          className="text-sm text-gray-600 hover:text-gray-900 inline-flex items-center gap-1"
+          className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to sign in
