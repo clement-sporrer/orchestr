@@ -1,0 +1,683 @@
+// ORCHESTR - Recruitment Orchestration Platform
+// Complete database schema for MVP 1
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================
+// ORGANIZATION & USERS
+// ============================================
+
+model Organization {
+  id                    String   @id @default(cuid())
+  name                  String
+  logo                  String?
+  contactEmail          String?
+  defaultCalendlyLink   String?
+  retentionDaysIgnored  Int      @default(90)
+  retentionDaysActive   Int      @default(365)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  users      User[]
+  clients    Client[]
+  missions   Mission[]
+  candidates Candidate[]
+  pools      Pool[]
+  events     Event[]
+
+  @@map("organizations")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  organizationId String
+  email          String   @unique
+  name           String
+  role           UserRole @default(RECRUITER)
+  avatarUrl      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignedMissions    Mission[]
+  interactions        Interaction[]
+  tasks               Task[]
+  messageTemplates    MessageTemplate[]
+
+  @@index([organizationId])
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  RECRUITER
+}
+
+// ============================================
+// CLIENT CRM
+// ============================================
+
+model Client {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  sector         String?
+  website        String?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contacts     Contact[]
+  missions     Mission[]
+
+  @@index([organizationId])
+  @@map("clients")
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  clientId  String
+  name      String
+  role      String?
+  email     String?
+  phone     String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@map("contacts")
+}
+
+// ============================================
+// MISSIONS & JOB BUILDER
+// ============================================
+
+model Mission {
+  id                String        @id @default(cuid())
+  organizationId    String
+  clientId          String
+  recruiterId       String?
+  status            MissionStatus @default(ACTIVE)
+  
+  // Job details
+  title             String
+  location          String?
+  contractType      ContractType?
+  seniority         Seniority?
+  salaryMin         Int?
+  salaryMax         Int?
+  salaryVisible     Boolean       @default(false)
+  currency          String        @default("EUR")
+  
+  // Content sections with visibility
+  context           String?
+  contextVisibility Visibility    @default(INTERNAL)
+  
+  responsibilities     String?
+  responsibilitiesVisibility Visibility @default(ALL)
+  
+  mustHave          String?
+  mustHaveVisibility Visibility   @default(ALL)
+  
+  niceToHave        String?
+  niceToHaveVisibility Visibility @default(ALL)
+  
+  redFlags          String?  // Always internal only
+  
+  process           String?
+  processVisibility Visibility    @default(INTERNAL_CLIENT)
+  
+  // Calendly
+  calendlyLink      String?
+  calendlyEmbed     Boolean       @default(false)
+  
+  // Scoring
+  scoreThreshold    Int           @default(60)
+  
+  // Deadlines
+  shortlistDeadline DateTime?
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client             Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  recruiter          User?               @relation(fields: [recruiterId], references: [id], onDelete: SetNull)
+  missionCandidates  MissionCandidate[]
+  questionnaire      Questionnaire?
+  shortlists         Shortlist[]
+
+  @@index([organizationId])
+  @@index([clientId])
+  @@index([recruiterId])
+  @@index([status])
+  @@map("missions")
+}
+
+enum MissionStatus {
+  DRAFT
+  ACTIVE
+  ON_HOLD
+  CLOSED_FILLED
+  CLOSED_CANCELLED
+}
+
+enum ContractType {
+  CDI
+  CDD
+  FREELANCE
+  INTERNSHIP
+  APPRENTICESHIP
+  OTHER
+}
+
+enum Seniority {
+  JUNIOR
+  MID
+  SENIOR
+  LEAD
+  EXECUTIVE
+}
+
+enum Visibility {
+  INTERNAL           // Only recruiter
+  INTERNAL_CLIENT    // Recruiter + client
+  INTERNAL_CANDIDATE // Recruiter + candidate
+  ALL                // Everyone
+}
+
+// ============================================
+// CANDIDATES (TALENT CRM)
+// ============================================
+
+model Candidate {
+  id             String          @id @default(cuid())
+  organizationId String
+  
+  // Identity
+  firstName      String
+  lastName       String
+  email          String?
+  phone          String?
+  location       String?
+  
+  // Professional
+  currentPosition  String?
+  currentCompany   String?
+  profileUrl       String?         // LinkedIn or other
+  cvUrl            String?
+  estimatedSeniority Seniority?
+  estimatedSector    String?
+  
+  // Tags and status
+  tags           String[]        @default([])
+  status         CandidateStatus @default(ACTIVE)
+  notes          String?
+  
+  // Consent
+  consentGiven     Boolean       @default(false)
+  consentDate      DateTime?
+  consentText      String?
+  
+  // Deduplication tracking
+  mergedFromIds    String[]      @default([])
+  
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  missionCandidates MissionCandidate[]
+  interactions      Interaction[]
+  poolMemberships   CandidatePool[]
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@index([email])
+  @@index([phone])
+  @@index([profileUrl])
+  @@index([status])
+  @@map("candidates")
+}
+
+enum CandidateStatus {
+  ACTIVE
+  TO_RECONTACT
+  BLACKLIST
+  DELETED  // For GDPR soft delete
+}
+
+// ============================================
+// PIPELINE
+// ============================================
+
+model MissionCandidate {
+  id           String        @id @default(cuid())
+  missionId    String
+  candidateId  String
+  
+  stage        PipelineStage @default(SOURCED)
+  contactStatus ContactStatus @default(NOT_CONTACTED)
+  
+  // Scoring
+  score        Int?
+  scoreReasons String[]      @default([])
+  
+  // Rejection
+  rejectedAt   DateTime?
+  rejectionReason String?
+  
+  // Portal access
+  portalToken      String?   @unique
+  portalTokenExpiry DateTime?
+  portalCompleted  Boolean   @default(false)
+  portalStep       Int       @default(0)
+  
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  mission              Mission                 @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  candidate            Candidate               @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  interactions         Interaction[]
+  questionnaireResponses QuestionnaireResponse[]
+  shortlistCandidates  ShortlistCandidate[]
+
+  @@unique([missionId, candidateId])
+  @@index([missionId])
+  @@index([candidateId])
+  @@index([stage])
+  @@index([portalToken])
+  @@map("mission_candidates")
+}
+
+enum PipelineStage {
+  SOURCED
+  CONTACTED
+  RESPONSE_RECEIVED
+  INTERVIEW_SCHEDULED
+  INTERVIEW_DONE
+  SENT_TO_CLIENT
+  CLIENT_INTERVIEW
+  OFFER
+  CLOSED_HIRED
+  CLOSED_REJECTED
+}
+
+enum ContactStatus {
+  NOT_CONTACTED
+  NO_RESPONSE
+  OPEN
+  CLOSED
+  LATER
+}
+
+// ============================================
+// POOLS
+// ============================================
+
+model Pool {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  candidates   CandidatePool[]
+
+  @@index([organizationId])
+  @@map("pools")
+}
+
+model CandidatePool {
+  id          String   @id @default(cuid())
+  candidateId String
+  poolId      String
+  addedAt     DateTime @default(now())
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  pool      Pool      @relation(fields: [poolId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, poolId])
+  @@index([candidateId])
+  @@index([poolId])
+  @@map("candidate_pools")
+}
+
+// ============================================
+// INTERACTIONS & TASKS
+// ============================================
+
+model Interaction {
+  id                  String           @id @default(cuid())
+  candidateId         String
+  missionCandidateId  String?
+  userId              String?
+  
+  type                InteractionType
+  content             String?
+  
+  // For scheduled interactions
+  scheduledAt         DateTime?
+  completedAt         DateTime?
+  
+  // Calendly data
+  calendlyEventId     String?
+  calendlyEventUrl    String?
+  
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  candidate         Candidate         @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  missionCandidate  MissionCandidate? @relation(fields: [missionCandidateId], references: [id], onDelete: SetNull)
+  user              User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([candidateId])
+  @@index([missionCandidateId])
+  @@index([userId])
+  @@index([type])
+  @@map("interactions")
+}
+
+enum InteractionType {
+  MESSAGE
+  EMAIL
+  CALL
+  INTERVIEW_SCHEDULED
+  INTERVIEW_DONE
+  NOTE
+  PORTAL_COMPLETED
+  CLIENT_FEEDBACK
+  STATUS_CHANGE
+}
+
+model Task {
+  id                  String        @id @default(cuid())
+  userId              String
+  missionCandidateId  String?
+  
+  title               String
+  description         String?
+  priority            TaskPriority  @default(MEDIUM)
+  dueDate             DateTime?
+  completedAt         DateTime?
+  
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([dueDate])
+  @@index([completedAt])
+  @@map("tasks")
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// ============================================
+// MESSAGE TEMPLATES
+// ============================================
+
+model MessageTemplate {
+  id             String              @id @default(cuid())
+  userId         String
+  type           MessageTemplateType
+  name           String
+  subject        String?
+  content        String
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@map("message_templates")
+}
+
+enum MessageTemplateType {
+  INITIAL_CONTACT
+  FOLLOW_UP
+  REJECTION
+  INTERVIEW_CONFIRMATION
+  CUSTOM
+}
+
+// ============================================
+// QUESTIONNAIRES
+// ============================================
+
+model Questionnaire {
+  id          String   @id @default(cuid())
+  missionId   String   @unique
+  name        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  mission   Mission              @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  questions QuestionnaireQuestion[]
+  responses QuestionnaireResponse[]
+
+  @@map("questionnaires")
+}
+
+model QuestionnaireQuestion {
+  id              String       @id @default(cuid())
+  questionnaireId String
+  
+  text            String
+  type            QuestionType
+  options         String[]     @default([])  // For choice questions
+  required        Boolean      @default(false)
+  shareableWithClient Boolean  @default(false)
+  order           Int          @default(0)
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  questionnaire Questionnaire           @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  answers       QuestionnaireAnswer[]
+
+  @@index([questionnaireId])
+  @@map("questionnaire_questions")
+}
+
+enum QuestionType {
+  TEXT
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  NUMBER
+  DATE
+}
+
+model QuestionnaireResponse {
+  id                  String   @id @default(cuid())
+  questionnaireId     String
+  missionCandidateId  String
+  submittedAt         DateTime @default(now())
+
+  questionnaire    Questionnaire           @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  missionCandidate MissionCandidate        @relation(fields: [missionCandidateId], references: [id], onDelete: Cascade)
+  answers          QuestionnaireAnswer[]
+
+  @@unique([questionnaireId, missionCandidateId])
+  @@index([questionnaireId])
+  @@index([missionCandidateId])
+  @@map("questionnaire_responses")
+}
+
+model QuestionnaireAnswer {
+  id          String   @id @default(cuid())
+  responseId  String
+  questionId  String
+  value       String   // JSON string for complex answers
+  createdAt   DateTime @default(now())
+
+  response QuestionnaireResponse  @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  question QuestionnaireQuestion  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([responseId, questionId])
+  @@index([responseId])
+  @@index([questionId])
+  @@map("questionnaire_answers")
+}
+
+// ============================================
+// CLIENT SHORTLIST & FEEDBACK
+// ============================================
+
+model Shortlist {
+  id          String   @id @default(cuid())
+  missionId   String
+  name        String
+  
+  // Access token for client portal
+  accessToken       String   @unique
+  accessTokenExpiry DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  mission    Mission              @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  candidates ShortlistCandidate[]
+
+  @@index([missionId])
+  @@index([accessToken])
+  @@map("shortlists")
+}
+
+model ShortlistCandidate {
+  id                  String   @id @default(cuid())
+  shortlistId         String
+  missionCandidateId  String
+  order               Int      @default(0)
+  summary             String?  // Custom summary for client
+  createdAt           DateTime @default(now())
+
+  shortlist        Shortlist        @relation(fields: [shortlistId], references: [id], onDelete: Cascade)
+  missionCandidate MissionCandidate @relation(fields: [missionCandidateId], references: [id], onDelete: Cascade)
+  feedback         ClientFeedback?
+
+  @@unique([shortlistId, missionCandidateId])
+  @@index([shortlistId])
+  @@index([missionCandidateId])
+  @@map("shortlist_candidates")
+}
+
+model ClientFeedback {
+  id                    String         @id @default(cuid())
+  shortlistCandidateId  String         @unique
+  
+  decision              FeedbackDecision
+  comment               String?
+  
+  submittedAt           DateTime       @default(now())
+
+  shortlistCandidate ShortlistCandidate @relation(fields: [shortlistCandidateId], references: [id], onDelete: Cascade)
+
+  @@map("client_feedbacks")
+}
+
+enum FeedbackDecision {
+  OK
+  TO_DISCUSS
+  NO
+}
+
+// ============================================
+// CSV IMPORT TRACKING
+// ============================================
+
+model CsvImport {
+  id             String          @id @default(cuid())
+  organizationId String
+  
+  fileName       String
+  destination    ImportDestination
+  destinationId  String?         // poolId or missionId if applicable
+  
+  status         ImportStatus    @default(PENDING)
+  
+  // Stats
+  totalRows      Int             @default(0)
+  newCount       Int             @default(0)
+  updatedCount   Int             @default(0)
+  mergedCount    Int             @default(0)
+  ignoredCount   Int             @default(0)
+  errorCount     Int             @default(0)
+  
+  // For rollback
+  affectedCandidateIds String[]  @default([])
+  rollbackAvailableUntil DateTime?
+  
+  mapping        Json?           // Column mapping used
+  errors         Json?           // Error details
+  
+  createdAt      DateTime        @default(now())
+  completedAt    DateTime?
+
+  @@index([organizationId])
+  @@index([status])
+  @@map("csv_imports")
+}
+
+enum ImportDestination {
+  VIVIER      // Global talent pool
+  POOL        // Specific pool
+  MISSION     // Specific mission
+}
+
+enum ImportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  ROLLED_BACK
+}
+
+// ============================================
+// ANALYTICS & EVENTS
+// ============================================
+
+model Event {
+  id             String   @id @default(cuid())
+  organizationId String
+  
+  name           String
+  properties     Json?
+  
+  // Context
+  userId         String?
+  candidateId    String?
+  missionId      String?
+  
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([name])
+  @@index([createdAt])
+  @@index([userId])
+  @@index([missionId])
+  @@map("events")
+}
