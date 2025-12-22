@@ -13,10 +13,6 @@ import {
 import { EditClientDialog } from './edit-client-dialog'
 import { DeleteClientDialog } from './delete-client-dialog'
 
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/969acf1d-f25c-4d68-8363-89eb500b6a8c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client-actions.tsx:load',message:'Client actions component loaded',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
-// #endregion
-
 interface Client {
   id: string
   name: string
