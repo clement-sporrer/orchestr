@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { AuthCard } from '@/components/auth/auth-card'
 import { Button } from '@/components/ui/button'
@@ -12,7 +13,9 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, AlertCircle } from 'lucide-react'
 
-export default function LoginPage() {
+function LoginForm() {
+  const t = useTranslations('auth.login')
+  const tErrors = useTranslations('auth.errors')
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/dashboard'
@@ -38,7 +41,7 @@ export default function LoginPage() {
       if (error) {
         setError(
           error.message === 'Invalid login credentials'
-            ? 'Invalid email or password. Please try again.'
+            ? tErrors('invalidCredentials')
             : error.message
         )
         return
@@ -47,7 +50,7 @@ export default function LoginPage() {
       router.push(redirect)
       router.refresh()
     } catch {
-      setError('An error occurred. Please try again.')
+      setError(tErrors('generic'))
     } finally {
       setLoading(false)
     }
@@ -55,8 +58,8 @@ export default function LoginPage() {
 
   return (
     <AuthCard
-      title="Welcome back"
-      subtitle="Sign in to your ORCHESTR account"
+      title={t('title')}
+      subtitle={t('subtitle')}
     >
       <form onSubmit={handleLogin} className="space-y-5">
         {error && (
@@ -67,7 +70,7 @@ export default function LoginPage() {
         )}
 
         <div>
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t('email')}</Label>
           <Input
             id="email"
             type="email"
@@ -83,18 +86,17 @@ export default function LoginPage() {
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t('password')}</Label>
             <Link
               href="/reset-password"
               className="text-sm text-primary hover:text-primary/80"
             >
-              Forgot password?
+              {t('forgotPassword')}
             </Link>
           </div>
           <Input
             id="password"
             type="password"
-            placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -110,7 +112,7 @@ export default function LoginPage() {
             onCheckedChange={(checked) => setRememberMe(checked === true)}
           />
           <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
-            Remember me for 30 days
+            {t('rememberMe')}
           </label>
         </div>
 
@@ -122,22 +124,36 @@ export default function LoginPage() {
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Signing in...
+              {t('submit')}...
             </>
           ) : (
-            'Sign in'
+            t('submit')
           )}
         </Button>
       </form>
 
       <div className="mt-6 text-center">
         <p className="text-sm text-muted-foreground">
-          Do not have an account?{' '}
+          {t('noAccount')}{' '}
           <Link href="/signup" className="text-primary hover:text-primary/80 font-medium">
-            Sign up
+            {t('signupLink')}
           </Link>
         </p>
       </div>
     </AuthCard>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <AuthCard title="" subtitle="">
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AuthCard>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

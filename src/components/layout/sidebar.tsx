@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
@@ -20,28 +21,30 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { LanguageSwitcher } from '@/components/language-switcher'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-const navigation = [
-  { name: 'Tableau de bord', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Clients', href: '/clients', icon: Building2 },
-  { name: 'Missions', href: '/missions', icon: Briefcase },
-  { name: 'Candidats', href: '/candidates', icon: Users },
-  { name: 'Pools', href: '/pools', icon: FolderKanban },
-  { name: 'Tâches', href: '/tasks', icon: ListTodo },
-]
-
-const secondaryNavigation = [
-  { name: 'Importer', href: '/import', icon: Upload },
-  { name: 'Paramètres', href: '/settings', icon: Settings },
-]
-
 export function Sidebar() {
+  const t = useTranslations('nav')
   const pathname = usePathname()
   const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
+
+  const navigation = [
+    { name: t('dashboard'), href: '/dashboard', icon: LayoutDashboard },
+    { name: t('clients'), href: '/clients', icon: Building2 },
+    { name: t('missions'), href: '/missions', icon: Briefcase },
+    { name: t('candidates'), href: '/candidates', icon: Users },
+    { name: t('pools'), href: '/pools', icon: FolderKanban },
+    { name: t('tasks'), href: '/tasks', icon: ListTodo },
+  ]
+
+  const secondaryNavigation = [
+    { name: t('import'), href: '/import', icon: Upload },
+    { name: t('settings'), href: '/settings', icon: Settings },
+  ]
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -160,23 +163,37 @@ export function Sidebar() {
         </ScrollArea>
 
         {/* Footer */}
-        <div className="p-2 border-t border-sidebar-border">
+        <div className="p-2 border-t border-sidebar-border space-y-2">
+          {!collapsed && (
+            <div className="px-2">
+              <LanguageSwitcher />
+            </div>
+          )}
           {collapsed ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-full text-sidebar-foreground hover:bg-sidebar-accent"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                Déconnexion
-              </TooltipContent>
-            </Tooltip>
+            <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex justify-center">
+                    <LanguageSwitcher variant="minimal" />
+                  </div>
+                </TooltipTrigger>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-full text-sidebar-foreground hover:bg-sidebar-accent"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  {t('logout')}
+                </TooltipContent>
+              </Tooltip>
+            </>
           ) : (
             <Button
               variant="ghost"
@@ -184,7 +201,7 @@ export function Sidebar() {
               onClick={handleLogout}
             >
               <LogOut className="h-5 w-5" />
-              <span>Déconnexion</span>
+              <span>{t('logout')}</span>
             </Button>
           )}
         </div>
@@ -192,4 +209,3 @@ export function Sidebar() {
     </TooltipProvider>
   )
 }
-

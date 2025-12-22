@@ -1,0 +1,523 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "or": "or",
+    "and": "and",
+    "all": "All",
+    "none": "None",
+    "actions": "Actions",
+    "status": "Status",
+    "date": "Date",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "notes": "Notes",
+    "description": "Description",
+    "optional": "Optional"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "clients": "Clients",
+    "missions": "Missions",
+    "candidates": "Candidates",
+    "pools": "Pools",
+    "tasks": "Tasks",
+    "import": "Import",
+    "settings": "Settings",
+    "logout": "Logout",
+    "product": "Product",
+    "pricing": "Pricing",
+    "security": "Security",
+    "contact": "Contact",
+    "login": "Log in",
+    "signup": "Sign up",
+    "requestAccess": "Request access"
+  },
+  "home": {
+    "hero": {
+      "title": "Recruitment, orchestrated",
+      "subtitle": "Centralize your missions, candidates and clients. Save time. Deliver a premium candidate experience.",
+      "cta": "Start free trial",
+      "ctaSecondary": "Request a demo"
+    },
+    "socialProof": {
+      "title": "Trusted by leading agencies"
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "subtitle": "4 steps to transform your recruitment",
+      "step1": {
+        "title": "Create your mission",
+        "description": "Define the position with our structured Job Builder. Automatically generate views for your clients and candidates."
+      },
+      "step2": {
+        "title": "Source intelligently",
+        "description": "Import candidates via CSV, URL or text. Our AI automatically structures and scores profiles."
+      },
+      "step3": {
+        "title": "Schedule interviews",
+        "description": "Native Calendly integration. Candidates book directly, pipeline updates automatically."
+      },
+      "step4": {
+        "title": "Share and collect",
+        "description": "Send clean shortlists to clients. Receive their structured feedback in one click."
+      }
+    },
+    "benefits": {
+      "title": "Why ORCHESTR",
+      "speed": {
+        "title": "Save time",
+        "description": "Automate repetitive tasks. Focus on what matters: the human relationship."
+      },
+      "consistency": {
+        "title": "Standardize your processes",
+        "description": "Job descriptions, shortlists, feedback: everything is structured and professional."
+      },
+      "capitalize": {
+        "title": "Build your talent pool",
+        "description": "Every candidate enriches your database. Find them easily for future missions."
+      },
+      "experience": {
+        "title": "Premium candidate experience",
+        "description": "Guided portal, mobile-friendly, jargon-free. Your candidates will thank you."
+      }
+    },
+    "cta": {
+      "title": "Ready to transform your recruitment?",
+      "subtitle": "14-day free trial. No credit card required to start.",
+      "button": "Get started for free"
+    }
+  },
+  "product": {
+    "title": "Everything you need",
+    "subtitle": "A complete platform to manage your recruitments from A to Z",
+    "jobBuilder": {
+      "title": "Multi-audience Job Builder",
+      "description": "Create one job description, get three views: internal, client, candidate.",
+      "features": [
+        "Structured fields with configurable visibility",
+        "Automatic view generation by audience",
+        "Red flags visible only internally"
+      ]
+    },
+    "candidateDb": {
+      "title": "Intelligent candidate database",
+      "description": "A single talent pool, continuously enriched, always exploitable.",
+      "features": [
+        "CSV import anytime",
+        "Automatic deduplication",
+        "Tags and segmentation",
+        "Complete interaction history"
+      ]
+    },
+    "pipeline": {
+      "title": "Pipeline and interactions",
+      "description": "Track each candidate through the recruitment process.",
+      "features": [
+        "Kanban and list view",
+        "Intuitive drag and drop",
+        "Automatic reminders",
+        "AI scoring"
+      ]
+    },
+    "candidatePortal": {
+      "title": "Candidate portal",
+      "description": "A guided experience for your candidates, friction-free.",
+      "features": [
+        "Profile to complete",
+        "Adapted job description",
+        "Calendly booking",
+        "Custom questionnaires"
+      ]
+    },
+    "clientPortal": {
+      "title": "Client portal",
+      "description": "Share your shortlists and collect structured feedback.",
+      "features": [
+        "Professional shortlists",
+        "One-click feedback",
+        "Exchange history",
+        "PDF export"
+      ]
+    },
+    "ai": {
+      "title": "AI assistance",
+      "description": "AI at the service of your efficiency, not replacing your expertise.",
+      "features": [
+        "Automatic profile structuring",
+        "Candidate-mission scoring",
+        "Message generation",
+        "Smart suggestions"
+      ]
+    }
+  },
+  "pricing": {
+    "title": "Simple, transparent pricing",
+    "subtitle": "Choose the plan that fits your agency. All plans include core features. Switch anytime.",
+    "canceled": "You canceled the payment. No worries, you can try again anytime.",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "perUser": "per user/month",
+    "billedAnnually": "(billed annually)",
+    "startTrial": "Start free trial",
+    "contactSales": "Contact sales",
+    "trialInfo": "14-day free trial. Credit card required. Cancel anytime.",
+    "plans": {
+      "core": {
+        "name": "Core",
+        "description": "For small agencies",
+        "features": [
+          "Up to 3 users",
+          "Unlimited missions",
+          "Candidate database",
+          "CSV import",
+          "Pipeline management",
+          "Candidate portal",
+          "Client shortlists",
+          "Basic AI features",
+          "Email support"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "For growing agencies",
+        "features": [
+          "Unlimited users",
+          "Everything in Core",
+          "Advanced AI features",
+          "Custom questionnaires",
+          "Analytics dashboard",
+          "API access",
+          "Priority support",
+          "Dedicated onboarding"
+        ]
+      },
+      "whiteLabel": {
+        "name": "White-label",
+        "description": "Your brand, our platform",
+        "features": [
+          "Everything in Pro",
+          "Custom branding",
+          "Custom domain",
+          "White-labeled portals",
+          "Custom integrations",
+          "SLA guarantee",
+          "Dedicated account manager",
+          "Training sessions"
+        ]
+      }
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "trial": {
+        "question": "What is the free trial?",
+        "answer": "You have 14 days to test ORCHESTR with no commitment. A credit card is required but you won't be charged until the trial ends. You can cancel anytime during this period."
+      },
+      "fairUse": {
+        "question": "What does fair-use AI mean?",
+        "answer": "AI features like scoring and message generation are included in all plans. We monitor usage to ensure optimal performance. Only intensive automated workflows may be limited, not normal daily use."
+      },
+      "changePlan": {
+        "question": "Can I change plans?",
+        "answer": "Yes. You can upgrade or downgrade at any time. Changes take effect at the start of your next billing cycle. Your data is always preserved."
+      },
+      "billing": {
+        "question": "How does per-user billing work?",
+        "answer": "You are billed based on the number of active users in your organization. You can add or remove users at any time from your billing settings."
+      }
+    },
+    "cta": {
+      "title": "Need help choosing?",
+      "subtitle": "Our team is here to help you find the right fit for your agency."
+    }
+  },
+  "security": {
+    "title": "Security and compliance",
+    "subtitle": "Your data is our priority. Learn how we protect it.",
+    "dataStorage": {
+      "title": "Data storage",
+      "description": "Your data is stored on secure servers in Europe.",
+      "features": [
+        "Encrypted PostgreSQL database",
+        "Automatic daily backups",
+        "Hosted in European Union",
+        "Encryption in transit (TLS 1.3)"
+      ]
+    },
+    "accessControl": {
+      "title": "Access control",
+      "description": "Robust mechanisms to protect access to your data.",
+      "features": [
+        "Secure authentication",
+        "Granular roles and permissions",
+        "Complete audit trail",
+        "Sessions with expiration"
+      ]
+    },
+    "gdpr": {
+      "title": "GDPR compliance",
+      "description": "Easily comply with European regulations.",
+      "features": [
+        "Candidate data export",
+        "Deletion on request",
+        "Configurable retention",
+        "Tracked consent"
+      ]
+    },
+    "portals": {
+      "title": "Portal security",
+      "description": "Sharing links are secure and controllable.",
+      "features": [
+        "Unique tokenized links",
+        "Configurable expiration",
+        "Instant revocation",
+        "No account creation required"
+      ]
+    },
+    "vulnerability": {
+      "title": "Report a vulnerability",
+      "description": "Found a security issue? Contact us."
+    }
+  },
+  "contact": {
+    "title": "Contact us",
+    "subtitle": "A question? A project? Our team responds within 24 hours.",
+    "form": {
+      "name": "Your name",
+      "email": "Your email",
+      "company": "Your company",
+      "reason": "Reason",
+      "reasons": {
+        "demo": "Demo request",
+        "pricing": "Pricing question",
+        "support": "Technical support",
+        "partnership": "Partnership"
+      },
+      "message": "Your message",
+      "submit": "Send",
+      "success": {
+        "title": "Message sent!",
+        "description": "We will get back to you as soon as possible."
+      }
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "subtitle": "Access your ORCHESTR workspace",
+      "email": "Email",
+      "password": "Password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "submit": "Log in",
+      "noAccount": "Don't have an account?",
+      "signupLink": "Create an account",
+      "backToSite": "Back to website"
+    },
+    "signup": {
+      "title": "Create your account",
+      "subtitle": "Start your free trial of ORCHESTR",
+      "subtitleWithPlan": "Start your 14-day free trial with the {plan} plan",
+      "name": "Your full name",
+      "organization": "Your company name",
+      "email": "Work email",
+      "password": "Password",
+      "passwordHint": "Minimum 8 characters",
+      "acceptTerms": "I agree to the",
+      "terms": "Terms of Service",
+      "and": "and",
+      "privacy": "Privacy Policy",
+      "submit": "Create my account",
+      "submitWithPlan": "Continue to payment",
+      "trialInfo": "You won't be charged until your 14-day trial ends. Cancel anytime.",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Log in"
+    },
+    "resetPassword": {
+      "title": "Forgot password",
+      "subtitle": "Enter your email to receive a reset link",
+      "email": "Email",
+      "submit": "Send reset link",
+      "backToLogin": "Back to login",
+      "success": "Email sent! Check your inbox."
+    },
+    "checkEmail": {
+      "title": "Check your email",
+      "subtitle": "We sent a confirmation link to",
+      "instructions": "Click the link in the email to activate your account.",
+      "spam": "Can't find it? Check your spam folder.",
+      "resend": "Resend email"
+    },
+    "errors": {
+      "invalidCredentials": "Invalid email or password",
+      "emailExists": "An account already exists with this email",
+      "weakPassword": "Password must be at least 8 characters",
+      "invalidEmail": "Invalid email",
+      "required": "This field is required",
+      "generic": "An error occurred. Please try again."
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome, {name}",
+    "stats": {
+      "activeMissions": "Active missions",
+      "candidates": "Candidates",
+      "clients": "Clients",
+      "tasksToday": "Today's tasks"
+    }
+  },
+  "clients": {
+    "title": "Clients",
+    "new": "New client",
+    "search": "Search clients...",
+    "empty": "No clients yet",
+    "emptyDescription": "Start by adding your first client.",
+    "form": {
+      "name": "Client name",
+      "sector": "Industry",
+      "website": "Website",
+      "notes": "Notes"
+    }
+  },
+  "missions": {
+    "title": "Missions",
+    "new": "New mission",
+    "search": "Search missions...",
+    "empty": "No missions yet",
+    "emptyDescription": "Create your first recruitment mission.",
+    "status": {
+      "draft": "Draft",
+      "active": "Active",
+      "onHold": "On hold",
+      "closedFilled": "Filled",
+      "closedCancelled": "Cancelled"
+    },
+    "form": {
+      "title": "Job title",
+      "client": "Client",
+      "location": "Location",
+      "contractType": "Contract type",
+      "seniority": "Seniority",
+      "salary": "Salary",
+      "visible": "Visible to candidate"
+    }
+  },
+  "candidates": {
+    "title": "Candidates",
+    "new": "New candidate",
+    "search": "Search candidates...",
+    "empty": "No candidates yet",
+    "emptyDescription": "Import your first candidates or add them manually.",
+    "status": {
+      "active": "Active",
+      "toRecontact": "To recontact",
+      "blacklist": "Blacklist"
+    },
+    "form": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email",
+      "phone": "Phone",
+      "location": "Location",
+      "currentPosition": "Current position",
+      "currentCompany": "Current company",
+      "profileUrl": "LinkedIn profile",
+      "tags": "Tags"
+    }
+  },
+  "onboarding": {
+    "title": "Welcome to ORCHESTR",
+    "subtitle": "Let's set up your workspace in a few steps",
+    "steps": {
+      "organization": {
+        "title": "Your agency",
+        "description": "Set up your organization's basic information"
+      },
+      "client": {
+        "title": "First client",
+        "description": "Add your first client to get started"
+      },
+      "mission": {
+        "title": "First mission",
+        "description": "Create your first recruitment mission"
+      }
+    },
+    "form": {
+      "orgName": "Agency name",
+      "orgEmail": "Contact email",
+      "calendly": "Default Calendly link",
+      "calendlyHint": "This link will be used by default for scheduling"
+    },
+    "skip": "Skip and go to dashboard",
+    "complete": "Finish",
+    "success": "Congratulations! Your workspace is ready."
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Configure your organization",
+    "billing": {
+      "title": "Billing",
+      "description": "Manage your subscription and payment methods",
+      "currentPlan": "Current plan",
+      "nextBilling": "Next billing date",
+      "manageBilling": "Manage billing",
+      "changePlan": "Change plan",
+      "cancel": "Cancel",
+      "reactivate": "Reactivate",
+      "viewInvoices": "View invoices",
+      "included": "What's included in your plan",
+      "upgradeToPro": "Upgrade to Pro",
+      "upgradeDescription": "Unlock unlimited users, custom questionnaires, and API access."
+    },
+    "organization": {
+      "title": "Organization",
+      "description": "Your agency's basic information"
+    },
+    "calendly": {
+      "title": "Calendly",
+      "description": "Default configuration for missions"
+    },
+    "retention": {
+      "title": "Data retention",
+      "description": "GDPR compliance",
+      "ignored": "Ignored candidates (days)",
+      "active": "Active candidates (days)",
+      "hint": "Candidates will be automatically anonymized after this period"
+    },
+    "security": {
+      "title": "Security",
+      "description": "Security settings",
+      "candidateLinks": "Candidate link expiration",
+      "clientLinks": "Client link expiration"
+    }
+  },
+  "footer": {
+    "tagline": "Recruitment, orchestrated",
+    "copyright": "All rights reserved",
+    "poweredBy": "Powered by Sporrer",
+    "links": {
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "security": "Security",
+      "contact": "Contact"
+    }
+  }
+}
+

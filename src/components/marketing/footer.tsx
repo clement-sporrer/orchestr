@@ -1,14 +1,20 @@
-import Link from 'next/link'
-import { Linkedin, Twitter } from 'lucide-react'
+'use client'
 
-const footerLinks = [
-  { href: '/legal/privacy', label: 'Privacy' },
-  { href: '/legal/terms', label: 'Terms' },
-  { href: '/security', label: 'Security' },
-  { href: '/contact', label: 'Contact' },
-]
+import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Linkedin, Twitter } from 'lucide-react'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 export function MarketingFooter() {
+  const t = useTranslations('footer')
+
+  const footerLinks = [
+    { href: '/legal/privacy', label: t('links.privacy') },
+    { href: '/legal/terms', label: t('links.terms') },
+    { href: '/security', label: t('links.security') },
+    { href: '/contact', label: t('links.contact') },
+  ]
+
   return (
     <footer className="bg-muted/50 border-t border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -19,7 +25,7 @@ export function MarketingFooter() {
               ORCHESTR
             </Link>
             <p className="text-sm text-muted-foreground mt-1">
-              Recruitment Orchestration Platform
+              {t('tagline')}
             </p>
           </div>
 
@@ -36,8 +42,9 @@ export function MarketingFooter() {
             ))}
           </nav>
 
-          {/* Social Links */}
+          {/* Social Links & Language */}
           <div className="flex items-center gap-4">
+            <LanguageSwitcher variant="minimal" />
             <a
               href="#"
               className="text-muted-foreground/60 hover:text-muted-foreground transition-colors"
@@ -57,11 +64,10 @@ export function MarketingFooter() {
 
         <div className="mt-8 pt-8 border-t border-border text-center">
           <p className="text-sm text-muted-foreground">
-            Powered by{' '}
-            <span className="font-medium text-foreground">Sporrer</span>
+            {t('poweredBy')}
           </p>
           <p className="text-xs text-muted-foreground/60 mt-2">
-            © {new Date().getFullYear()} ORCHESTR. All rights reserved.
+            © {new Date().getFullYear()} ORCHESTR. {t('copyright')}
           </p>
         </div>
       </div>

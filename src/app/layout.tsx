@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages } from 'next-intl/server'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
@@ -15,18 +17,23 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'ORCHESTR - Recruitment Orchestration Platform',
-  description: 'Plateforme de recrutement unifiée pour cabinets de recrutement. Gérez clients, missions, candidats et shortlists en un seul endroit.',
+  description: 'Plateforme de recrutement unifiee pour cabinets de recrutement. Gerez clients, missions, candidats et shortlists en un seul endroit.',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
+        <NextIntlClientProvider messages={messages}>
+          {children}
+        </NextIntlClientProvider>
         <Toaster position="top-right" />
       </body>
     </html>

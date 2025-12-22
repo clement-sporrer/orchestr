@@ -3,21 +3,24 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { LanguageSwitcher } from '@/components/language-switcher'
 import { cn } from '@/lib/utils'
 
-const navLinks = [
-  { href: '/product', label: 'Product' },
-  { href: '/pricing', label: 'Pricing' },
-  { href: '/security', label: 'Security' },
-  { href: '/contact', label: 'Contact' },
-]
-
 export function MarketingHeader() {
+  const t = useTranslations('nav')
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+
+  const navLinks = [
+    { href: '/product', label: t('product') },
+    { href: '/pricing', label: t('pricing') },
+    { href: '/security', label: t('security') },
+    { href: '/contact', label: t('contact') },
+  ]
 
   useEffect(() => {
     const handleScroll = () => {
@@ -69,22 +72,26 @@ export function MarketingHeader() {
 
           {/* Desktop CTAs */}
           <div className="hidden md:flex items-center gap-3">
+            <LanguageSwitcher variant="minimal" />
             <Button variant="ghost" asChild>
-              <Link href="/login">Log in</Link>
+              <Link href="/login">{t('login')}</Link>
             </Button>
             <Button asChild>
-              <Link href="/contact?reason=demo">Request access</Link>
+              <Link href="/contact?reason=demo">{t('requestAccess')}</Link>
             </Button>
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-muted-foreground hover:text-foreground"
-            aria-label="Toggle menu"
-          >
-            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          <div className="md:hidden flex items-center gap-2">
+            <LanguageSwitcher variant="minimal" />
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 text-muted-foreground hover:text-foreground"
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -108,10 +115,10 @@ export function MarketingHeader() {
             ))}
             <div className="pt-4 space-y-3 border-t border-border">
               <Button variant="outline" asChild className="w-full">
-                <Link href="/login">Log in</Link>
+                <Link href="/login">{t('login')}</Link>
               </Button>
               <Button asChild className="w-full">
-                <Link href="/contact?reason=demo">Request access</Link>
+                <Link href="/contact?reason=demo">{t('requestAccess')}</Link>
               </Button>
             </div>
           </div>

@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import { HeroSection } from '@/components/marketing/hero-section'
 import { TestimonialStrip } from '@/components/marketing/testimonial-strip'
 import { Steps } from '@/components/marketing/steps'
@@ -14,17 +15,21 @@ import {
   Smile,
 } from 'lucide-react'
 
-export default function HomePage() {
+export default async function HomePage() {
+  const t = await getTranslations('home')
+  const tNav = await getTranslations('nav')
+
   return (
     <>
       <HeroSection
-        title="The recruitment platform that works like you do"
-        subtitle="ORCHESTR brings together your clients, candidates, and processes in one simple system. No more scattered tools, no more lost data. Just focused, efficient recruiting."
-        primaryCta={{ label: 'Request access', href: '/contact?reason=demo' }}
-        secondaryCta={{ label: 'Log in', href: '/login' }}
+        title={t('hero.title')}
+        subtitle={t('hero.subtitle')}
+        primaryCta={{ label: t('hero.cta'), href: '/pricing' }}
+        secondaryCta={{ label: t('hero.ctaSecondary'), href: '/contact?reason=demo' }}
       />
 
       <TestimonialStrip
+        title={t('socialProof.title')}
         logos={[
           { name: 'Talent Partners' },
           { name: 'SearchPro' },
@@ -35,58 +40,57 @@ export default function HomePage() {
       />
 
       <Steps
-        title="How ORCHESTR works"
-        subtitle="Four simple steps to transform your recruitment process"
+        title={t('howItWorks.title')}
+        subtitle={t('howItWorks.subtitle')}
         steps={[
           {
             number: 1,
-            title: 'Create your mission',
-            description: 'Build structured job posts with visibility controls for clients and candidates. Everything in one place.',
+            title: t('howItWorks.step1.title'),
+            description: t('howItWorks.step1.description'),
             icon: Briefcase,
           },
           {
             number: 2,
-            title: 'Source candidates',
-            description: 'Import from CSV, search your talent pool, or add profiles manually. Automatic deduplication keeps your data clean.',
+            title: t('howItWorks.step2.title'),
+            description: t('howItWorks.step2.description'),
             icon: Search,
           },
           {
             number: 3,
-            title: 'Interview with ease',
-            description: 'Candidates book their own interviews through integrated Calendly. Complete questionnaires before meetings.',
+            title: t('howItWorks.step3.title'),
+            description: t('howItWorks.step3.description'),
             icon: Calendar,
           },
           {
             number: 4,
-            title: 'Present and close',
-            description: 'Share polished shortlists with clients. Collect structured feedback and move to offer faster.',
+            title: t('howItWorks.step4.title'),
+            description: t('howItWorks.step4.description'),
             icon: CheckCircle,
           },
         ]}
       />
 
       <FeatureGrid
-        title="Why agencies choose ORCHESTR"
-        subtitle="Built for recruiters who value their time and their candidates"
+        title={t('benefits.title')}
         features={[
           {
-            title: 'Move faster',
-            description: 'Every frequent action is 1 to 3 clicks away. No training needed, no complex menus. Just get work done.',
+            title: t('benefits.speed.title'),
+            description: t('benefits.speed.description'),
             icon: Zap,
           },
           {
-            title: 'Stay consistent',
-            description: 'Standardized job posts and shortlists mean professional deliverables every time. Your brand, elevated.',
+            title: t('benefits.consistency.title'),
+            description: t('benefits.consistency.description'),
             icon: RefreshCw,
           },
           {
-            title: 'Build your talent pool',
-            description: 'Every candidate you touch becomes part of your searchable database. Import anytime, reuse forever.',
+            title: t('benefits.capitalize.title'),
+            description: t('benefits.capitalize.description'),
             icon: Database,
           },
           {
-            title: 'Delight candidates',
-            description: 'Mobile-friendly portals guide candidates through profile completion, job details, and interview booking.',
+            title: t('benefits.experience.title'),
+            description: t('benefits.experience.description'),
             icon: Smile,
           },
         ]}
@@ -98,10 +102,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
-              A clean interface for focused work
+              {t.rich('cta.title', { br: () => <br /> })}
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Everything you need, nothing you do not. ORCHESTR is designed for recruiters who want to spend time on candidates, not on software.
+              {t('cta.subtitle')}
             </p>
           </div>
           
@@ -120,10 +124,10 @@ export default function HomePage() {
       </section>
 
       <CTASection
-        title="Ready to simplify your recruiting?"
-        subtitle="Request a demo and see how ORCHESTR can work for your agency."
-        primaryCta={{ label: 'Request access', href: '/contact?reason=demo' }}
-        secondaryCta={{ label: 'Learn more', href: '/product' }}
+        title={t('cta.title')}
+        subtitle={t('cta.subtitle')}
+        primaryCta={{ label: t('cta.button'), href: '/pricing' }}
+        secondaryCta={{ label: tNav('product'), href: '/product' }}
       />
     </>
   )

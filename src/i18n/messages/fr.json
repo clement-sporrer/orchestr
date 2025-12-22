@@ -1,0 +1,523 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Creer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Precedent",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "export": "Exporter",
+    "import": "Importer",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "yes": "Oui",
+    "no": "Non",
+    "or": "ou",
+    "and": "et",
+    "all": "Tous",
+    "none": "Aucun",
+    "actions": "Actions",
+    "status": "Statut",
+    "date": "Date",
+    "name": "Nom",
+    "email": "Email",
+    "phone": "Telephone",
+    "notes": "Notes",
+    "description": "Description",
+    "optional": "Optionnel"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "clients": "Clients",
+    "missions": "Missions",
+    "candidates": "Candidats",
+    "pools": "Pools",
+    "tasks": "Taches",
+    "import": "Importer",
+    "settings": "Parametres",
+    "logout": "Deconnexion",
+    "product": "Produit",
+    "pricing": "Tarifs",
+    "security": "Securite",
+    "contact": "Contact",
+    "login": "Connexion",
+    "signup": "Inscription",
+    "requestAccess": "Demander un acces"
+  },
+  "home": {
+    "hero": {
+      "title": "Le recrutement, orchestre",
+      "subtitle": "Centralisez vos missions, candidats et clients. Gagnez du temps. Offrez une experience candidat premium.",
+      "cta": "Demarrer l'essai gratuit",
+      "ctaSecondary": "Demander une demo"
+    },
+    "socialProof": {
+      "title": "Ils nous font confiance"
+    },
+    "howItWorks": {
+      "title": "Comment ca marche",
+      "subtitle": "4 etapes pour transformer votre recrutement",
+      "step1": {
+        "title": "Creez votre mission",
+        "description": "Definissez le poste avec notre Job Builder structure. Generez automatiquement les vues pour vos clients et candidats."
+      },
+      "step2": {
+        "title": "Sourcez intelligemment",
+        "description": "Importez vos candidats par CSV, URL ou texte. Notre IA structure et score automatiquement les profils."
+      },
+      "step3": {
+        "title": "Planifiez les entretiens",
+        "description": "Integration Calendly native. Les candidats reservent directement, le pipeline se met a jour automatiquement."
+      },
+      "step4": {
+        "title": "Partagez et collectez",
+        "description": "Envoyez des shortlists propres a vos clients. Recevez leur feedback structure en un clic."
+      }
+    },
+    "benefits": {
+      "title": "Pourquoi ORCHESTR",
+      "speed": {
+        "title": "Gagnez du temps",
+        "description": "Automatisez les taches repetitives. Concentrez-vous sur l'essentiel : la relation humaine."
+      },
+      "consistency": {
+        "title": "Standardisez vos process",
+        "description": "Fiches de poste, shortlists, feedbacks : tout est structure et professionnel."
+      },
+      "capitalize": {
+        "title": "Capitalisez votre vivier",
+        "description": "Chaque candidat enrichit votre base. Retrouvez-les facilement pour vos futures missions."
+      },
+      "experience": {
+        "title": "Experience candidat premium",
+        "description": "Portail guide, mobile-friendly, sans jargon. Vos candidats vous remercieront."
+      }
+    },
+    "cta": {
+      "title": "Pret a transformer votre recrutement ?",
+      "subtitle": "14 jours d'essai gratuit. Aucune carte requise pour commencer.",
+      "button": "Commencer gratuitement"
+    }
+  },
+  "product": {
+    "title": "Tout ce dont vous avez besoin",
+    "subtitle": "Une plateforme complete pour gerer vos recrutements de A a Z",
+    "jobBuilder": {
+      "title": "Job Builder multi-audience",
+      "description": "Creez une fiche de poste, obtenez trois vues : interne, client, candidat.",
+      "features": [
+        "Champs structures avec visibilite configurable",
+        "Generation automatique des vues par audience",
+        "Red flags visibles uniquement en interne"
+      ]
+    },
+    "candidateDb": {
+      "title": "Base candidats intelligente",
+      "description": "Un vivier unique, enrichi en continu, exploitable a tout moment.",
+      "features": [
+        "Import CSV a tout moment",
+        "Deduplication automatique",
+        "Tags et segmentation",
+        "Historique complet des interactions"
+      ]
+    },
+    "pipeline": {
+      "title": "Pipeline et interactions",
+      "description": "Suivez chaque candidat a travers le process de recrutement.",
+      "features": [
+        "Vue Kanban et liste",
+        "Drag and drop intuitif",
+        "Relances automatiques",
+        "Scoring IA"
+      ]
+    },
+    "candidatePortal": {
+      "title": "Portail candidat",
+      "description": "Une experience guidee pour vos candidats, sans friction.",
+      "features": [
+        "Profil a completer",
+        "Fiche de poste adaptee",
+        "Prise de RDV Calendly",
+        "Questionnaires sur-mesure"
+      ]
+    },
+    "clientPortal": {
+      "title": "Portail client",
+      "description": "Partagez vos shortlists et collectez le feedback structure.",
+      "features": [
+        "Shortlists professionnelles",
+        "Feedback en un clic",
+        "Historique des echanges",
+        "Export PDF"
+      ]
+    },
+    "ai": {
+      "title": "Assistance IA",
+      "description": "L'IA au service de votre efficacite, pas a la place de votre expertise.",
+      "features": [
+        "Structuration automatique des profils",
+        "Scoring candidat-mission",
+        "Generation de messages",
+        "Suggestions intelligentes"
+      ]
+    }
+  },
+  "pricing": {
+    "title": "Une tarification simple et transparente",
+    "subtitle": "Choisissez le forfait adapte a votre agence. Tous les plans incluent les fonctionnalites essentielles. Changez de formule a tout moment.",
+    "canceled": "Vous avez annule le paiement. Pas de souci, vous pouvez reessayer quand vous voulez.",
+    "monthly": "Mensuel",
+    "annual": "Annuel",
+    "perUser": "par utilisateur/mois",
+    "billedAnnually": "(facture annuelle)",
+    "startTrial": "Demarrer l'essai gratuit",
+    "contactSales": "Contacter l'equipe commerciale",
+    "trialInfo": "14 jours d'essai gratuit. Carte bancaire requise. Annulez a tout moment.",
+    "plans": {
+      "core": {
+        "name": "Core",
+        "description": "Pour les petites agences",
+        "features": [
+          "Jusqu'a 3 utilisateurs",
+          "Missions illimitees",
+          "Base candidats",
+          "Import CSV",
+          "Pipeline management",
+          "Portail candidat",
+          "Shortlists clients",
+          "Fonctions IA basiques",
+          "Support email"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Pour les agences en croissance",
+        "features": [
+          "Utilisateurs illimites",
+          "Tout ce qui est dans Core",
+          "Fonctions IA avancees",
+          "Questionnaires personnalises",
+          "Dashboard analytics",
+          "Acces API",
+          "Support prioritaire",
+          "Onboarding dedie"
+        ]
+      },
+      "whiteLabel": {
+        "name": "White-label",
+        "description": "Votre marque, notre plateforme",
+        "features": [
+          "Tout ce qui est dans Pro",
+          "Branding personnalise",
+          "Domaine personnalise",
+          "Portails white-label",
+          "Integrations personnalisees",
+          "SLA garanti",
+          "Account manager dedie",
+          "Sessions de formation"
+        ]
+      }
+    },
+    "faq": {
+      "title": "Questions frequentes",
+      "trial": {
+        "question": "Qu'est-ce que l'essai gratuit ?",
+        "answer": "Vous avez 14 jours pour tester ORCHESTR sans engagement. Une carte bancaire est requise mais vous ne serez pas debite avant la fin de l'essai. Vous pouvez annuler a tout moment pendant cette periode."
+      },
+      "fairUse": {
+        "question": "Que signifie usage equitable de l'IA ?",
+        "answer": "Les fonctionnalites IA comme le scoring et la generation de messages sont incluses dans tous les plans. Nous surveillons l'usage pour garantir des performances optimales. Seuls les workflows automatises intensifs peuvent etre limites, pas l'usage quotidien normal."
+      },
+      "changePlan": {
+        "question": "Puis-je changer de formule ?",
+        "answer": "Oui. Vous pouvez passer a une formule superieure ou inferieure a tout moment. Les changements prennent effet au debut de votre prochain cycle de facturation. Vos donnees sont toujours preservees."
+      },
+      "billing": {
+        "question": "Comment fonctionne la facturation par utilisateur ?",
+        "answer": "Vous etes facture en fonction du nombre d'utilisateurs actifs dans votre organisation. Vous pouvez ajouter ou supprimer des utilisateurs a tout moment depuis votre espace de facturation."
+      }
+    },
+    "cta": {
+      "title": "Besoin d'aide pour choisir ?",
+      "subtitle": "Notre equipe est la pour vous aider a trouver la formule adaptee a votre agence."
+    }
+  },
+  "security": {
+    "title": "Securite et conformite",
+    "subtitle": "Vos donnees sont notre priorite. Decouvrez comment nous les protegeons.",
+    "dataStorage": {
+      "title": "Stockage des donnees",
+      "description": "Vos donnees sont stockees sur des serveurs securises en Europe.",
+      "features": [
+        "Base de donnees PostgreSQL chiffree",
+        "Sauvegardes quotidiennes automatiques",
+        "Hebergement en Union Europeenne",
+        "Chiffrement en transit (TLS 1.3)"
+      ]
+    },
+    "accessControl": {
+      "title": "Controle d'acces",
+      "description": "Des mecanismes robustes pour proteger l'acces a vos donnees.",
+      "features": [
+        "Authentification securisee",
+        "Roles et permissions granulaires",
+        "Audit trail complet",
+        "Sessions avec expiration"
+      ]
+    },
+    "gdpr": {
+      "title": "Conformite RGPD",
+      "description": "Respectez facilement la reglementation europeenne.",
+      "features": [
+        "Export des donnees candidat",
+        "Suppression sur demande",
+        "Retention configurable",
+        "Consentement trace"
+      ]
+    },
+    "portals": {
+      "title": "Securite des portails",
+      "description": "Les liens de partage sont securises et controlables.",
+      "features": [
+        "Liens tokenises uniques",
+        "Expiration configurable",
+        "Revocation instantanee",
+        "Pas de creation de compte requise"
+      ]
+    },
+    "vulnerability": {
+      "title": "Signaler une vulnerabilite",
+      "description": "Vous avez trouve une faille de securite ? Contactez-nous."
+    }
+  },
+  "contact": {
+    "title": "Contactez-nous",
+    "subtitle": "Une question ? Un projet ? Notre equipe vous repond sous 24h.",
+    "form": {
+      "name": "Votre nom",
+      "email": "Votre email",
+      "company": "Votre entreprise",
+      "reason": "Motif",
+      "reasons": {
+        "demo": "Demande de demo",
+        "pricing": "Question sur les tarifs",
+        "support": "Support technique",
+        "partnership": "Partenariat"
+      },
+      "message": "Votre message",
+      "submit": "Envoyer",
+      "success": {
+        "title": "Message envoye !",
+        "description": "Nous vous repondrons dans les plus brefs delais."
+      }
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion",
+      "subtitle": "Accedez a votre espace ORCHESTR",
+      "email": "Email",
+      "password": "Mot de passe",
+      "rememberMe": "Se souvenir de moi",
+      "forgotPassword": "Mot de passe oublie ?",
+      "submit": "Se connecter",
+      "noAccount": "Pas encore de compte ?",
+      "signupLink": "Creer un compte",
+      "backToSite": "Retour au site"
+    },
+    "signup": {
+      "title": "Creez votre compte",
+      "subtitle": "Demarrez votre essai gratuit de ORCHESTR",
+      "subtitleWithPlan": "Commencez votre essai gratuit de 14 jours avec le plan {plan}",
+      "name": "Votre nom complet",
+      "organization": "Nom de votre entreprise",
+      "email": "Email professionnel",
+      "password": "Mot de passe",
+      "passwordHint": "Minimum 8 caracteres",
+      "acceptTerms": "J'accepte les",
+      "terms": "Conditions d'utilisation",
+      "and": "et la",
+      "privacy": "Politique de confidentialite",
+      "submit": "Creer mon compte",
+      "submitWithPlan": "Continuer vers le paiement",
+      "trialInfo": "Vous ne serez pas debite avant la fin de votre essai de 14 jours. Annulez a tout moment.",
+      "hasAccount": "Vous avez deja un compte ?",
+      "loginLink": "Connectez-vous"
+    },
+    "resetPassword": {
+      "title": "Mot de passe oublie",
+      "subtitle": "Entrez votre email pour recevoir un lien de reinitialisation",
+      "email": "Email",
+      "submit": "Envoyer le lien",
+      "backToLogin": "Retour a la connexion",
+      "success": "Email envoye ! Verifiez votre boite de reception."
+    },
+    "checkEmail": {
+      "title": "Verifiez votre email",
+      "subtitle": "Nous avons envoye un lien de confirmation a",
+      "instructions": "Cliquez sur le lien dans l'email pour activer votre compte.",
+      "spam": "Vous ne le trouvez pas ? Verifiez vos spams.",
+      "resend": "Renvoyer l'email"
+    },
+    "errors": {
+      "invalidCredentials": "Email ou mot de passe incorrect",
+      "emailExists": "Un compte existe deja avec cet email",
+      "weakPassword": "Le mot de passe doit contenir au moins 8 caracteres",
+      "invalidEmail": "Email invalide",
+      "required": "Ce champ est requis",
+      "generic": "Une erreur est survenue. Veuillez reessayer."
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "welcome": "Bienvenue, {name}",
+    "stats": {
+      "activeMissions": "Missions actives",
+      "candidates": "Candidats",
+      "clients": "Clients",
+      "tasksToday": "Taches du jour"
+    }
+  },
+  "clients": {
+    "title": "Clients",
+    "new": "Nouveau client",
+    "search": "Rechercher un client...",
+    "empty": "Aucun client pour le moment",
+    "emptyDescription": "Commencez par ajouter votre premier client.",
+    "form": {
+      "name": "Nom du client",
+      "sector": "Secteur d'activite",
+      "website": "Site web",
+      "notes": "Notes"
+    }
+  },
+  "missions": {
+    "title": "Missions",
+    "new": "Nouvelle mission",
+    "search": "Rechercher une mission...",
+    "empty": "Aucune mission pour le moment",
+    "emptyDescription": "Creez votre premiere mission de recrutement.",
+    "status": {
+      "draft": "Brouillon",
+      "active": "Active",
+      "onHold": "En pause",
+      "closedFilled": "Pourvue",
+      "closedCancelled": "Annulee"
+    },
+    "form": {
+      "title": "Titre du poste",
+      "client": "Client",
+      "location": "Localisation",
+      "contractType": "Type de contrat",
+      "seniority": "Seniorite",
+      "salary": "Salaire",
+      "visible": "Visible candidat"
+    }
+  },
+  "candidates": {
+    "title": "Candidats",
+    "new": "Nouveau candidat",
+    "search": "Rechercher un candidat...",
+    "empty": "Aucun candidat pour le moment",
+    "emptyDescription": "Importez vos premiers candidats ou ajoutez-les manuellement.",
+    "status": {
+      "active": "Actif",
+      "toRecontact": "A recontacter",
+      "blacklist": "Blacklist"
+    },
+    "form": {
+      "firstName": "Prenom",
+      "lastName": "Nom",
+      "email": "Email",
+      "phone": "Telephone",
+      "location": "Localisation",
+      "currentPosition": "Poste actuel",
+      "currentCompany": "Entreprise actuelle",
+      "profileUrl": "Profil LinkedIn",
+      "tags": "Tags"
+    }
+  },
+  "onboarding": {
+    "title": "Bienvenue sur ORCHESTR",
+    "subtitle": "Configurons votre espace de travail en quelques etapes",
+    "steps": {
+      "organization": {
+        "title": "Votre cabinet",
+        "description": "Configurez les informations de base de votre organisation"
+      },
+      "client": {
+        "title": "Premier client",
+        "description": "Ajoutez votre premier client pour commencer"
+      },
+      "mission": {
+        "title": "Premiere mission",
+        "description": "Creez votre premiere mission de recrutement"
+      }
+    },
+    "form": {
+      "orgName": "Nom du cabinet",
+      "orgEmail": "Email de contact",
+      "calendly": "Lien Calendly par defaut",
+      "calendlyHint": "Ce lien sera utilise par defaut pour les prises de RDV"
+    },
+    "skip": "Passer et acceder au tableau de bord",
+    "complete": "Terminer",
+    "success": "Felicitations ! Votre espace est pret."
+  },
+  "settings": {
+    "title": "Parametres",
+    "subtitle": "Configurez votre organisation",
+    "billing": {
+      "title": "Facturation",
+      "description": "Gerez votre abonnement et vos moyens de paiement",
+      "currentPlan": "Forfait actuel",
+      "nextBilling": "Prochaine facturation",
+      "manageBilling": "Gerer la facturation",
+      "changePlan": "Changer de forfait",
+      "cancel": "Annuler",
+      "reactivate": "Reactiver",
+      "viewInvoices": "Voir les factures",
+      "included": "Ce qui est inclus dans votre forfait",
+      "upgradeToPro": "Passez a Pro",
+      "upgradeDescription": "Debloquez les utilisateurs illimites, les questionnaires personnalises, et l'acces API."
+    },
+    "organization": {
+      "title": "Organisation",
+      "description": "Informations de base de votre cabinet"
+    },
+    "calendly": {
+      "title": "Calendly",
+      "description": "Configuration par defaut pour les missions"
+    },
+    "retention": {
+      "title": "Retention des donnees",
+      "description": "Conformite RGPD",
+      "ignored": "Candidats ignores (jours)",
+      "active": "Candidats actifs (jours)",
+      "hint": "Les candidats seront automatiquement anonymises apres cette periode"
+    },
+    "security": {
+      "title": "Securite",
+      "description": "Parametres de securite",
+      "candidateLinks": "Expiration des liens candidat",
+      "clientLinks": "Expiration des liens client"
+    }
+  },
+  "footer": {
+    "tagline": "Recrutement orchestre",
+    "copyright": "Tous droits reserves",
+    "poweredBy": "Propulse par Sporrer",
+    "links": {
+      "privacy": "Confidentialite",
+      "terms": "CGU",
+      "security": "Securite",
+      "contact": "Contact"
+    }
+  }
+}
+
