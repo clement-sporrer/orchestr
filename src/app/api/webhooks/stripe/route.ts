@@ -50,7 +50,7 @@ export async function POST(request: Request) {
         break
 
       default:
-        console.log(`Unhandled event type: ${event.type}`)
+        // Unhandled event type - ignore
     }
 
     return NextResponse.json({ received: true })
@@ -163,7 +163,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     },
   })
 
-  console.log(`Subscription created for organization ${organizationId}`)
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
@@ -194,7 +193,6 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     },
   })
 
-  console.log(`Subscription updated for customer ${customerId}`)
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
@@ -208,7 +206,6 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     },
   })
 
-  console.log(`Subscription canceled for customer ${customerId}`)
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
@@ -222,7 +219,6 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
   })
 
   // TODO: Send email notification about failed payment
-  console.log(`Payment failed for customer ${customerId}`)
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
@@ -242,5 +238,4 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
     })
   }
 
-  console.log(`Payment succeeded for customer ${customerId}`)
 }

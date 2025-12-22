@@ -48,8 +48,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!candidate || candidate.missionCandidates.length === 0) {
-      // Log but don't fail - candidate might not be in system yet
-      console.log(`Calendly event for unknown candidate: ${inviteeEmail}`)
+      // Candidate might not be in system yet - ignore
       return NextResponse.json({ ok: true, matched: false })
     }
 

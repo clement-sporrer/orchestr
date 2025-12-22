@@ -106,7 +106,6 @@ export async function POST(request: NextRequest) {
       })
 
       if (!interview) {
-        console.log('No matching interview found for Zoom meeting:', meeting.id)
         return NextResponse.json({ message: 'No matching interview' })
       }
 

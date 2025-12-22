@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { 
@@ -36,6 +36,7 @@ import {
 import { 
   createCandidateWithEnrichment, 
   enrichFromProfileText,
+  enrichFromLinkedInUrl,
   checkCandidateExists,
   type LinkedInEnrichmentResult 
 } from '@/lib/actions/candidates'
@@ -112,7 +113,7 @@ export default function NewCandidatePage() {
     }))
   }
 
-  // Handle LinkedIn URL input - Enrichissement automatique
+  // Handle LinkedIn URL input - Parse URL and go to paste step
   const handleLinkedInUrlChange = async (url: string) => {
     setLinkedInUrl(url)
     setError(null)
@@ -122,65 +123,26 @@ export default function NewCandidatePage() {
       return
     }
 
-    // Enrichissement automatique via API
+    // Parse basic info from URL and go to paste step
     setEnriching(true)
     try {
-      const response = await fetch('/api/candidates/enrich-linkedin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ linkedInUrl: url }),
-      })
-
-      const result = await response.json()
+      const result = await enrichFromLinkedInUrl(url)
 
       if (result.success && result.data) {
-        const enrichedData = result.data
         setFormData(prev => ({
           ...prev,
-          ...enrichedData,
-          tags: enrichedData.tags || [],
+          ...result.data,
+          profileUrl: url,
         }))
         
-        // Check for duplicates
-        if (result.duplicate?.exists) {
-          setDuplicateWarning({
-            id: result.duplicate.candidate.id,
-            name: `${result.duplicate.candidate.firstName} ${result.duplicate.candidate.lastName}`
-          })
-        }
-        
-        // Aller directement à la révision (plus besoin de copier-coller)
-        setEnrichmentStep('review')
-        toast.success('Profil enrichi automatiquement avec succès !')
+        // Go to paste step for AI enrichment
+        setEnrichmentStep('paste')
+        toast.success('URL détectée ! Collez le contenu du profil pour l\'enrichir.')
       } else {
-        // Gérer les erreurs spécifiques
-        if (result.action === 'connect_linkedin') {
-          setError(
-            result.message || 
-            'Aucun compte LinkedIn connecté. Veuillez connecter un compte LinkedIn dans les paramètres.'
-          )
-        } else if (result.action === 'wait_or_connect') {
-          setError(
-            result.message || 
-            'Tous les comptes LinkedIn ont atteint leur limite. Réessayez dans quelques minutes.'
-          )
-        } else if (result.action === 'use_extension') {
-          setError(
-            result.message || 
-            'Pour votre sécurité, utilisez l\'extension Chrome ou copiez-collez le contenu.'
-          )
-          // Proposer de continuer avec le copier-coller
-          setEnrichmentStep('paste')
-        } else {
-          setError(result.error || result.message || 'Erreur lors de l\'enrichissement')
-          // Fallback : proposer le copier-coller
-          setEnrichmentStep('paste')
-        }
+        setError(result.error || 'URL LinkedIn invalide')
       }
-    } catch (err) {
-      console.error('Enrichment error:', err)
-      setError('Erreur de connexion. Utilisez l\'extension Chrome ou copiez-collez le contenu.')
-      setEnrichmentStep('paste')
+    } catch {
+      setError('Erreur lors de l\'analyse de l\'URL')
     } finally {
       setEnriching(false)
     }

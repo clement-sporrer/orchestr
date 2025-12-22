@@ -53,7 +53,6 @@ export async function POST(request: NextRequest) {
     })
 
     if (!interview) {
-      console.log('No matching interview found for Meet URL:', payload.meetingUrl)
       return NextResponse.json({ message: 'No matching interview' })
     }
 

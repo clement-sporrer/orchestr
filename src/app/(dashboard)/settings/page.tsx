@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import NextLink from 'next/link'
 import { Loader2, Building2, Link, Shield, Clock, CreditCard, ChevronRight, Linkedin } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'

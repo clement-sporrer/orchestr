@@ -25,7 +25,6 @@ export default async function DashboardLayout({
     })
   } catch {
     // Database might not be connected yet during development
-    console.log('Database not available')
   }
 
   const user = dbUser || {

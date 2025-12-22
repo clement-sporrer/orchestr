@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 
-// Stats cards data - will be replaced with real data
+// Stats cards data - Demo data (will be replaced with real data)
 const stats = [
   {
     title: 'Missions actives',
@@ -250,6 +250,9 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold tracking-tight">Tableau de bord</h1>
           <p className="text-muted-foreground">
             Bienvenue! Voici un aperçu de votre activité.
+          </p>
+          <p className="text-xs text-amber-600 mt-1">
+            ⚠️ Données de démonstration - Les vraies données apparaîtront après l&apos;ajout de missions
           </p>
         </div>
         <div className="flex gap-2">
