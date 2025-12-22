@@ -47,14 +47,14 @@
     "contact": "Contact",
     "login": "Log in",
     "signup": "Sign up",
-    "requestAccess": "Request access"
+    "requestAccess": "Start free trial"
   },
   "home": {
     "hero": {
       "title": "Recruitment, orchestrated",
       "subtitle": "Centralize your missions, candidates and clients. Save time. Deliver a premium candidate experience.",
-      "cta": "Start free trial",
-      "ctaSecondary": "Request a demo"
+      "cta": "Start for free",
+      "ctaSecondary": "See features"
     },
     "socialProof": {
       "title": "Trusted by leading agencies"

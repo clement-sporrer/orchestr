@@ -77,7 +77,7 @@ export function MarketingHeader() {
               <Link href="/login">{t('login')}</Link>
             </Button>
             <Button asChild>
-              <Link href="/contact?reason=demo">{t('requestAccess')}</Link>
+              <Link href="/signup">{t('requestAccess')}</Link>
             </Button>
           </div>
 
@@ -118,7 +118,7 @@ export function MarketingHeader() {
                 <Link href="/login">{t('login')}</Link>
               </Button>
               <Button asChild className="w-full">
-                <Link href="/contact?reason=demo">{t('requestAccess')}</Link>
+                <Link href="/signup">{t('requestAccess')}</Link>
               </Button>
             </div>
           </div>

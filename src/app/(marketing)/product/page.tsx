@@ -126,9 +126,9 @@ export default function ProductPage() {
       </div>
 
       <CTASection
-        title="See ORCHESTR in action"
-        subtitle="Request a personalized demo and discover how we can help your agency."
-        primaryCta={{ label: 'Request demo', href: '/contact?reason=demo' }}
+        title="Ready to try ORCHESTR?"
+        subtitle="Start your 14-day free trial. No credit card required."
+        primaryCta={{ label: 'Start free trial', href: '/signup' }}
         secondaryCta={{ label: 'View pricing', href: '/pricing' }}
       />
     </>

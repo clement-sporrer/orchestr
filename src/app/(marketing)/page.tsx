@@ -24,8 +24,8 @@ export default async function HomePage() {
       <HeroSection
         title={t('hero.title')}
         subtitle={t('hero.subtitle')}
-        primaryCta={{ label: t('hero.cta'), href: '/pricing' }}
-        secondaryCta={{ label: t('hero.ctaSecondary'), href: '/contact?reason=demo' }}
+        primaryCta={{ label: t('hero.cta'), href: '/signup' }}
+        secondaryCta={{ label: t('hero.ctaSecondary'), href: '/product' }}
       />
 
       <TestimonialStrip
@@ -126,8 +126,8 @@ export default async function HomePage() {
       <CTASection
         title={t('cta.title')}
         subtitle={t('cta.subtitle')}
-        primaryCta={{ label: t('cta.button'), href: '/pricing' }}
-        secondaryCta={{ label: tNav('product'), href: '/product' }}
+        primaryCta={{ label: t('cta.button'), href: '/signup' }}
+        secondaryCta={{ label: tNav('pricing'), href: '/pricing' }}
       />
     </>
   )

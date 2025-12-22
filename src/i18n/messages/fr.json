@@ -47,14 +47,14 @@
     "contact": "Contact",
     "login": "Connexion",
     "signup": "Inscription",
-    "requestAccess": "Demander un acces"
+    "requestAccess": "Essai gratuit"
   },
   "home": {
     "hero": {
       "title": "Le recrutement, orchestre",
       "subtitle": "Centralisez vos missions, candidats et clients. Gagnez du temps. Offrez une experience candidat premium.",
-      "cta": "Demarrer l'essai gratuit",
-      "ctaSecondary": "Demander une demo"
+      "cta": "Demarrer gratuitement",
+      "ctaSecondary": "Voir les fonctionnalites"
     },
     "socialProof": {
       "title": "Ils nous font confiance"
