@@ -53,7 +53,7 @@ export async function createCheckoutSession(
         organizationId: organization.id,
         stripeCustomerId: customerId,
         plan,
-        billingPeriod: period === 'monthly' ? 'MONTHLY' : 'ANNUAL',
+        billingPeriod: period === 'fourWeeks' ? 'FOUR_WEEKS' : 'ANNUAL',
         status: 'TRIALING',
       },
     })
@@ -232,7 +232,7 @@ export async function changePlan(newPlan: 'CORE' | 'PRO', period: BillingPeriodT
     where: { id: sub.id },
     data: {
       plan: newPlan,
-      billingPeriod: period === 'monthly' ? 'MONTHLY' : 'ANNUAL',
+      billingPeriod: period === 'fourWeeks' ? 'FOUR_WEEKS' : 'ANNUAL',
       stripePriceId: newPriceId,
     },
   })

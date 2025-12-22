@@ -91,32 +91,33 @@ export const PLANS = {
   },
 } as const
 
-// Pricing configuration
+// Pricing configuration (4-week billing cycles = 13 periods per year)
+// Core: 45€ × 13 = 585€/year | Pro: 82€ × 13 = 1066€/year
 export const PRICING = {
   CORE: {
-    monthly: {
-      amount: 4900, // 49 EUR in cents
-      priceId: process.env.STRIPE_PRICE_CORE_MONTHLY || '',
+    fourWeeks: {
+      amount: 4500, // 45 EUR in cents per 4-week period
+      priceId: process.env.STRIPE_PRICE_CORE_4WEEKS || '',
     },
     annual: {
-      amount: 49000, // 490 EUR in cents (2 months free)
+      amount: 49900, // 499 EUR in cents (~14% off vs 4-week)
       priceId: process.env.STRIPE_PRICE_CORE_ANNUAL || '',
     },
   },
   PRO: {
-    monthly: {
-      amount: 8900, // 89 EUR in cents
-      priceId: process.env.STRIPE_PRICE_PRO_MONTHLY || '',
+    fourWeeks: {
+      amount: 8200, // 82 EUR in cents per 4-week period
+      priceId: process.env.STRIPE_PRICE_PRO_4WEEKS || '',
     },
     annual: {
-      amount: 89000, // 890 EUR in cents (2 months free)
+      amount: 89900, // 899 EUR in cents (~16% off vs 4-week)
       priceId: process.env.STRIPE_PRICE_PRO_ANNUAL || '',
     },
   },
 } as const
 
 export type PlanType = keyof typeof PLANS
-export type BillingPeriodType = 'monthly' | 'annual'
+export type BillingPeriodType = 'fourWeeks' | 'annual'
 
 // Helper to get price ID
 export function getPriceId(plan: 'CORE' | 'PRO', period: BillingPeriodType): string {
@@ -131,20 +132,20 @@ export function formatPrice(amountInCents: number): string {
   }).format(amountInCents / 100)
 }
 
-// Calculate savings for annual billing
+// Calculate savings for annual billing (vs 13 × 4-week periods)
 export function calculateAnnualSavings(plan: 'CORE' | 'PRO'): {
-  monthlyTotal: number
+  fourWeeksTotal: number
   annualTotal: number
   savings: number
   savingsPercent: number
 } {
-  const monthlyTotal = PRICING[plan].monthly.amount * 12
+  const fourWeeksTotal = PRICING[plan].fourWeeks.amount * 13 // 13 periods per year
   const annualTotal = PRICING[plan].annual.amount
-  const savings = monthlyTotal - annualTotal
-  const savingsPercent = Math.round((savings / monthlyTotal) * 100)
+  const savings = fourWeeksTotal - annualTotal
+  const savingsPercent = Math.round((savings / fourWeeksTotal) * 100)
 
   return {
-    monthlyTotal,
+    fourWeeksTotal,
     annualTotal,
     savings,
     savingsPercent,

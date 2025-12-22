@@ -66,20 +66,20 @@ function extractSubscriptionData(subscription: Stripe.Subscription) {
   
   // Determine plan from price ID
   let plan: 'CORE' | 'PRO' = 'CORE'
-  let billingPeriod: 'MONTHLY' | 'ANNUAL' = 'MONTHLY'
+  let billingPeriod: 'FOUR_WEEKS' | 'ANNUAL' = 'FOUR_WEEKS'
 
-  if (priceId === process.env.STRIPE_PRICE_PRO_MONTHLY) {
+  if (priceId === process.env.STRIPE_PRICE_PRO_4WEEKS) {
     plan = 'PRO'
-    billingPeriod = 'MONTHLY'
+    billingPeriod = 'FOUR_WEEKS'
   } else if (priceId === process.env.STRIPE_PRICE_PRO_ANNUAL) {
     plan = 'PRO'
     billingPeriod = 'ANNUAL'
   } else if (priceId === process.env.STRIPE_PRICE_CORE_ANNUAL) {
     plan = 'CORE'
     billingPeriod = 'ANNUAL'
-  } else if (priceId === process.env.STRIPE_PRICE_CORE_MONTHLY) {
+  } else if (priceId === process.env.STRIPE_PRICE_CORE_4WEEKS) {
     plan = 'CORE'
-    billingPeriod = 'MONTHLY'
+    billingPeriod = 'FOUR_WEEKS'
   }
 
   // Map Stripe status to our status

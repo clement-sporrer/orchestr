@@ -30,7 +30,7 @@ import {
 interface SubscriptionData {
   plan: 'CORE' | 'PRO' | 'WHITE_LABEL'
   status: 'TRIALING' | 'ACTIVE' | 'PAST_DUE' | 'CANCELED' | 'UNPAID'
-  billingPeriod: 'MONTHLY' | 'ANNUAL'
+  billingPeriod: 'FOUR_WEEKS' | 'ANNUAL'
   trialEndsAt: Date | null
   currentPeriodEnd: Date | null
   cancelAtPeriodEnd: boolean
@@ -159,7 +159,7 @@ export default function BillingPage() {
 
   const plan = PLANS[subscription.plan]
   const pricing = subscription.plan !== 'WHITE_LABEL' 
-    ? PRICING[subscription.plan][subscription.billingPeriod.toLowerCase() as 'monthly' | 'annual']
+    ? PRICING[subscription.plan][subscription.billingPeriod === 'FOUR_WEEKS' ? 'fourWeeks' : 'annual']
     : null
 
   return (
@@ -218,10 +218,10 @@ export default function BillingPage() {
               {pricing && (
                 <div className="text-right">
                   <p className="text-2xl font-bold text-foreground">
-                    {formatPrice(subscription.billingPeriod === 'ANNUAL' ? pricing.amount / 12 : pricing.amount)}
+                    {formatPrice(subscription.billingPeriod === 'ANNUAL' ? pricing.amount / 13 : pricing.amount)}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    /utilisateur/mois
+                    /utilisateur / 4 semaines
                     {subscription.billingPeriod === 'ANNUAL' && ' (annuel)'}
                   </p>
                 </div>

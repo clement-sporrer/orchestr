@@ -51,7 +51,7 @@ model Subscription {
   stripeSubscriptionId   String?            @unique
   stripePriceId          String?
   plan                   Plan               @default(CORE)
-  billingPeriod          BillingPeriod      @default(MONTHLY)
+  billingPeriod          BillingPeriod      @default(FOUR_WEEKS)
   status                 SubscriptionStatus @default(TRIALING)
   trialEndsAt            DateTime?
   currentPeriodStart     DateTime?
@@ -74,7 +74,7 @@ enum Plan {
 }
 
 enum BillingPeriod {
-  MONTHLY
+  FOUR_WEEKS
   ANNUAL
 }
 

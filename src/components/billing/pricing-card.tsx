@@ -1,6 +1,7 @@
 'use client'
 
 import { Check } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -8,7 +9,7 @@ interface PricingCardProps {
   name: string
   description: string
   price: number | 'custom'
-  period: 'monthly' | 'annual'
+  period: 'fourWeeks' | 'annual'
   features: readonly string[]
   highlighted?: boolean
   ctaLabel: string
@@ -29,7 +30,9 @@ export function PricingCard({
   onCtaClick,
   isLoading = false,
 }: PricingCardProps) {
-  const monthlyPrice = price === 'custom' ? null : period === 'annual' ? Math.round(price / 12) : price
+  const t = useTranslations('pricing')
+  // For 4-week billing, show per-period price. For annual, show equivalent per-period
+  const displayPrice = price === 'custom' ? null : period === 'annual' ? Math.round(price / 13) : price
 
   return (
     <div
@@ -42,7 +45,7 @@ export function PricingCard({
     >
       {highlighted && (
         <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-foreground text-background text-sm font-medium px-4 py-1 rounded-full">
-          Le plus populaire
+          {t('mostPopular')}
         </span>
       )}
 
@@ -74,7 +77,7 @@ export function PricingCard({
                 highlighted ? 'text-primary-foreground' : 'text-foreground'
               )}
             >
-              Sur mesure
+              {t('customPrice')}
             </span>
           </div>
         ) : (
@@ -94,7 +97,7 @@ export function PricingCard({
                   highlighted ? 'text-primary-foreground' : 'text-foreground'
                 )}
               >
-                {monthlyPrice}
+                {displayPrice}
               </span>
             </div>
             <p
@@ -103,9 +106,9 @@ export function PricingCard({
                 highlighted ? 'text-primary-foreground/80' : 'text-muted-foreground'
               )}
             >
-              par utilisateur/mois{' '}
+              {t('perUser')}{' '}
               {period === 'annual' && (
-                <span className="opacity-70">(facture annuelle)</span>
+                <span className="opacity-70">({t('billedAnnually')})</span>
               )}
             </p>
           </>
@@ -159,7 +162,7 @@ export function PricingCard({
             highlighted ? 'text-primary-foreground/60' : 'text-muted-foreground'
           )}
         >
-          14 jours d&apos;essai gratuit inclus
+          {t('trialIncluded')}
         </p>
       )}
     </div>

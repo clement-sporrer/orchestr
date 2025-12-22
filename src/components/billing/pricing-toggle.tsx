@@ -1,28 +1,31 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
 interface PricingToggleProps {
-  period: 'monthly' | 'annual'
-  onChange: (period: 'monthly' | 'annual') => void
+  period: 'fourWeeks' | 'annual'
+  onChange: (period: 'fourWeeks' | 'annual') => void
 }
 
 export function PricingToggle({ period, onChange }: PricingToggleProps) {
+  const t = useTranslations('pricing')
+  
   return (
     <div className="flex items-center justify-center gap-4">
       <span
         className={cn(
           'text-sm font-medium transition-colors cursor-pointer',
-          period === 'monthly' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+          period === 'fourWeeks' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
         )}
-        onClick={() => onChange('monthly')}
+        onClick={() => onChange('fourWeeks')}
       >
-        Mensuel
+        {t('fourWeeks')}
       </span>
       <button
         type="button"
         className="relative h-8 w-16 rounded-full bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-        onClick={() => onChange(period === 'monthly' ? 'annual' : 'monthly')}
+        onClick={() => onChange(period === 'fourWeeks' ? 'annual' : 'fourWeeks')}
         aria-label="Toggle billing period"
       >
         <span
@@ -40,10 +43,10 @@ export function PricingToggle({ period, onChange }: PricingToggleProps) {
           )}
           onClick={() => onChange('annual')}
         >
-          Annuel
+          {t('annual')}
         </span>
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-          -17%
+          -15%
         </span>
       </div>
     </div>

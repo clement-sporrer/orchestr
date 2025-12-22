@@ -15,7 +15,7 @@ function PricingContent() {
   const t = useTranslations('pricing')
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [period, setPeriod] = useState<'monthly' | 'annual'>('annual')
+  const [period, setPeriod] = useState<'fourWeeks' | 'annual'>('annual')
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
 
   // Check if user was redirected from canceled checkout
@@ -105,7 +105,7 @@ function PricingContent() {
             <PricingCard
               name={t('plans.core.name')}
               description={t('plans.core.description')}
-              price={period === 'monthly' ? PRICING.CORE.monthly.amount / 100 : PRICING.CORE.annual.amount / 100}
+              price={period === 'fourWeeks' ? PRICING.CORE.fourWeeks.amount / 100 : PRICING.CORE.annual.amount / 100}
               period={period}
               features={coreFeatures}
               ctaLabel={t('startTrial')}
@@ -116,7 +116,7 @@ function PricingContent() {
             <PricingCard
               name={t('plans.pro.name')}
               description={t('plans.pro.description')}
-              price={period === 'monthly' ? PRICING.PRO.monthly.amount / 100 : PRICING.PRO.annual.amount / 100}
+              price={period === 'fourWeeks' ? PRICING.PRO.fourWeeks.amount / 100 : PRICING.PRO.annual.amount / 100}
               period={period}
               features={proFeatures}
               highlighted

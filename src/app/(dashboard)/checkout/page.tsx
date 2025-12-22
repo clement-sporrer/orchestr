@@ -8,7 +8,7 @@ import { Loader2 } from 'lucide-react'
 function CheckoutRedirect() {
   const searchParams = useSearchParams()
   const plan = searchParams.get('plan')?.toUpperCase() as 'CORE' | 'PRO' | null
-  const period = (searchParams.get('period') || 'annual') as 'monthly' | 'annual'
+  const period = (searchParams.get('period') || 'annual') as 'fourWeeks' | 'annual'
 
   useEffect(() => {
     if (plan && (plan === 'CORE' || plan === 'PRO')) {
