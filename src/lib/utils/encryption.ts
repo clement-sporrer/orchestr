@@ -1,15 +1,24 @@
 import crypto from 'crypto'
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY
 const ALGORITHM = 'aes-256-gcm'
 
-if (!ENCRYPTION_KEY) {
-  throw new Error('ENCRYPTION_KEY environment variable is required')
-}
+/**
+ * Récupère et valide la clé de chiffrement de manière lazy
+ * Cette fonction est appelée uniquement au runtime, pas au build time
+ */
+function getEncryptionKey(): Buffer {
+  const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY
 
-// Vérifier que la clé fait 64 caractères (32 bytes en hex)
-if (ENCRYPTION_KEY.length !== 64) {
-  throw new Error('ENCRYPTION_KEY must be 64 characters (32 bytes in hex)')
+  if (!ENCRYPTION_KEY) {
+    throw new Error('ENCRYPTION_KEY environment variable is required')
+  }
+
+  // Vérifier que la clé fait 64 caractères (32 bytes en hex)
+  if (ENCRYPTION_KEY.length !== 64) {
+    throw new Error('ENCRYPTION_KEY must be 64 characters (32 bytes in hex)')
+  }
+
+  return Buffer.from(ENCRYPTION_KEY, 'hex')
 }
 
 /**
@@ -23,7 +32,7 @@ export function encrypt(text: string): string {
 
   try {
     const iv = crypto.randomBytes(16)
-    const key = Buffer.from(ENCRYPTION_KEY!, 'hex') // ENCRYPTION_KEY vérifié au début
+    const key = getEncryptionKey()
     const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
     
     let encrypted = cipher.update(text, 'utf8', 'hex')
@@ -57,7 +66,7 @@ export function decrypt(encryptedText: string): string {
     if (!ivHex || !authTagHex || !encrypted) {
       throw new Error('Invalid encrypted format - missing parts')
     }
-    const key = Buffer.from(ENCRYPTION_KEY!, 'hex') // ENCRYPTION_KEY vérifié au début
+    const key = getEncryptionKey()
     const iv = Buffer.from(ivHex, 'hex')
     const authTag = Buffer.from(authTagHex, 'hex')
     
