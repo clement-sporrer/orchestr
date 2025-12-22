@@ -6,7 +6,10 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { MissionStatus, ContractType, Seniority, Visibility } from '@/generated/prisma'
 
-// Schema
+// Visibility enum for schema
+const visibilityEnum = z.enum(['INTERNAL', 'INTERNAL_CLIENT', 'INTERNAL_CANDIDATE', 'ALL'])
+
+// Schema - all fields with defaults are optional on input
 const missionSchema = z.object({
   clientId: z.string().min(1, 'Client requis'),
   title: z.string().min(1, 'Titre requis'),
@@ -15,32 +18,35 @@ const missionSchema = z.object({
   seniority: z.enum(['JUNIOR', 'MID', 'SENIOR', 'LEAD', 'EXECUTIVE']).optional(),
   salaryMin: z.number().optional(),
   salaryMax: z.number().optional(),
-  salaryVisible: z.boolean().default(false),
-  currency: z.string().default('EUR'),
+  salaryVisible: z.boolean().optional(),
+  currency: z.string().optional(),
   
   context: z.string().optional(),
-  contextVisibility: z.enum(['INTERNAL', 'INTERNAL_CLIENT', 'INTERNAL_CANDIDATE', 'ALL']).default('INTERNAL'),
+  contextVisibility: visibilityEnum.optional(),
   
   responsibilities: z.string().optional(),
-  responsibilitiesVisibility: z.enum(['INTERNAL', 'INTERNAL_CLIENT', 'INTERNAL_CANDIDATE', 'ALL']).default('ALL'),
+  responsibilitiesVisibility: visibilityEnum.optional(),
   
   mustHave: z.string().optional(),
-  mustHaveVisibility: z.enum(['INTERNAL', 'INTERNAL_CLIENT', 'INTERNAL_CANDIDATE', 'ALL']).default('ALL'),
+  mustHaveVisibility: visibilityEnum.optional(),
   
   niceToHave: z.string().optional(),
-  niceToHaveVisibility: z.enum(['INTERNAL', 'INTERNAL_CLIENT', 'INTERNAL_CANDIDATE', 'ALL']).default('ALL'),
+  niceToHaveVisibility: visibilityEnum.optional(),
   
   redFlags: z.string().optional(),
   
   process: z.string().optional(),
-  processVisibility: z.enum(['INTERNAL', 'INTERNAL_CLIENT', 'INTERNAL_CANDIDATE', 'ALL']).default('INTERNAL_CLIENT'),
+  processVisibility: visibilityEnum.optional(),
   
   calendlyLink: z.string().optional(),
-  calendlyEmbed: z.boolean().default(false),
+  calendlyEmbed: z.boolean().optional(),
   
-  scoreThreshold: z.number().min(0).max(100).default(60),
+  scoreThreshold: z.number().min(0).max(100).optional(),
   shortlistDeadline: z.date().optional(),
 })
+
+// Input type for creating missions (makes optional fields truly optional)
+export type CreateMissionInput = z.input<typeof missionSchema>
 
 // Helper to get current user's organization
 async function getOrganizationId(): Promise<string> {
@@ -163,7 +169,7 @@ export async function getMission(id: string) {
 }
 
 // Create mission
-export async function createMission(data: z.infer<typeof missionSchema>) {
+export async function createMission(data: CreateMissionInput) {
   const organizationId = await getOrganizationId()
   const recruiterId = await getCurrentUserId()
   const validated = missionSchema.parse(data)
@@ -177,21 +183,37 @@ export async function createMission(data: z.infer<typeof missionSchema>) {
   })
 
   if (!client) {
-    throw new Error('Client non trouvé')
+    throw new Error('Client non trouve')
   }
 
   const mission = await prisma.mission.create({
     data: {
-      ...validated,
+      title: validated.title,
+      clientId: validated.clientId,
       organizationId,
       recruiterId,
+      location: validated.location,
       contractType: validated.contractType as ContractType | undefined,
       seniority: validated.seniority as Seniority | undefined,
-      contextVisibility: validated.contextVisibility as Visibility,
-      responsibilitiesVisibility: validated.responsibilitiesVisibility as Visibility,
-      mustHaveVisibility: validated.mustHaveVisibility as Visibility,
-      niceToHaveVisibility: validated.niceToHaveVisibility as Visibility,
-      processVisibility: validated.processVisibility as Visibility,
+      salaryMin: validated.salaryMin,
+      salaryMax: validated.salaryMax,
+      salaryVisible: validated.salaryVisible ?? false,
+      currency: validated.currency ?? 'EUR',
+      context: validated.context,
+      contextVisibility: (validated.contextVisibility ?? 'INTERNAL') as Visibility,
+      responsibilities: validated.responsibilities,
+      responsibilitiesVisibility: (validated.responsibilitiesVisibility ?? 'ALL') as Visibility,
+      mustHave: validated.mustHave,
+      mustHaveVisibility: (validated.mustHaveVisibility ?? 'ALL') as Visibility,
+      niceToHave: validated.niceToHave,
+      niceToHaveVisibility: (validated.niceToHaveVisibility ?? 'ALL') as Visibility,
+      redFlags: validated.redFlags,
+      process: validated.process,
+      processVisibility: (validated.processVisibility ?? 'INTERNAL_CLIENT') as Visibility,
+      calendlyLink: validated.calendlyLink,
+      calendlyEmbed: validated.calendlyEmbed ?? false,
+      scoreThreshold: validated.scoreThreshold ?? 60,
+      shortlistDeadline: validated.shortlistDeadline,
     },
   })
 

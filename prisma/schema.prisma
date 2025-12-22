@@ -24,17 +24,65 @@ model Organization {
   defaultCalendlyLink   String?
   retentionDaysIgnored  Int      @default(90)
   retentionDaysActive   Int      @default(365)
+  onboardingCompleted   Boolean  @default(false)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  users      User[]
-  clients    Client[]
-  missions   Mission[]
-  candidates Candidate[]
-  pools      Pool[]
-  events     Event[]
+  users        User[]
+  clients      Client[]
+  missions     Mission[]
+  candidates   Candidate[]
+  pools        Pool[]
+  events       Event[]
+  subscription Subscription?
 
   @@map("organizations")
+}
+
+// ============================================
+// BILLING & SUBSCRIPTIONS
+// ============================================
+
+model Subscription {
+  id                     String             @id @default(cuid())
+  organizationId         String             @unique
+  stripeCustomerId       String             @unique
+  stripeSubscriptionId   String?            @unique
+  stripePriceId          String?
+  plan                   Plan               @default(CORE)
+  billingPeriod          BillingPeriod      @default(MONTHLY)
+  status                 SubscriptionStatus @default(TRIALING)
+  trialEndsAt            DateTime?
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean            @default(false)
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([stripeCustomerId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+enum Plan {
+  CORE
+  PRO
+  WHITE_LABEL
+}
+
+enum BillingPeriod {
+  MONTHLY
+  ANNUAL
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
 }
 
 model User {

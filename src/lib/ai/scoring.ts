@@ -1,9 +1,13 @@
 import OpenAI from 'openai'
 import type { Mission, Candidate } from '@/generated/prisma'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+function getOpenAI() {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not configured')
+  }
+  return new OpenAI({ apiKey })
+}
 
 interface ScoringResult {
   score: number
@@ -44,6 +48,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (sans markdown):
 - "archive": score < 40, peu pertinent`
 
   try {
+    const openai = getOpenAI()
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],

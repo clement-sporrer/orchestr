@@ -1,9 +1,13 @@
 import OpenAI from 'openai'
 import type { Mission, Candidate } from '@/generated/prisma'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+function getOpenAI() {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not configured')
+  }
+  return new OpenAI({ apiKey })
+}
 
 type MessageType = 'initial_contact' | 'follow_up' | 'rejection' | 'interview_confirmation'
 
@@ -73,6 +77,7 @@ Réponds en JSON: {"subject": "<objet email>", "content": "<message>"}`,
   }
 
   try {
+    const openai = getOpenAI()
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompts[type] }],

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Building2, Link, Shield, Clock } from 'lucide-react'
+import NextLink from 'next/link'
+import { Loader2, Building2, Link, Shield, Clock, CreditCard, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,18 +18,38 @@ export default function SettingsPage() {
     setLoading(true)
     // Simulate save
     await new Promise((resolve) => setTimeout(resolve, 1000))
-    toast.success('Paramètres enregistrés')
+    toast.success('Parametres enregistres')
     setLoading(false)
   }
 
   return (
     <div className="p-6 max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Paramètres</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Parametres</h1>
         <p className="text-muted-foreground">
           Configurez votre organisation
         </p>
       </div>
+
+      {/* Billing Link */}
+      <NextLink href="/settings/billing">
+        <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+          <CardContent className="flex items-center justify-between p-6">
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <CreditCard className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground">Facturation</p>
+                <p className="text-sm text-muted-foreground">
+                  Gerez votre abonnement et vos moyens de paiement
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </NextLink>
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Organization */}
