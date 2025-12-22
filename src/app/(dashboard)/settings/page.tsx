@@ -150,58 +150,53 @@ export default function SettingsPage() {
         </Card>
 
         {/* LinkedIn Extension */}
-        <Card>
+        <Card className="border-[#0077B5]/20 bg-gradient-to-br from-[#0077B5]/5 to-transparent">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Linkedin className="h-5 w-5 text-[#0077B5]" />
               Extension Chrome LinkedIn
             </CardTitle>
             <CardDescription>
-              Installez l&apos;extension Chrome pour capturer facilement les profils LinkedIn
+              Capturez les profils LinkedIn en 1 clic
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Alert>
-              <Linkedin className="h-4 w-4" />
-              <AlertDescription>
-                L&apos;extension Chrome est la méthode recommandée pour enrichir les profils LinkedIn.
-                Elle fonctionne directement depuis votre navigateur, sans connexion OAuth complexe.
-              </AlertDescription>
-            </Alert>
-
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Avantages de l&apos;extension :</p>
-              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                <li>✅ 100% gratuit - Pas de connexion OAuth nécessaire</li>
-                <li>✅ Capture instantanée depuis n&apos;importe quelle page LinkedIn</li>
-                <li>✅ Extraction complète : expériences, compétences, formation</li>
-                <li>✅ Ajout direct à une mission avec scoring automatique</li>
-                <li>✅ Détection automatique des doublons</li>
-              </ul>
+            <div className="flex items-center gap-4 p-4 bg-white dark:bg-slate-900 rounded-lg border">
+              <div className="flex-shrink-0 p-3 rounded-xl bg-[#0077B5] text-white">
+                <Linkedin className="h-6 w-6" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium">100% gratuit • Installation en 30 secondes</p>
+                <p className="text-sm text-muted-foreground">
+                  Extraction automatique + scoring IA
+                </p>
+              </div>
             </div>
 
-            <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <p className="text-sm font-medium mb-2">📥 Installation :</p>
-              <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                <li>Téléchargez l&apos;extension depuis le dépôt GitHub</li>
-                <li>Ouvrez Chrome et allez dans Extensions → Mode développeur</li>
-                <li>Chargez le dossier <code className="bg-muted px-1 rounded">chrome-extension</code></li>
-                <li>Configurez l&apos;URL de l&apos;API et votre clé dans les paramètres</li>
-              </ol>
-              <p className="text-xs text-muted-foreground mt-3">
-                📖 Consultez le guide complet d&apos;installation dans <code className="bg-muted px-1 rounded">chrome-extension/INSTALLATION.md</code>
-              </p>
-            </div>
-
-            <NextLink href="/settings/extension" className="block">
-              <Button
-                type="button"
-                className="w-full bg-[#0077B5] hover:bg-[#006399]"
+            <div className="grid grid-cols-2 gap-3">
+              <a 
+                href="https://github.com/clement-sporrer/orchestr/archive/refs/heads/main.zip"
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                <Linkedin className="mr-2 h-4 w-4" />
-                Voir le guide d&apos;installation complet
-              </Button>
-            </NextLink>
+                <Button
+                  type="button"
+                  className="w-full bg-[#0077B5] hover:bg-[#006399]"
+                >
+                  <Linkedin className="mr-2 h-4 w-4" />
+                  Télécharger
+                </Button>
+              </a>
+              <NextLink href="/settings/extension">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                >
+                  Guide d&apos;installation
+                </Button>
+              </NextLink>
+            </div>
           </CardContent>
         </Card>
 
