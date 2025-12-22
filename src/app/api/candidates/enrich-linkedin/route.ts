@@ -41,31 +41,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Vérifier si au moins une session LinkedIn est disponible
-    const linkedInUsers = await prisma.user.count({
-      where: {
-        linkedinConnected: true,
-        linkedinAccessToken: { not: null },
-        linkedinRiskLevel: { not: 'blocked' },
-        OR: [
-          { linkedinBlockedUntil: null },
-          { linkedinBlockedUntil: { lt: new Date() } },
-        ],
+    // L'enrichissement automatique via scraping nécessite une connexion LinkedIn
+    // Recommandation : utiliser l'extension Chrome (gratuit et plus fiable)
+    return NextResponse.json(
+      {
+        error: 'Enrichissement automatique non disponible',
+        action: 'use_extension',
+        message:
+          'Pour enrichir les profils LinkedIn, nous recommandons d\'utiliser l\'extension Chrome. ' +
+          'Elle est gratuite, plus fiable et ne nécessite pas de connexion OAuth. ' +
+          'Consultez le guide d\'installation dans les paramètres.',
+        fallback: 'extension_chrome',
       },
-    })
-
-    if (linkedInUsers === 0) {
-      return NextResponse.json(
-        {
-          error: 'Aucun compte LinkedIn connecté',
-          action: 'connect_linkedin',
-          message:
-            'Aucun compte LinkedIn n\'est connecté dans votre organisation. ' +
-            'Veuillez connecter au moins un compte LinkedIn dans les paramètres pour utiliser cette fonctionnalité.',
-        },
-        { status: 403 }
-      )
-    }
+      { status: 403 }
+    )
 
     try {
       // Enrichir le profil

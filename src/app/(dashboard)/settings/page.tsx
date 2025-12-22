@@ -1,106 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useState } from 'react'
 import NextLink from 'next/link'
-import { Loader2, Building2, Link, Shield, Clock, CreditCard, ChevronRight, Linkedin, CheckCircle2, AlertCircle, X } from 'lucide-react'
+import { Loader2, Building2, Link, Shield, Clock, CreditCard, ChevronRight, Linkedin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { toast } from 'sonner'
-
-interface LinkedInStatus {
-  connected: boolean
-  riskLevel?: string | null
-  requestCount?: number
-  lastUsed?: Date | null
-  blockedUntil?: Date | null
-}
-
-const LINKEDIN_ERROR_MESSAGES: Record<string, string> = {
-  'not_configured': 'LinkedIn OAuth n\'est pas configuré. Vérifiez les variables d\'environnement LINKEDIN_CLIENT_ID et LINKEDIN_CLIENT_SECRET.',
-  'not_authenticated': 'Vous devez être connecté pour utiliser cette fonctionnalité.',
-  'user_not_found': 'Utilisateur non trouvé dans la base de données.',
-  'invalid_state': 'Erreur de sécurité OAuth. Veuillez réessayer.',
-  'no_code': 'Aucun code d\'autorisation reçu de LinkedIn.',
-  'connection_failed': 'Échec de la connexion à LinkedIn. Veuillez réessayer.',
-  'access_denied': 'Vous avez refusé l\'autorisation LinkedIn.',
-  'user_cancelled': 'Connexion annulée.',
-}
 
 export default function SettingsPage() {
-  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
-  const [linkedInStatus, setLinkedInStatus] = useState<LinkedInStatus | null>(null)
-  const [linkedInLoading, setLinkedInLoading] = useState(false)
-  const [linkedInError, setLinkedInError] = useState<string | null>(null)
-
-  // Charger le statut LinkedIn et vérifier les erreurs dans l'URL
-  useEffect(() => {
-    loadLinkedInStatus()
-    
-    // Vérifier les erreurs LinkedIn dans l'URL
-    const linkedinError = searchParams.get('linkedin_error')
-    const linkedinConnected = searchParams.get('linkedin_connected')
-    
-    if (linkedinError) {
-      const errorMessage = LINKEDIN_ERROR_MESSAGES[linkedinError] || `Erreur LinkedIn: ${linkedinError}`
-      setLinkedInError(errorMessage)
-      toast.error(errorMessage)
-      // Nettoyer l'URL
-      window.history.replaceState({}, '', window.location.pathname)
-    } else if (linkedinConnected === 'true') {
-      toast.success('Compte LinkedIn connecté avec succès !')
-      loadLinkedInStatus()
-      // Nettoyer l'URL
-      window.history.replaceState({}, '', window.location.pathname)
-    }
-  }, [searchParams])
-
-  const loadLinkedInStatus = async () => {
-    try {
-      const response = await fetch('/api/settings/linkedin/status')
-      if (response.ok) {
-        const data = await response.json()
-        setLinkedInStatus(data)
-      }
-    } catch (error) {
-      console.error('Error loading LinkedIn status:', error)
-    }
-  }
-
-  const handleConnectLinkedIn = async () => {
-    setLinkedInLoading(true)
-    try {
-      window.location.href = '/api/auth/linkedin/connect'
-    } catch (error) {
-      toast.error('Erreur lors de la connexion LinkedIn')
-      setLinkedInLoading(false)
-    }
-  }
-
-  const handleDisconnectLinkedIn = async () => {
-    setLinkedInLoading(true)
-    try {
-      const response = await fetch('/api/settings/linkedin/disconnect', {
-        method: 'POST',
-      })
-      if (response.ok) {
-        toast.success('Compte LinkedIn déconnecté')
-        await loadLinkedInStatus()
-      } else {
-        toast.error('Erreur lors de la déconnexion')
-      }
-    } catch (error) {
-      toast.error('Erreur lors de la déconnexion LinkedIn')
-    } finally {
-      setLinkedInLoading(false)
-    }
-  }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -237,159 +148,59 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* LinkedIn Integration */}
+        {/* LinkedIn Extension */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Linkedin className="h-5 w-5 text-[#0077B5]" />
-              Intégration LinkedIn
+              Extension Chrome LinkedIn
             </CardTitle>
             <CardDescription>
-              Connectez votre compte LinkedIn pour enrichir automatiquement les profils candidats
+              Installez l&apos;extension Chrome pour capturer facilement les profils LinkedIn
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {linkedInStatus?.connected ? (
-              <>
-                <div className="flex items-center justify-between p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    <div>
-                      <p className="font-medium text-green-600">Compte LinkedIn connecté</p>
-                      <p className="text-sm text-muted-foreground">
-                        Votre compte est prêt pour l&apos;enrichissement automatique
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
-                    Actif
-                  </Badge>
-                </div>
+            <Alert>
+              <Linkedin className="h-4 w-4" />
+              <AlertDescription>
+                L&apos;extension Chrome est la méthode recommandée pour enrichir les profils LinkedIn.
+                Elle fonctionne directement depuis votre navigateur, sans connexion OAuth complexe.
+              </AlertDescription>
+            </Alert>
 
-                {linkedInStatus.riskLevel && linkedInStatus.riskLevel !== 'low' && (
-                  <Alert className={linkedInStatus.riskLevel === 'blocked' ? 'border-red-500/50 bg-red-500/10' : 'border-amber-500/50 bg-amber-500/10'}>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      {linkedInStatus.riskLevel === 'blocked' ? (
-                        <>
-                          <strong>Compte temporairement bloqué</strong>
-                          {linkedInStatus.blockedUntil && (
-                            <p className="text-xs mt-1">
-                              Déblocage prévu : {new Date(linkedInStatus.blockedUntil).toLocaleString('fr-FR')}
-                            </p>
-                          )}
-                          <p className="text-xs mt-1">
-                            LinkedIn a détecté une activité suspecte. Le compte sera automatiquement débloqué après la période de blocage.
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <strong>Niveau de risque : {linkedInStatus.riskLevel}</strong>
-                          <p className="text-xs mt-1">
-                            Le système surveille automatiquement l&apos;utilisation pour protéger votre compte.
-                          </p>
-                        </>
-                      )}
-                    </AlertDescription>
-                  </Alert>
-                )}
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Avantages de l&apos;extension :</p>
+              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                <li>✅ 100% gratuit - Pas de connexion OAuth nécessaire</li>
+                <li>✅ Capture instantanée depuis n&apos;importe quelle page LinkedIn</li>
+                <li>✅ Extraction complète : expériences, compétences, formation</li>
+                <li>✅ Ajout direct à une mission avec scoring automatique</li>
+                <li>✅ Détection automatique des doublons</li>
+              </ul>
+            </div>
 
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Requêtes cette heure</p>
-                    <p className="font-medium">{linkedInStatus.requestCount || 0} / 30</p>
-                  </div>
-                  {linkedInStatus.lastUsed && (
-                    <div>
-                      <p className="text-muted-foreground">Dernière utilisation</p>
-                      <p className="font-medium">
-                        {new Date(linkedInStatus.lastUsed).toLocaleString('fr-FR', {
-                          day: 'numeric',
-                          month: 'short',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
-                    </div>
-                  )}
-                </div>
+            <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-sm font-medium mb-2">📥 Installation :</p>
+              <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+                <li>Téléchargez l&apos;extension depuis le dépôt GitHub</li>
+                <li>Ouvrez Chrome et allez dans Extensions → Mode développeur</li>
+                <li>Chargez le dossier <code className="bg-muted px-1 rounded">chrome-extension</code></li>
+                <li>Configurez l&apos;URL de l&apos;API et votre clé dans les paramètres</li>
+              </ol>
+              <p className="text-xs text-muted-foreground mt-3">
+                📖 Consultez le guide complet d&apos;installation dans <code className="bg-muted px-1 rounded">chrome-extension/INSTALLATION.md</code>
+              </p>
+            </div>
 
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Limites de sécurité</p>
-                    <p className="text-sm text-muted-foreground">
-                      30 requêtes/heure maximum • 3 secondes entre chaque requête
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleDisconnectLinkedIn}
-                    disabled={linkedInLoading}
-                  >
-                    {linkedInLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Déconnexion...
-                      </>
-                    ) : (
-                      <>
-                        <X className="mr-2 h-4 w-4" />
-                        Déconnecter
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                {linkedInError && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{linkedInError}</AlertDescription>
-                  </Alert>
-                )}
-
-                <Alert>
-                  <Linkedin className="h-4 w-4" />
-                  <AlertDescription>
-                    Connectez votre compte LinkedIn pour activer l&apos;enrichissement automatique des profils.
-                    Le système utilisera votre session authentifiée pour extraire les données de manière sécurisée.
-                  </AlertDescription>
-                </Alert>
-
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Avantages :</p>
-                  <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                    <li>Enrichissement automatique depuis une URL LinkedIn</li>
-                    <li>Extraction des expériences, compétences, formation</li>
-                    <li>Génération automatique de tags par IA</li>
-                    <li>Protection de votre compte avec limites de sécurité</li>
-                  </ul>
-                </div>
-
-                <Button
-                  type="button"
-                  onClick={handleConnectLinkedIn}
-                  disabled={linkedInLoading}
-                  className="w-full bg-[#0077B5] hover:bg-[#006399]"
-                >
-                  {linkedInLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Connexion...
-                    </>
-                  ) : (
-                    <>
-                      <Linkedin className="mr-2 h-4 w-4" />
-                      Connecter mon compte LinkedIn
-                    </>
-                  )}
-                </Button>
-              </>
-            )}
+            <NextLink href="/settings/extension" className="block">
+              <Button
+                type="button"
+                className="w-full bg-[#0077B5] hover:bg-[#006399]"
+              >
+                <Linkedin className="mr-2 h-4 w-4" />
+                Voir le guide d&apos;installation complet
+              </Button>
+            </NextLink>
           </CardContent>
         </Card>
 
