@@ -82,11 +82,7 @@ export class LinkedInSessionPool {
     }
 
     // Trier les sessions par priorité
-    const sortedSessions = Array.from(this.sessions.entries())
-      .map(([userId, session]) => ({
-        userId,
-        ...session,
-      }))
+    const sortedSessions = Array.from(this.sessions.values())
       .sort((a, b) => {
         // Priorité 1: Niveau de risque (low < medium < high)
         const riskOrder = { low: 0, medium: 1, high: 2, blocked: 3 }
