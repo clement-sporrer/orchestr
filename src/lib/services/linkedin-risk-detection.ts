@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@/generated/prisma'
 
 export type RiskLevel = 'low' | 'medium' | 'high' | 'blocked'
 
@@ -176,7 +177,7 @@ export async function handleScrapingError(
       data: {
         linkedinConnected: false,
         linkedinRiskLevel: 'blocked',
-        linkedinCookies: null,
+        linkedinCookies: Prisma.JsonNull,
       },
     })
     return

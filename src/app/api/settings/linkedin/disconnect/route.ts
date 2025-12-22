@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@/generated/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
         linkedinAccessToken: null,
         linkedinRefreshToken: null,
         linkedinExpiresAt: null,
-        linkedinCookies: null,
+        linkedinCookies: Prisma.JsonNull,
         linkedinRiskLevel: null,
         linkedinBlockedUntil: null,
         linkedinRequestCount: 0,
