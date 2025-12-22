@@ -7,26 +7,16 @@ import {
   Briefcase, 
   Users, 
   Plus,
-  MoreHorizontal,
   Pencil,
-  Trash,
   ExternalLink,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { getClient } from '@/lib/actions/clients'
 import { ContactDialog } from '@/components/clients/contact-dialog'
-import { DeleteClientDialog } from '@/components/clients/delete-client-dialog'
-import { EditClientDialog } from '@/components/clients/edit-client-dialog'
+import { ClientActions } from '@/components/clients/client-actions'
 
 interface ClientDetailPageProps {
   params: Promise<{ id: string }>
@@ -112,31 +102,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
               Nouvelle mission
             </Link>
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <EditClientDialog client={client}>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Modifier
-                </DropdownMenuItem>
-              </EditClientDialog>
-              <DropdownMenuSeparator />
-              <DeleteClientDialog clientId={client.id} clientName={client.name}>
-                <DropdownMenuItem 
-                  onSelect={(e) => e.preventDefault()}
-                  className="text-destructive"
-                >
-                  <Trash className="mr-2 h-4 w-4" />
-                  Supprimer
-                </DropdownMenuItem>
-              </DeleteClientDialog>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ClientActions client={client} />
         </div>
       </div>
 

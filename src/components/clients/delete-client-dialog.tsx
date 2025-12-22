@@ -18,13 +18,18 @@ import { toast } from 'sonner'
 interface DeleteClientDialogProps {
   clientId: string
   clientName: string
-  children: React.ReactNode
+  children?: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function DeleteClientDialog({ clientId, clientName, children }: DeleteClientDialogProps) {
+export function DeleteClientDialog({ clientId, clientName, children, open: controlledOpen, onOpenChange }: DeleteClientDialogProps) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const setOpen = onOpenChange || setInternalOpen
 
   const handleDelete = async () => {
     setLoading(true)
@@ -41,9 +46,11 @@ export function DeleteClientDialog({ clientId, clientName, children }: DeleteCli
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
-        {children}
-      </AlertDialogTrigger>
+      {children && (
+        <AlertDialogTrigger asChild>
+          {children}
+        </AlertDialogTrigger>
+      )}
       <AlertDialogContent>
         <AlertDialogHeader>
           <div className="flex items-center gap-3">

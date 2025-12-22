@@ -66,7 +66,32 @@ export function KanbanBoard({ missionId, candidates, stages }: KanbanBoardProps)
     if (!over) return
 
     const candidateId = active.id as string
-    const targetStage = over.id as PipelineStage
+    const overId = over.id as string
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/969acf1d-f25c-4d68-8363-89eb500b6a8c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kanban-board.tsx:handleDragEnd',message:'DragEnd event',data:{candidateId,overId,isStage:stages.some(s => s.value === overId)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+    // #endregion
+    
+    // H1 FIX: Check if overId is actually a stage value, not a card ID
+    const targetStage = stages.find(s => s.value === overId)?.value
+    if (!targetStage) {
+      // Dropped on a card, not a column - find the stage of that card
+      const targetCard = candidates.find(c => c.id === overId)
+      if (!targetCard) return
+      // Use the stage of the card we dropped on
+      const stageFromCard = targetCard.stage
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/969acf1d-f25c-4d68-8363-89eb500b6a8c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'kanban-board.tsx:handleDragEnd',message:'Dropped on card, using card stage',data:{overId,stageFromCard},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+      // #endregion
+      const candidate = candidates.find((c) => c.id === candidateId)
+      if (!candidate || candidate.stage === stageFromCard) return
+      try {
+        await updateCandidateStage(candidateId, stageFromCard)
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Erreur lors du déplacement')
+      }
+      return
+    }
 
     const candidate = candidates.find((c) => c.id === candidateId)
     if (!candidate || candidate.stage === targetStage) return

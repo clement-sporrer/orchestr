@@ -27,12 +27,17 @@ interface Client {
 
 interface EditClientDialogProps {
   client: Client
-  children: React.ReactNode
+  children?: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function EditClientDialog({ client, children }: EditClientDialogProps) {
-  const [open, setOpen] = useState(false)
+export function EditClientDialog({ client, children, open: controlledOpen, onOpenChange }: EditClientDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const setOpen = onOpenChange || setInternalOpen
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -59,9 +64,11 @@ export function EditClientDialog({ client, children }: EditClientDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+      {children && (
+        <DialogTrigger asChild>
+          {children}
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Modifier le client</DialogTitle>
