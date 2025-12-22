@@ -75,6 +75,7 @@ class OrchestrExtension {
   async checkCurrentPage() {
     // If not configured, show settings
     if (!this.settings.apiUrl || !this.settings.apiKey) {
+      console.log('ORCHESTR: Settings not configured');
       this.showPanel('settings');
       this.updateStatus('warning');
       return;
@@ -82,14 +83,17 @@ class OrchestrExtension {
     
     // Get current tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    console.log('ORCHESTR: Current tab:', tab.url);
     
     if (!tab.url || !tab.url.includes('linkedin.com/in/')) {
+      console.log('ORCHESTR: Not on LinkedIn profile page');
       this.showPanel('notLinkedIn');
       this.updateStatus('warning');
       return;
     }
     
     // We're on a LinkedIn profile - extract data
+    console.log('ORCHESTR: On LinkedIn profile, extracting...');
     this.updateStatus('success');
     await this.loadMissions();
     await this.extractCurrentProfile(tab.id);
@@ -97,18 +101,50 @@ class OrchestrExtension {
 
   async extractCurrentProfile(tabId) {
     try {
-      const response = await chrome.tabs.sendMessage(tabId, { action: 'extractProfile' });
+      console.log('ORCHESTR: Requesting profile extraction from tab', tabId);
       
-      if (response.success) {
+      // Try to send message - if it fails, inject content script first
+      let response;
+      try {
+        response = await chrome.tabs.sendMessage(tabId, { action: 'extractProfile' });
+      } catch (err) {
+        // Content script might not be loaded - inject it
+        console.log('ORCHESTR: Content script not loaded, injecting...');
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          files: ['content.js']
+        });
+        
+        // Wait a bit for script to initialize
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Try again
+        response = await chrome.tabs.sendMessage(tabId, { action: 'extractProfile' });
+      }
+      
+      console.log('ORCHESTR: Received response:', response);
+      
+      if (response && response.success) {
         this.currentProfile = response.data;
+        console.log('ORCHESTR: Profile extracted successfully:', this.currentProfile);
         this.updateProfilePreview();
         this.showPanel('capture');
       } else {
+        const errorMsg = response?.error || 'Could not extract profile data';
+        console.error('ORCHESTR: Extraction failed:', errorMsg);
+        this.showResult(errorMsg, 'error');
         this.showPanel('notLinkedIn');
       }
     } catch (error) {
-      console.error('Error extracting profile:', error);
-      // Content script might not be loaded yet
+      console.error('ORCHESTR: Error extracting profile:', error);
+      
+      // Check if content script is not loaded
+      if (error.message && error.message.includes('Could not establish connection')) {
+        this.showResult('Extension non chargée. Rechargez la page LinkedIn et réessayez.', 'error');
+      } else {
+        this.showResult(`Erreur: ${error.message || 'Erreur inconnue'}`, 'error');
+      }
+      
       this.showPanel('notLinkedIn');
     }
   }
@@ -124,9 +160,14 @@ class OrchestrExtension {
   }
 
   async loadMissions() {
-    if (!this.settings.apiUrl || !this.settings.apiKey) return;
+    if (!this.settings.apiUrl || !this.settings.apiKey) {
+      console.log('ORCHESTR: Cannot load missions - settings not configured');
+      return;
+    }
     
     try {
+      console.log('ORCHESTR: Loading missions from', `${this.settings.apiUrl}/api/extension/capture`);
+      
       const response = await fetch(`${this.settings.apiUrl}/api/extension/capture`, {
         method: 'GET',
         headers: {
@@ -135,13 +176,19 @@ class OrchestrExtension {
         }
       });
       
+      console.log('ORCHESTR: Missions response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
         this.missions = data.missions || [];
+        console.log('ORCHESTR: Loaded', this.missions.length, 'missions');
         this.updateMissionSelect();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('ORCHESTR: Failed to load missions:', response.status, errorData);
       }
     } catch (error) {
-      console.error('Error loading missions:', error);
+      console.error('ORCHESTR: Error loading missions:', error);
     }
   }
 
@@ -163,11 +210,22 @@ class OrchestrExtension {
       return;
     }
     
+    if (!this.currentProfile.firstName || !this.currentProfile.lastName) {
+      this.showResult('Impossible de capturer: nom du profil manquant', 'error');
+      return;
+    }
+    
     const missionId = document.getElementById('missionSelect').value;
     
     this.showLoading(true);
     
     try {
+      console.log('ORCHESTR: Sending profile to API:', {
+        url: `${this.settings.apiUrl}/api/extension/capture`,
+        profile: this.currentProfile,
+        missionId
+      });
+      
       const response = await fetch(`${this.settings.apiUrl}/api/extension/capture`, {
         method: 'POST',
         headers: {
@@ -180,7 +238,10 @@ class OrchestrExtension {
         })
       });
       
+      console.log('ORCHESTR: API response status:', response.status);
+      
       const data = await response.json();
+      console.log('ORCHESTR: API response data:', data);
       
       this.showLoading(false);
       
@@ -194,12 +255,20 @@ class OrchestrExtension {
         
         this.showResult(message, 'success');
       } else {
-        this.showResult(data.error || 'Erreur lors de la capture', 'error');
+        const errorMsg = data.error || `Erreur ${response.status}: ${response.statusText}`;
+        console.error('ORCHESTR: API error:', errorMsg);
+        this.showResult(errorMsg, 'error');
       }
     } catch (error) {
-      console.error('Capture error:', error);
+      console.error('ORCHESTR: Capture error:', error);
       this.showLoading(false);
-      this.showResult('Erreur de connexion à l\'API', 'error');
+      
+      let errorMsg = 'Erreur de connexion à l\'API';
+      if (error.message) {
+        errorMsg += `: ${error.message}`;
+      }
+      
+      this.showResult(errorMsg, 'error');
     }
   }
 

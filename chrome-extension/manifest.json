@@ -5,11 +5,15 @@
   "description": "Capturez les profils LinkedIn directement dans votre base ORCHESTR",
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "tabs",
+    "scripting"
   ],
   "host_permissions": [
     "https://www.linkedin.com/*",
-    "https://linkedin.com/*"
+    "https://linkedin.com/*",
+    "http://localhost/*",
+    "https://*/*"
   ],
   "action": {
     "default_popup": "popup.html",
