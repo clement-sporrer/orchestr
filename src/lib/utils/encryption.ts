@@ -23,7 +23,7 @@ export function encrypt(text: string): string {
 
   try {
     const iv = crypto.randomBytes(16)
-    const key = Buffer.from(ENCRYPTION_KEY, 'hex')
+    const key = Buffer.from(ENCRYPTION_KEY!, 'hex') // ENCRYPTION_KEY vérifié au début
     const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
     
     let encrypted = cipher.update(text, 'utf8', 'hex')
@@ -54,7 +54,10 @@ export function decrypt(encryptedText: string): string {
     }
 
     const [ivHex, authTagHex, encrypted] = parts
-    const key = Buffer.from(ENCRYPTION_KEY, 'hex')
+    if (!ivHex || !authTagHex || !encrypted) {
+      throw new Error('Invalid encrypted format - missing parts')
+    }
+    const key = Buffer.from(ENCRYPTION_KEY!, 'hex') // ENCRYPTION_KEY vérifié au début
     const iv = Buffer.from(ivHex, 'hex')
     const authTag = Buffer.from(authTagHex, 'hex')
     

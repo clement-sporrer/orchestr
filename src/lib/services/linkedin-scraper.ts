@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer'
+import puppeteer, { type Browser } from 'puppeteer'
 import { prisma } from '@/lib/prisma'
 import { decrypt } from '@/lib/utils/encryption'
 import { checkSessionSafety, markSessionUsed, handleScrapingError } from './linkedin-risk-detection'
@@ -43,7 +43,7 @@ export async function scrapeLinkedInProfile(
     throw new Error('LinkedIn non connecté pour cet utilisateur')
   }
 
-  let browser: puppeteer.Browser | null = null
+  let browser: Browser | null = null
   let retryCount = 0
 
   while (retryCount <= MAX_RETRIES) {
