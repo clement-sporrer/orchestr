@@ -9,48 +9,175 @@ import {
   Clock,
   TrendingUp,
   Calendar,
+  MessageSquare,
+  UserPlus,
+  FileText,
+  CheckCircle2,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { prisma } from '@/lib/prisma'
+import { createClient } from '@/lib/supabase/server'
+import { formatDistanceToNow } from 'date-fns'
+import { fr } from 'date-fns/locale'
 
-// Stats cards data - Demo data (will be replaced with real data)
-const stats = [
-  {
-    title: 'Missions actives',
-    value: '12',
-    change: '+2 ce mois',
-    icon: Briefcase,
-    href: '/missions',
-  },
-  {
-    title: 'Candidats ce mois',
-    value: '48',
-    change: '+15% vs mois dernier',
-    icon: Users,
-    href: '/candidates',
-  },
-  {
-    title: 'Tâches en attente',
-    value: '7',
-    change: '3 urgentes',
-    icon: ListTodo,
-    href: '/tasks',
-  },
-  {
-    title: 'Shortlists envoyées',
-    value: '5',
-    change: '2 en attente feedback',
-    icon: Send,
-    href: '/missions',
-  },
-]
+// Get current user's organization
+async function getOrganizationId(): Promise<{ organizationId: string; userId: string } | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user?.email) {
+    return null
+  }
 
-function StatsCards() {
+  const dbUser = await prisma.user.findUnique({
+    where: { email: user.email },
+    select: { organizationId: true, id: true },
+  })
+
+  if (!dbUser) {
+    return null
+  }
+
+  return { organizationId: dbUser.organizationId, userId: dbUser.id }
+}
+
+// Get stats from database
+async function getDashboardStats() {
+  const context = await getOrganizationId()
+  if (!context) return null
+
+  const { organizationId, userId } = context
+  const now = new Date()
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+
+  const [
+    activeMissionsCount,
+    candidatesThisMonth,
+    pendingTasksCount,
+    urgentTasksCount,
+    shortlistsSentCount,
+    pendingFeedbackCount,
+  ] = await Promise.all([
+    // Active missions
+    prisma.mission.count({
+      where: { organizationId, status: 'ACTIVE' },
+    }),
+    // Candidates added this month
+    prisma.candidate.count({
+      where: { organizationId, createdAt: { gte: startOfMonth } },
+    }),
+    // Pending tasks for user
+    prisma.task.count({
+      where: { userId, completedAt: null },
+    }),
+    // Urgent tasks
+    prisma.task.count({
+      where: { userId, completedAt: null, priority: { in: ['HIGH', 'URGENT'] } },
+    }),
+    // Shortlists sent
+    prisma.shortlist.count({
+      where: { mission: { organizationId } },
+    }),
+    // Pending feedback (shortlist candidates without feedback)
+    prisma.shortlistCandidate.count({
+      where: {
+        shortlist: { mission: { organizationId } },
+        feedback: null,
+      },
+    }),
+  ])
+
+  // Get last month's candidates for comparison
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const candidatesLastMonth = await prisma.candidate.count({
+    where: {
+      organizationId,
+      createdAt: { gte: lastMonthStart, lt: startOfMonth },
+    },
+  })
+
+  const candidateChange = candidatesLastMonth > 0
+    ? Math.round(((candidatesThisMonth - candidatesLastMonth) / candidatesLastMonth) * 100)
+    : 0
+
+  return {
+    activeMissions: {
+      value: activeMissionsCount,
+      change: `${activeMissionsCount} en cours`,
+    },
+    candidatesThisMonth: {
+      value: candidatesThisMonth,
+      change: candidateChange >= 0 ? `+${candidateChange}% vs mois dernier` : `${candidateChange}% vs mois dernier`,
+    },
+    pendingTasks: {
+      value: pendingTasksCount,
+      change: urgentTasksCount > 0 ? `${urgentTasksCount} urgente${urgentTasksCount > 1 ? 's' : ''}` : 'Aucune urgente',
+    },
+    shortlists: {
+      value: shortlistsSentCount,
+      change: pendingFeedbackCount > 0 ? `${pendingFeedbackCount} en attente feedback` : 'Tous traités',
+    },
+  }
+}
+
+async function StatsCards() {
+  const stats = await getDashboardStats()
+  
+  if (!stats) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i}>
+            <CardHeader className="pb-2">
+              <Skeleton className="h-4 w-24" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-3 w-20 mt-2" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
+  }
+
+  const statItems = [
+    {
+      title: 'Missions actives',
+      value: stats.activeMissions.value.toString(),
+      change: stats.activeMissions.change,
+      icon: Briefcase,
+      href: '/missions',
+    },
+    {
+      title: 'Candidats ce mois',
+      value: stats.candidatesThisMonth.value.toString(),
+      change: stats.candidatesThisMonth.change,
+      icon: Users,
+      href: '/candidates',
+    },
+    {
+      title: 'Tâches en attente',
+      value: stats.pendingTasks.value.toString(),
+      change: stats.pendingTasks.change,
+      icon: ListTodo,
+      href: '/tasks',
+    },
+    {
+      title: 'Shortlists envoyées',
+      value: stats.shortlists.value.toString(),
+      change: stats.shortlists.change,
+      icon: Send,
+      href: '/missions',
+    },
+  ]
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat) => (
+      {statItems.map((stat) => (
         <Link key={stat.title} href={stat.href}>
           <Card className="hover:border-primary/50 transition-colors cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -72,14 +199,59 @@ function StatsCards() {
   )
 }
 
-function TasksList() {
-  // Mock data - will be replaced with real data
-  const tasks = [
-    { id: '1', title: 'Relancer Marie Dupont', dueDate: 'Aujourd\'hui', priority: 'high', candidate: 'Marie Dupont', mission: 'Product Manager - TechCorp' },
-    { id: '2', title: 'Préparer entretien Jean Martin', dueDate: 'Demain', priority: 'medium', candidate: 'Jean Martin', mission: 'CTO - StartupXYZ' },
-    { id: '3', title: 'Envoyer shortlist DataCorp', dueDate: 'Dans 2 jours', priority: 'medium', mission: 'Data Engineer - DataCorp' },
-    { id: '4', title: 'Appeler Pierre Bernard', dueDate: 'Cette semaine', priority: 'low', candidate: 'Pierre Bernard', mission: 'Sales Director - SalesForce' },
-  ]
+async function TasksList() {
+  const context = await getOrganizationId()
+  if (!context) return null
+
+  const tasks = await prisma.task.findMany({
+    where: {
+      userId: context.userId,
+      completedAt: null,
+    },
+    orderBy: [
+      { priority: 'desc' },
+      { dueDate: 'asc' },
+    ],
+    take: 5,
+  })
+
+  const formatDueDate = (date: Date | null) => {
+    if (!date) return 'Pas de date'
+    const now = new Date()
+    const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    
+    if (diffDays < 0) return 'En retard'
+    if (diffDays === 0) return "Aujourd'hui"
+    if (diffDays === 1) return 'Demain'
+    if (diffDays <= 7) return `Dans ${diffDays} jours`
+    return formatDistanceToNow(date, { addSuffix: true, locale: fr })
+  }
+
+  if (tasks.length === 0) {
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Tâches à faire</CardTitle>
+            <CardDescription>Vos prochaines actions</CardDescription>
+          </div>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/tasks">
+              Voir tout
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+            <CheckCircle2 className="h-12 w-12 mb-4 text-green-500" />
+            <p className="font-medium">Aucune tâche en attente</p>
+            <p className="text-sm">Vous êtes à jour !</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card>
@@ -103,14 +275,20 @@ function TasksList() {
           >
             <div className="flex-1 space-y-1">
               <p className="text-sm font-medium leading-none">{task.title}</p>
-              <p className="text-xs text-muted-foreground">{task.mission}</p>
+              {task.description && (
+                <p className="text-xs text-muted-foreground line-clamp-1">{task.description}</p>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Badge 
-                variant={task.priority === 'high' ? 'destructive' : 'secondary'}
+                variant={
+                  task.priority === 'URGENT' ? 'destructive' : 
+                  task.priority === 'HIGH' ? 'destructive' : 
+                  'secondary'
+                }
                 className="text-xs"
               >
-                {task.dueDate}
+                {formatDueDate(task.dueDate)}
               </Badge>
             </div>
           </div>
@@ -120,29 +298,94 @@ function TasksList() {
   )
 }
 
-function RecentActivity() {
-  // Mock data - will be replaced with real data
-  const activities = [
-    { id: '1', type: 'candidate_added', description: 'Sophie Lefebvre ajoutée à Product Manager - TechCorp', time: 'Il y a 2h' },
-    { id: '2', type: 'interview_scheduled', description: 'Entretien planifié avec Thomas Rousseau', time: 'Il y a 3h' },
-    { id: '3', type: 'feedback_received', description: 'Feedback reçu de DataCorp sur la shortlist', time: 'Il y a 5h' },
-    { id: '4', type: 'mission_created', description: 'Nouvelle mission: Frontend Developer - WebAgency', time: 'Hier' },
-    { id: '5', type: 'portal_completed', description: 'Emma Blanc a complété son profil candidat', time: 'Hier' },
-  ]
+async function RecentActivity() {
+  const context = await getOrganizationId()
+  if (!context) return null
+
+  const interactions = await prisma.interaction.findMany({
+    where: {
+      candidate: { organizationId: context.organizationId },
+    },
+    include: {
+      candidate: {
+        select: { firstName: true, lastName: true },
+      },
+      missionCandidate: {
+        include: {
+          mission: {
+            select: { title: true, client: { select: { name: true } } },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 6,
+  })
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'candidate_added':
-        return <Users className="h-4 w-4" />
-      case 'interview_scheduled':
+      case 'MESSAGE':
+      case 'EMAIL':
+        return <MessageSquare className="h-4 w-4" />
+      case 'INTERVIEW_SCHEDULED':
+      case 'INTERVIEW_DONE':
         return <Calendar className="h-4 w-4" />
-      case 'feedback_received':
+      case 'CLIENT_FEEDBACK':
         return <TrendingUp className="h-4 w-4" />
-      case 'mission_created':
-        return <Briefcase className="h-4 w-4" />
+      case 'PORTAL_COMPLETED':
+      case 'PORTAL_INVITED':
+        return <UserPlus className="h-4 w-4" />
+      case 'NOTE':
+        return <FileText className="h-4 w-4" />
       default:
         return <Clock className="h-4 w-4" />
     }
+  }
+
+  const getActivityDescription = (interaction: typeof interactions[0]) => {
+    const candidateName = `${interaction.candidate.firstName} ${interaction.candidate.lastName}`
+    const missionTitle = interaction.missionCandidate?.mission?.title || ''
+    
+    switch (interaction.type) {
+      case 'MESSAGE':
+        return `Message envoyé à ${candidateName}`
+      case 'EMAIL':
+        return `Email envoyé à ${candidateName}`
+      case 'INTERVIEW_SCHEDULED':
+        return `Entretien planifié avec ${candidateName}`
+      case 'INTERVIEW_DONE':
+        return `Entretien terminé avec ${candidateName}`
+      case 'CLIENT_FEEDBACK':
+        return `Feedback client reçu pour ${candidateName}`
+      case 'PORTAL_COMPLETED':
+        return `${candidateName} a complété son profil`
+      case 'PORTAL_INVITED':
+        return `${candidateName} invité au portail candidat`
+      case 'NOTE':
+        return `Note ajoutée pour ${candidateName}`
+      case 'STATUS_CHANGE':
+        return `Statut modifié pour ${candidateName}`
+      default:
+        return `Activité pour ${candidateName}${missionTitle ? ` - ${missionTitle}` : ''}`
+    }
+  }
+
+  if (interactions.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Activité récente</CardTitle>
+          <CardDescription>Les derniers événements</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+            <Clock className="h-12 w-12 mb-4 opacity-50" />
+            <p className="font-medium">Aucune activité récente</p>
+            <p className="text-sm">Commencez par ajouter des candidats</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -152,17 +395,19 @@ function RecentActivity() {
         <CardDescription>Les derniers événements</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {activities.map((activity) => (
+        {interactions.map((interaction) => (
           <div
-            key={activity.id}
+            key={interaction.id}
             className="flex items-start gap-4"
           >
             <div className="p-2 rounded-full bg-muted">
-              {getActivityIcon(activity.type)}
+              {getActivityIcon(interaction.type)}
             </div>
             <div className="flex-1 space-y-1">
-              <p className="text-sm">{activity.description}</p>
-              <p className="text-xs text-muted-foreground">{activity.time}</p>
+              <p className="text-sm">{getActivityDescription(interaction)}</p>
+              <p className="text-xs text-muted-foreground">
+                {formatDistanceToNow(interaction.createdAt, { addSuffix: true, locale: fr })}
+              </p>
             </div>
           </div>
         ))}
@@ -171,14 +416,69 @@ function RecentActivity() {
   )
 }
 
-function ActiveMissions() {
-  // Mock data - will be replaced with real data
-  const missions = [
-    { id: '1', title: 'Product Manager', client: 'TechCorp', candidates: 8, stage: 'Sourcing' },
-    { id: '2', title: 'CTO', client: 'StartupXYZ', candidates: 4, stage: 'Entretiens' },
-    { id: '3', title: 'Data Engineer', client: 'DataCorp', candidates: 12, stage: 'Shortlist' },
-    { id: '4', title: 'Sales Director', client: 'SalesForce', candidates: 6, stage: 'Sourcing' },
-  ]
+async function ActiveMissions() {
+  const context = await getOrganizationId()
+  if (!context) return null
+
+  const missions = await prisma.mission.findMany({
+    where: {
+      organizationId: context.organizationId,
+      status: 'ACTIVE',
+    },
+    include: {
+      client: {
+        select: { name: true },
+      },
+      _count: {
+        select: { missionCandidates: true },
+      },
+      missionCandidates: {
+        select: { stage: true },
+      },
+    },
+    orderBy: { updatedAt: 'desc' },
+    take: 4,
+  })
+
+  const getStageLabel = (mission: typeof missions[0]) => {
+    const stages = mission.missionCandidates.map(mc => mc.stage)
+    if (stages.includes('OFFER')) return 'Offre'
+    if (stages.includes('CLIENT_INTERVIEW')) return 'Entretien client'
+    if (stages.includes('SENT_TO_CLIENT')) return 'Shortlist'
+    if (stages.includes('INTERVIEW_DONE')) return 'Entretiens'
+    if (stages.includes('INTERVIEW_SCHEDULED')) return 'Entretiens'
+    if (stages.includes('RESPONSE_RECEIVED')) return 'Qualification'
+    if (stages.includes('CONTACTED')) return 'Prise de contact'
+    return 'Sourcing'
+  }
+
+  if (missions.length === 0) {
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Missions en cours</CardTitle>
+            <CardDescription>Vos recrutements actifs</CardDescription>
+          </div>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/missions">
+              Voir tout
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+            <Briefcase className="h-12 w-12 mb-4 opacity-50" />
+            <p className="font-medium">Aucune mission active</p>
+            <Button variant="link" asChild className="mt-2">
+              <Link href="/missions/new">Créer une mission</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card>
@@ -204,14 +504,14 @@ function ActiveMissions() {
             >
               <div className="space-y-1">
                 <p className="text-sm font-medium">{mission.title}</p>
-                <p className="text-xs text-muted-foreground">{mission.client}</p>
+                <p className="text-xs text-muted-foreground">{mission.client.name}</p>
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <p className="text-sm font-medium">{mission.candidates}</p>
+                  <p className="text-sm font-medium">{mission._count.missionCandidates}</p>
                   <p className="text-xs text-muted-foreground">candidats</p>
                 </div>
-                <Badge variant="outline">{mission.stage}</Badge>
+                <Badge variant="outline">{getStageLabel(mission)}</Badge>
               </div>
             </Link>
           ))}
@@ -241,7 +541,7 @@ function DashboardSkeleton() {
   )
 }
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -249,10 +549,7 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Tableau de bord</h1>
           <p className="text-muted-foreground">
-            Bienvenue! Voici un aperçu de votre activité.
-          </p>
-          <p className="text-xs text-amber-600 mt-1">
-            ⚠️ Données de démonstration - Les vraies données apparaîtront après l&apos;ajout de missions
+            Bienvenue ! Voici un aperçu de votre activité.
           </p>
         </div>
         <div className="flex gap-2">
@@ -272,15 +569,18 @@ export default function DashboardPage() {
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <TasksList />
-        <ActiveMissions />
+        <Suspense fallback={<Card><CardContent className="p-6"><Skeleton className="h-48" /></CardContent></Card>}>
+          <TasksList />
+        </Suspense>
+        <Suspense fallback={<Card><CardContent className="p-6"><Skeleton className="h-48" /></CardContent></Card>}>
+          <ActiveMissions />
+        </Suspense>
       </div>
 
       {/* Activity */}
-      <RecentActivity />
+      <Suspense fallback={<Card><CardContent className="p-6"><Skeleton className="h-48" /></CardContent></Card>}>
+        <RecentActivity />
+      </Suspense>
     </div>
   )
 }
-
-
-
