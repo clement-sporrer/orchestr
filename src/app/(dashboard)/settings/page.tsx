@@ -175,9 +175,8 @@ export default function SettingsPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <a 
-                href="https://github.com/clement-sporrer/orchestr/archive/refs/heads/main.zip"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/orchestr-extension.zip"
+                download="orchestr-extension.zip"
               >
                 <Button
                   type="button"

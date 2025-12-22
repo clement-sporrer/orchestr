@@ -30,23 +30,23 @@ export default function ExtensionPublicPage() {
 
   const steps = [
     {
-      title: 'Téléchargez le ZIP',
-      description: 'Cliquez sur le bouton de téléchargement',
+      title: 'Téléchargez',
+      description: 'Cliquez sur le gros bouton bleu',
       icon: Download,
     },
     {
-      title: 'Dézippez le fichier',
-      description: 'Double-cliquez sur le fichier téléchargé',
+      title: 'Dézippez',
+      description: 'Double-cliquez sur le fichier .zip',
       icon: FolderOpen,
     },
     {
-      title: 'Ouvrez Chrome',
-      description: 'Allez sur chrome://extensions',
+      title: 'Chrome Extensions',
+      description: 'Ouvrez chrome://extensions',
       icon: Chrome,
     },
     {
-      title: 'Glissez le dossier',
-      description: 'Activez le mode dev et chargez chrome-extension',
+      title: 'Chargez',
+      description: 'Mode dev → Charger non empaquetée',
       icon: MousePointer,
     },
   ]
@@ -72,9 +72,8 @@ export default function ExtensionPublicPage() {
 
         {/* Big Download Button */}
         <a 
-          href="https://github.com/clement-sporrer/orchestr/archive/refs/heads/main.zip"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/orchestr-extension.zip"
+          download="orchestr-extension.zip"
           className="inline-block"
         >
           <Button 
@@ -206,9 +205,8 @@ export default function ExtensionPublicPage() {
             Installez l&apos;extension en 30 secondes
           </p>
           <a 
-            href="https://github.com/clement-sporrer/orchestr/archive/refs/heads/main.zip"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/orchestr-extension.zip"
+            download="orchestr-extension.zip"
           >
             <Button 
               size="lg" 

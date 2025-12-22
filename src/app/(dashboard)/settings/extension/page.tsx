@@ -78,9 +78,8 @@ export default function ExtensionInstallationPage() {
       {/* Big Download Button */}
       <div className="flex justify-center">
         <a 
-          href="https://github.com/clement-sporrer/orchestr/archive/refs/heads/main.zip"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/orchestr-extension.zip"
+          download="orchestr-extension.zip"
         >
           <Button 
             size="lg" 
@@ -125,7 +124,7 @@ export default function ExtensionInstallationPage() {
             <div className="space-y-2">
               <h3 className="font-medium">Après le téléchargement</h3>
               <p className="text-sm text-muted-foreground">
-                Un fichier <code className="bg-muted px-2 py-0.5 rounded">orchestr-main.zip</code> sera téléchargé.
+                Un fichier <code className="bg-muted px-2 py-0.5 rounded">orchestr-extension.zip</code> sera téléchargé.
                 <br />
                 <strong>Double-cliquez dessus</strong> pour le décompresser.
               </p>
@@ -184,7 +183,7 @@ export default function ExtensionInstallationPage() {
               <p className="text-sm text-muted-foreground">
                 Cliquez sur <strong>&quot;Charger l&apos;extension non empaquetée&quot;</strong>
                 <br />
-                Puis sélectionnez le dossier <code className="bg-muted px-2 py-0.5 rounded">chrome-extension</code> dans le dossier dézippé
+                Sélectionnez le dossier <code className="bg-muted px-2 py-0.5 rounded">chrome-extension</code> que vous venez de dézipper
               </p>
             </div>
           </div>
