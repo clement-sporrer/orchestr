@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
-import type { CandidateStatus, Seniority } from '@/generated/prisma'
+import type { CandidateStatus, Seniority, Prisma } from '@/generated/prisma'
 import { parseLinkedInUrl, generateProfileTags, enrichProfileFromText, type EnrichedProfileData } from '@/lib/ai/structuring'
 import { getOrganizationId, getCurrentUserId } from '@/lib/auth/helpers'
 
@@ -24,6 +24,29 @@ const candidateSchema = z.object({
   estimatedSector: z.string().optional(),
   status: z.enum(['ACTIVE', 'TO_RECONTACT', 'BLACKLIST', 'DELETED']).default('ACTIVE'),
 })
+
+// Type for candidate with _count
+const candidateSelect = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  email: true,
+  phone: true,
+  currentPosition: true,
+  currentCompany: true,
+  location: true,
+  tags: true,
+  status: true,
+  relationshipLevel: true,
+  createdAt: true,
+  _count: {
+    select: { missionCandidates: true },
+  },
+} satisfies Prisma.CandidateSelect
+
+export type CandidateWithCount = Prisma.CandidateGetPayload<{
+  select: typeof candidateSelect
+}>
 
 // Get all candidates with pagination
 export async function getCandidates(filters?: {
@@ -65,23 +88,7 @@ export async function getCandidates(filters?: {
   const [candidates, total] = await Promise.all([
     prisma.candidate.findMany({
       where: whereClause,
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-        currentPosition: true,
-        currentCompany: true,
-        location: true,
-        tags: true,
-        status: true,
-        relationshipLevel: true,
-        createdAt: true,
-        _count: {
-          select: { missionCandidates: true },
-        },
-      },
+      select: candidateSelect,
       orderBy: { createdAt: 'desc' },
       skip,
       take: limit,

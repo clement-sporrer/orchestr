@@ -136,7 +136,7 @@ async function CandidatesList({ search, status }: { search?: string; status?: Ca
               )}
 
               <div className="flex items-center justify-between mt-3 pt-3 border-t text-xs text-muted-foreground">
-                <span>{candidate._count?.missionCandidates ?? 0} mission{(candidate._count?.missionCandidates ?? 0) !== 1 ? 's' : ''}</span>
+                <span>{candidate._count.missionCandidates} mission{candidate._count.missionCandidates !== 1 ? 's' : ''}</span>
                 <span>Ajouté le {formatDateClient(candidate.createdAt, 'fr')}</span>
               </div>
             </CardContent>
