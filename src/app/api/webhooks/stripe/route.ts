@@ -4,6 +4,9 @@ import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import type Stripe from 'stripe'
 
+// Force Node.js runtime for Prisma database access
+export const runtime = 'nodejs'
+
 export async function POST(request: Request) {
   const body = await request.text()
   const headersList = await headers()

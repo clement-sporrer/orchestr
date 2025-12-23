@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { prisma } from '@/lib/prisma'
 
+// Force Node.js runtime for Prisma database access
+export const runtime = 'nodejs'
+
 // Zoom Webhook Handler
 // Receives notifications when recordings/transcripts are available
 

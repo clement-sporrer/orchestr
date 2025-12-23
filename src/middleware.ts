@@ -1,7 +1,10 @@
 import { type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
-export async function proxy(request: NextRequest) {
+// Next.js middleware - must export a function named 'middleware'
+// This runs on the Edge runtime for auth session management
+// Note: Does NOT use Prisma/database - only manages Supabase auth cookies
+export async function middleware(request: NextRequest) {
   return await updateSession(request)
 }
 
@@ -18,6 +21,4 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
-
-
 

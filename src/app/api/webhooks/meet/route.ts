@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// Force Node.js runtime for Prisma database access
+export const runtime = 'nodejs'
+
 // Google Meet Webhook Handler
 // This receives notifications from Google Calendar/Meet when meetings end
 // and transcript becomes available

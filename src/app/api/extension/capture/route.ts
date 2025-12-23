@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { scoreCandidate } from '@/lib/ai/scoring'
 import type { Candidate, Mission } from '@/generated/prisma'
 
+// Force Node.js runtime for Prisma database access
+export const runtime = 'nodejs'
+
 // Types for LinkedIn profile data from extension
 export interface LinkedInExperience {
   company: string
