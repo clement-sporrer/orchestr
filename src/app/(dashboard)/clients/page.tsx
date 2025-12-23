@@ -5,23 +5,22 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getClients } from '@/lib/actions/clients'
+import { getClients, type ClientWithCount } from '@/lib/actions/clients'
 
 interface ClientsPageProps {
   searchParams: Promise<{ search?: string }>
 }
 
 async function ClientsList({ search }: { search?: string }) {
-  let result: Awaited<ReturnType<typeof getClients>> | null = null
+  let clients: ClientWithCount[] = []
   
   try {
-    result = await getClients(search, 1, 50)
+    const result = await getClients(search, 1, 50)
+    clients = result.clients
   } catch {
     // Handle case when database is not connected
-    result = null
+    clients = []
   }
-
-  const clients = result?.clients || []
 
   if (clients.length === 0) {
     return (

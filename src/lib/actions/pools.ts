@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import type { Prisma } from '@/generated/prisma'
 import { getOrganizationId } from '@/lib/auth/helpers'
 
 const poolSchema = z.object({
@@ -10,7 +11,18 @@ const poolSchema = z.object({
   description: z.string().optional(),
 })
 
-export async function getPools() {
+// Type for pool with _count
+export type PoolWithCount = Prisma.PoolGetPayload<{
+  include: {
+    _count: {
+      select: {
+        candidates: true
+      }
+    }
+  }
+}>
+
+export async function getPools(): Promise<PoolWithCount[]> {
   const organizationId = await getOrganizationId()
 
   const pools = await prisma.pool.findMany({

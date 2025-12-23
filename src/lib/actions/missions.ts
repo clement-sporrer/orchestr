@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-import type { MissionStatus, ContractType, Seniority, Visibility } from '@/generated/prisma'
+import type { MissionStatus, ContractType, Seniority, Visibility, Prisma } from '@/generated/prisma'
 
 // Visibility enum for schema
 const visibilityEnum = z.enum(['INTERNAL', 'INTERNAL_CLIENT', 'INTERNAL_CANDIDATE', 'ALL'])
@@ -51,6 +51,37 @@ export type CreateMissionInput = z.input<typeof missionSchema>
 // Import secure auth helpers
 import { getOrganizationId, getCurrentUserId } from '@/lib/auth/helpers'
 
+// Type for mission with _count
+export type MissionWithCount = Prisma.MissionGetPayload<{
+  select: {
+    id: true
+    title: true
+    status: true
+    location: true
+    contractType: true
+    seniority: true
+    createdAt: true
+    updatedAt: true
+    client: {
+      select: {
+        id: true
+        name: true
+      }
+    }
+    recruiter: {
+      select: {
+        id: true
+        name: true
+      }
+    }
+    _count: {
+      select: {
+        missionCandidates: true
+      }
+    }
+  }
+}>
+
 // Get all missions with pagination
 export async function getMissions(filters?: {
   status?: MissionStatus
@@ -58,7 +89,15 @@ export async function getMissions(filters?: {
   search?: string
   page?: number
   limit?: number
-}) {
+}): Promise<{
+  missions: MissionWithCount[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}> {
   const organizationId = await getOrganizationId()
   const page = filters?.page || 1
   const limit = Math.min(filters?.limit || 50, 100) // Max 100 per page

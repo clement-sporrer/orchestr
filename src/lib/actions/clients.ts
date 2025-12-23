@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { createClient as createSupabaseClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import type { Prisma } from '@/generated/prisma'
 
 // Schemas
 const clientSchema = z.object({
@@ -24,8 +25,39 @@ const contactSchema = z.object({
 // Import secure auth helper
 import { getOrganizationId } from '@/lib/auth/helpers'
 
+// Type for client with _count
+export type ClientWithCount = Prisma.ClientGetPayload<{
+  select: {
+    id: true
+    name: true
+    sector: true
+    website: true
+    notes: true
+    createdAt: true
+    updatedAt: true
+    _count: {
+      select: {
+        missions: true
+        contacts: true
+      }
+    }
+  }
+}>
+
 // Client Actions with pagination
-export async function getClients(search?: string, page?: number, limit?: number) {
+export async function getClients(
+  search?: string,
+  page?: number,
+  limit?: number
+): Promise<{
+  clients: ClientWithCount[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}> {
   const organizationId = await getOrganizationId()
   const pageNum = page || 1
   const limitNum = Math.min(limit || 50, 100) // Max 100 per page

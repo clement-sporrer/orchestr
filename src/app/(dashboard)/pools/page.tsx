@@ -4,11 +4,11 @@ import { Plus, FolderKanban, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getPools } from '@/lib/actions/pools'
+import { getPools, type PoolWithCount } from '@/lib/actions/pools'
 import { CreatePoolDialog } from '@/components/pools/create-pool-dialog'
 
 async function PoolsList() {
-  let pools: Awaited<ReturnType<typeof getPools>> = []
+  let pools: PoolWithCount[] = []
   
   try {
     pools = await getPools()

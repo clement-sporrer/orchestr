@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getMissions } from '@/lib/actions/missions'
+import { getMissions, type MissionWithCount } from '@/lib/actions/missions'
 import type { MissionStatus } from '@/generated/prisma'
 
 interface MissionsPageProps {
@@ -40,15 +40,14 @@ const statusColors: Record<MissionStatus, string> = {
 }
 
 async function MissionsList({ search, status }: { search?: string; status?: MissionStatus }) {
-  let result: Awaited<ReturnType<typeof getMissions>> | null = null
+  let missions: MissionWithCount[] = []
   
   try {
-    result = await getMissions({ search, status, page: 1, limit: 50 })
+    const result = await getMissions({ search, status, page: 1, limit: 50 })
+    missions = result.missions
   } catch {
-    result = null
+    missions = []
   }
-
-  const missions = result?.missions || []
 
   if (missions.length === 0) {
     return (
