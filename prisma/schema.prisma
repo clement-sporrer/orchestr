@@ -28,14 +28,17 @@ model Organization {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  users           User[]
-  clients         Client[]
-  missions        Mission[]
-  candidates      Candidate[]
-  pools           Pool[]
-  events          Event[]
-  subscription    Subscription?
-  reportTemplates ReportTemplate[]
+  users                User[]
+  clients              Client[]
+  missions             Mission[]
+  candidates           Candidate[]
+  pools                Pool[]
+  events               Event[]
+  subscription         Subscription?
+  reportTemplates      ReportTemplate[]
+  taxonomyPoles        TaxonomyPole[]
+  taxonomyPositions    TaxonomyPosition[]
+  externalAccessTokens ExternalAccessToken[]
 
   @@map("organizations")
 }
@@ -89,22 +92,23 @@ enum SubscriptionStatus {
 model User {
   id             String   @id @default(cuid())
   organizationId String
+  authUserId     String?  @unique @map("auth_user_id") @db.Uuid
   email          String   @unique
   name           String
   role           UserRole @default(RECRUITER)
   avatarUrl      String?
   
-  // LinkedIn OAuth (chiffré)
+  // LinkedIn OAuth (encrypted)
   linkedinConnected     Boolean   @default(false)
-  linkedinAccessToken   String?   // Chiffré
-  linkedinRefreshToken  String?   // Chiffré
+  linkedinAccessToken   String?   // Encrypted
+  linkedinRefreshToken  String?   // Encrypted
   linkedinExpiresAt     DateTime?
-  linkedinCookies       Json?     // Cookies de session (chiffrés)
+  linkedinCookies       Json?     // Session cookies (encrypted)
   linkedinLastUsed      DateTime?
-  linkedinRequestCount  Int       @default(0) // Compteur de requêtes (réinitialisé chaque heure)
-  linkedinLastReset     DateTime? // Dernière réinitialisation du compteur
+  linkedinRequestCount  Int       @default(0) // Request counter (reset hourly)
+  linkedinLastReset     DateTime? // Last counter reset
   linkedinRiskLevel     String?   // 'low', 'medium', 'high', 'blocked'
-  linkedinBlockedUntil  DateTime? // Si bloqué temporairement
+  linkedinBlockedUntil  DateTime? // If temporarily blocked
   
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -124,6 +128,58 @@ model User {
 enum UserRole {
   ADMIN
   RECRUITER
+}
+
+// ============================================
+// TAXONOMY (Poles, Positions)
+// ============================================
+
+model TaxonomyPole {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String
+  name           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  positions    TaxonomyPosition[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@map("taxonomy_poles")
+}
+
+model TaxonomyPosition {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String
+  poleId         String   @db.Uuid
+  name           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pole         TaxonomyPole        @relation(fields: [poleId], references: [id], onDelete: Cascade)
+  candidates   CandidatePosition[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([poleId])
+  @@map("taxonomy_positions")
+}
+
+model CandidatePosition {
+  id          String   @id @default(uuid()) @db.Uuid
+  candidateId String
+  positionId  String   @db.Uuid
+  createdAt   DateTime @default(now())
+
+  candidate Candidate        @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  position  TaxonomyPosition @relation(fields: [positionId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, positionId])
+  @@index([candidateId])
+  @@index([positionId])
+  @@map("candidate_positions")
 }
 
 // ============================================
@@ -217,12 +273,13 @@ model Mission {
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
-  organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  client             Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  recruiter          User?               @relation(fields: [recruiterId], references: [id], onDelete: SetNull)
-  missionCandidates MissionCandidate[]
-  questionnaire      Questionnaire?
-  shortlists         Shortlist[]
+  organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client               Client                @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  recruiter            User?                 @relation(fields: [recruiterId], references: [id], onDelete: SetNull)
+  missionCandidates    MissionCandidate[]
+  questionnaire        Questionnaire?
+  shortlists           Shortlist[]
+  externalAccessTokens ExternalAccessToken[]
 
   @@index([organizationId])
   @@index([clientId])
@@ -267,6 +324,17 @@ enum Visibility {
 // CANDIDATES (TALENT CRM)
 // ============================================
 
+// RelationshipLevel: Global maturity of relationship between org and candidate
+// This is not mission-specific, it tracks the overall relationship progression
+enum RelationshipLevel {
+  SOURCED     // Initial discovery, no contact yet
+  CONTACTED   // First outreach made
+  ENGAGED     // Active dialogue established
+  QUALIFIED   // Skills and fit validated
+  SHORTLISTED // Presented to clients
+  PLACED      // Successfully placed in a role
+}
+
 model Candidate {
   id             String          @id @default(cuid())
   organizationId String
@@ -286,6 +354,9 @@ model Candidate {
   estimatedSeniority Seniority?
   estimatedSector    String?
   
+  // Relationship level (global, not mission-specific)
+  relationshipLevel RelationshipLevel @default(SOURCED)
+  
   // Tags and status
   tags           String[]        @default([])
   status         CandidateStatus @default(ACTIVE)
@@ -302,11 +373,13 @@ model Candidate {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
-  organization      Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  missionCandidates MissionCandidate[]
-  interactions      Interaction[]
-  poolMemberships   CandidatePool[]
-  enrichment        CandidateEnrichment?
+  organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  missionCandidates    MissionCandidate[]
+  interactions         Interaction[]
+  poolMemberships      CandidatePool[]
+  enrichment           CandidateEnrichment?
+  positions            CandidatePosition[]
+  externalAccessTokens ExternalAccessToken[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -314,6 +387,7 @@ model Candidate {
   @@index([phone])
   @@index([profileUrl])
   @@index([status])
+  @@index([relationshipLevel])
   @@map("candidates")
 }
 
@@ -360,7 +434,7 @@ model CandidateEnrichment {
 }
 
 // ============================================
-// LINKEDIN CACHE (pour éviter les requêtes répétées)
+// LINKEDIN CACHE (to avoid repeated requests)
 // ============================================
 
 model LinkedInCache {
@@ -376,7 +450,7 @@ model LinkedInCache {
 }
 
 // ============================================
-// PIPELINE
+// PIPELINE (MissionCandidate = Application bridge)
 // ============================================
 
 model MissionCandidate {
@@ -404,12 +478,13 @@ model MissionCandidate {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
-  mission              Mission                 @relation(fields: [missionId], references: [id], onDelete: Cascade)
-  candidate            Candidate               @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  interactions         Interaction[]
+  mission                Mission                 @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  candidate              Candidate               @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  interactions           Interaction[]
   questionnaireResponses QuestionnaireResponse[]
-  shortlistCandidates  ShortlistCandidate[]
-  interviews           Interview[]
+  shortlistCandidates    ShortlistCandidate[]
+  interviews             Interview[]
+  externalAccessTokens   ExternalAccessToken[]
 
   @@unique([missionId, candidateId])
   @@index([missionId])
@@ -455,6 +530,7 @@ model Pool {
   organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   candidates   CandidatePool[]
 
+  @@unique([organizationId, name])
   @@index([organizationId])
   @@map("pools")
 }
@@ -480,6 +556,7 @@ model CandidatePool {
 
 model Interaction {
   id                  String           @id @default(cuid())
+  organizationId      String
   candidateId         String
   missionCandidateId  String?
   userId              String?
@@ -507,6 +584,7 @@ model Interaction {
   missionCandidate  MissionCandidate? @relation(fields: [missionCandidateId], references: [id], onDelete: SetNull)
   user              User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  @@index([organizationId])
   @@index([candidateId])
   @@index([missionCandidateId])
   @@index([userId])
@@ -823,6 +901,46 @@ enum FeedbackDecision {
   OK
   TO_DISCUSS
   NO
+}
+
+// ============================================
+// EXTERNAL ACCESS TOKENS
+// Secure tokens for candidate and client portals
+// Only tokenHash is stored (SHA-256), never the raw token
+// ============================================
+
+enum ExternalTokenType {
+  CANDIDATE_PORTAL  // Token for candidate to access their application portal
+  CLIENT_PORTAL     // Token for client to access mission/shortlist portal
+}
+
+model ExternalAccessToken {
+  id                 String            @id @default(uuid()) @db.Uuid
+  organizationId     String
+  tokenType          ExternalTokenType
+  tokenHash          String            @unique  // SHA-256 hash of the token
+  expiresAt          DateTime
+  revokedAt          DateTime?
+  
+  // References (nullable based on token type)
+  missionId          String?           // For CLIENT_PORTAL tokens
+  missionCandidateId String?           // For CANDIDATE_PORTAL tokens
+  candidateId        String?           // Optional direct candidate reference
+  
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  mission          Mission?          @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  missionCandidate MissionCandidate? @relation(fields: [missionCandidateId], references: [id], onDelete: Cascade)
+  candidate        Candidate?        @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([expiresAt])
+  @@index([missionId])
+  @@index([missionCandidateId])
+  @@index([candidateId])
+  @@map("external_access_tokens")
 }
 
 // ============================================

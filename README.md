@@ -49,24 +49,30 @@ A modern, complete recruitment management platform for recruitment agencies. Bui
    ```
 
    Required variables:
-   - `DATABASE_URL` - Supabase PostgreSQL connection string
+   - `DATABASE_URL` - Supabase PostgreSQL connection string (pooled)
    - `DIRECT_URL` - Supabase direct connection (for migrations)
    - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
    - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key
    - `OPENAI_API_KEY` - OpenAI API key
 
-3. **Initialize the database**:
+3. **Initialize the database** (see Database Migrations below):
    ```bash
-   npm run db:push
+   npx prisma migrate dev
    ```
 
-4. **Start the development server**:
+4. **Apply Row Level Security policies**:
+   ```bash
+   # Using Supabase CLI or SQL Editor in Dashboard
+   psql $DATABASE_URL < supabase/policies.sql
+   ```
+
+5. **Start the development server**:
    ```bash
    npm run dev
    ```
 
-5. **Open [http://localhost:3000](http://localhost:3000)**
+6. **Open [http://localhost:3000](http://localhost:3000)**
 
 ### Create First User
 
@@ -76,9 +82,83 @@ A modern, complete recruitment management platform for recruitment agencies. Bui
    INSERT INTO organizations (id, name) 
    VALUES ('org_1', 'My Agency');
    
-   INSERT INTO users (id, organization_id, email, name, role) 
-   VALUES ('user_1', 'org_1', 'your@email.com', 'Your Name', 'ADMIN');
+   -- Note: auth_user_id should match the Supabase Auth user's id
+   INSERT INTO users (id, organization_id, auth_user_id, email, name, role) 
+   VALUES ('user_1', 'org_1', 'your-supabase-auth-uuid', 'your@email.com', 'Your Name', 'ADMIN');
    ```
+
+## Database Migrations
+
+ORCHESTR uses Prisma Migrate for database schema management. The schema is defined in `prisma/schema.prisma`.
+
+### Development Workflow
+
+Create and apply migrations during development:
+
+```bash
+# Create a new migration based on schema changes
+npx prisma migrate dev --name descriptive_migration_name
+
+# Apply pending migrations
+npx prisma migrate dev
+```
+
+### Production Deployment
+
+Apply migrations in production environments:
+
+```bash
+# Apply all pending migrations (does not create new ones)
+npx prisma migrate deploy
+```
+
+### Quick Prototyping (Not Recommended for Production)
+
+For rapid local prototyping only, you can push schema changes directly:
+
+```bash
+# WARNING: This skips migration history and may cause data loss
+# Only use for throwaway local development
+npm run db:push
+```
+
+**Important**: Do not use `db:push` in production or shared environments. Always use proper migrations.
+
+### Baseline an Existing Database
+
+If you have an existing database that was set up with `db:push`, baseline it before using migrations:
+
+```bash
+# Generate a baseline migration from current DB state
+npx prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script > prisma/migrations/0000_baseline/migration.sql
+
+# Mark the baseline as applied
+npx prisma migrate resolve --applied 0000_baseline
+```
+
+## Row Level Security (RLS)
+
+ORCHESTR uses Supabase RLS for multi-tenant data isolation. All domain data is scoped by `organizationId`.
+
+### Setup
+
+RLS policies are defined in `supabase/policies.sql`. Apply them after migrations:
+
+```bash
+# Via Supabase CLI
+supabase db push
+
+# Or via psql
+psql $DATABASE_URL < supabase/policies.sql
+```
+
+### How It Works
+
+1. The `current_org_id()` helper function looks up the authenticated user's organization
+2. Each table has policies that check `organization_id = current_org_id()`
+3. Users can only access data belonging to their organization
+
+For detailed documentation, see `docs/database-logic.md`.
 
 ## Deployment
 
@@ -92,8 +172,15 @@ A modern, complete recruitment management platform for recruitment agencies. Bui
 ### Supabase Setup
 
 1. Create a new Supabase project
-2. Run migrations: `npm run db:push`
-3. Set up Row Level Security policies (see `supabase/policies.sql`)
+2. Apply migrations:
+   ```bash
+   npx prisma migrate deploy
+   ```
+3. Apply RLS policies:
+   ```bash
+   psql $DATABASE_URL < supabase/policies.sql
+   ```
+4. Verify RLS is enabled on all tables in Supabase Dashboard
 
 ## Project Structure
 
@@ -116,9 +203,18 @@ orchestr/
 │   │   └── supabase/       # Supabase clients
 │   └── types/
 ├── prisma/
-│   └── schema.prisma       # Database schema
+│   ├── schema.prisma       # Database schema (source of truth)
+│   └── migrations/         # Prisma migrations
+├── supabase/
+│   └── policies.sql        # RLS policies and helper functions
+├── docs/
+│   └── database-logic.md   # Database architecture documentation
 └── public/
 ```
+
+## Documentation
+
+- `docs/database-logic.md` - Database architecture, entity definitions, and access model
 
 ## License
 
