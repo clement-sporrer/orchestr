@@ -154,7 +154,7 @@ export default async function MissionDetailPage({ params, searchParams }: Missio
         </TabsList>
 
         <TabsContent value="pipeline" className="mt-6">
-          <PipelineView mission={mission} />
+          <PipelineView mission={mission as any} />
         </TabsContent>
 
         <TabsContent value="job" className="mt-6">
@@ -162,11 +162,11 @@ export default async function MissionDetailPage({ params, searchParams }: Missio
         </TabsContent>
 
         <TabsContent value="sourcing" className="mt-6">
-          <MissionSourcingView mission={mission} />
+          <MissionSourcingView mission={mission as any} />
         </TabsContent>
 
         <TabsContent value="shortlist" className="mt-6">
-          <MissionShortlistView mission={mission} />
+          <MissionShortlistView mission={mission as any} />
         </TabsContent>
       </Tabs>
     </div>

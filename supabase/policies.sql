@@ -7,7 +7,7 @@
 -- ============================================
 
 -- Function to get the current user's organization ID
--- Uses the auth_user_id field in users table to link to Supabase auth.uid()
+-- Uses the auth_"userId" field in users table to link to Supabase auth.uid()
 CREATE OR REPLACE FUNCTION public.current_org_id()
 RETURNS TEXT
 LANGUAGE sql
@@ -15,9 +15,9 @@ STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT organization_id
+  SELECT "organizationId"
   FROM public.users
-  WHERE auth_user_id = auth.uid()
+  WHERE "auth_user_id" = auth.uid()
   LIMIT 1;
 $$;
 
@@ -223,19 +223,19 @@ CREATE POLICY "org_update" ON public.organizations
 
 DROP POLICY IF EXISTS "users_select" ON public.users;
 CREATE POLICY "users_select" ON public.users
-  FOR SELECT USING (organization_id = current_org_id());
+  FOR SELECT USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "users_insert" ON public.users;
 CREATE POLICY "users_insert" ON public.users
-  FOR INSERT WITH CHECK (organization_id = current_org_id());
+  FOR INSERT WITH CHECK ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "users_update" ON public.users;
 CREATE POLICY "users_update" ON public.users
-  FOR UPDATE USING (organization_id = current_org_id());
+  FOR UPDATE USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "users_delete" ON public.users;
 CREATE POLICY "users_delete" ON public.users
-  FOR DELETE USING (organization_id = current_org_id());
+  FOR DELETE USING ("organizationId" = current_org_id());
 
 -- ============================================
 -- RLS POLICIES: SUBSCRIPTIONS
@@ -243,11 +243,11 @@ CREATE POLICY "users_delete" ON public.users
 
 DROP POLICY IF EXISTS "subscriptions_select" ON public.subscriptions;
 CREATE POLICY "subscriptions_select" ON public.subscriptions
-  FOR SELECT USING (organization_id = current_org_id());
+  FOR SELECT USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "subscriptions_update" ON public.subscriptions;
 CREATE POLICY "subscriptions_update" ON public.subscriptions
-  FOR UPDATE USING (organization_id = current_org_id());
+  FOR UPDATE USING ("organizationId" = current_org_id());
 
 -- ============================================
 -- RLS POLICIES: CLIENTS
@@ -255,19 +255,19 @@ CREATE POLICY "subscriptions_update" ON public.subscriptions
 
 DROP POLICY IF EXISTS "clients_select" ON public.clients;
 CREATE POLICY "clients_select" ON public.clients
-  FOR SELECT USING (organization_id = current_org_id());
+  FOR SELECT USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "clients_insert" ON public.clients;
 CREATE POLICY "clients_insert" ON public.clients
-  FOR INSERT WITH CHECK (organization_id = current_org_id());
+  FOR INSERT WITH CHECK ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "clients_update" ON public.clients;
 CREATE POLICY "clients_update" ON public.clients
-  FOR UPDATE USING (organization_id = current_org_id());
+  FOR UPDATE USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "clients_delete" ON public.clients;
 CREATE POLICY "clients_delete" ON public.clients
-  FOR DELETE USING (organization_id = current_org_id());
+  FOR DELETE USING ("organizationId" = current_org_id());
 
 -- ============================================
 -- RLS POLICIES: CONTACTS
@@ -279,8 +279,8 @@ CREATE POLICY "contacts_select" ON public.contacts
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.clients c
-      WHERE c.id = contacts.client_id
-      AND c.organization_id = current_org_id()
+      WHERE c.id = contacts."clientId"
+      AND c."organizationId" = current_org_id()
     )
   );
 
@@ -289,8 +289,8 @@ CREATE POLICY "contacts_insert" ON public.contacts
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.clients c
-      WHERE c.id = contacts.client_id
-      AND c.organization_id = current_org_id()
+      WHERE c.id = contacts."clientId"
+      AND c."organizationId" = current_org_id()
     )
   );
 
@@ -299,8 +299,8 @@ CREATE POLICY "contacts_update" ON public.contacts
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM public.clients c
-      WHERE c.id = contacts.client_id
-      AND c.organization_id = current_org_id()
+      WHERE c.id = contacts."clientId"
+      AND c."organizationId" = current_org_id()
     )
   );
 
@@ -309,8 +309,8 @@ CREATE POLICY "contacts_delete" ON public.contacts
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.clients c
-      WHERE c.id = contacts.client_id
-      AND c.organization_id = current_org_id()
+      WHERE c.id = contacts."clientId"
+      AND c."organizationId" = current_org_id()
     )
   );
 
@@ -320,19 +320,19 @@ CREATE POLICY "contacts_delete" ON public.contacts
 
 DROP POLICY IF EXISTS "missions_select" ON public.missions;
 CREATE POLICY "missions_select" ON public.missions
-  FOR SELECT USING (organization_id = current_org_id());
+  FOR SELECT USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "missions_insert" ON public.missions;
 CREATE POLICY "missions_insert" ON public.missions
-  FOR INSERT WITH CHECK (organization_id = current_org_id());
+  FOR INSERT WITH CHECK ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "missions_update" ON public.missions;
 CREATE POLICY "missions_update" ON public.missions
-  FOR UPDATE USING (organization_id = current_org_id());
+  FOR UPDATE USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "missions_delete" ON public.missions;
 CREATE POLICY "missions_delete" ON public.missions
-  FOR DELETE USING (organization_id = current_org_id());
+  FOR DELETE USING ("organizationId" = current_org_id());
 
 -- ============================================
 -- RLS POLICIES: CANDIDATES
@@ -340,19 +340,19 @@ CREATE POLICY "missions_delete" ON public.missions
 
 DROP POLICY IF EXISTS "candidates_select" ON public.candidates;
 CREATE POLICY "candidates_select" ON public.candidates
-  FOR SELECT USING (organization_id = current_org_id());
+  FOR SELECT USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "candidates_insert" ON public.candidates;
 CREATE POLICY "candidates_insert" ON public.candidates
-  FOR INSERT WITH CHECK (organization_id = current_org_id());
+  FOR INSERT WITH CHECK ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "candidates_update" ON public.candidates;
 CREATE POLICY "candidates_update" ON public.candidates
-  FOR UPDATE USING (organization_id = current_org_id());
+  FOR UPDATE USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "candidates_delete" ON public.candidates;
 CREATE POLICY "candidates_delete" ON public.candidates
-  FOR DELETE USING (organization_id = current_org_id());
+  FOR DELETE USING ("organizationId" = current_org_id());
 
 -- ============================================
 -- RLS POLICIES: CANDIDATE ENRICHMENTS
@@ -364,8 +364,8 @@ CREATE POLICY "candidate_enrichments_select" ON public.candidate_enrichments
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.candidates c
-      WHERE c.id = candidate_enrichments.candidate_id
-      AND c.organization_id = current_org_id()
+      WHERE c.id = candidate_enrichments."candidateId"
+      AND c."organizationId" = current_org_id()
     )
   );
 
@@ -374,8 +374,8 @@ CREATE POLICY "candidate_enrichments_insert" ON public.candidate_enrichments
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.candidates c
-      WHERE c.id = candidate_enrichments.candidate_id
-      AND c.organization_id = current_org_id()
+      WHERE c.id = candidate_enrichments."candidateId"
+      AND c."organizationId" = current_org_id()
     )
   );
 
@@ -384,8 +384,8 @@ CREATE POLICY "candidate_enrichments_update" ON public.candidate_enrichments
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM public.candidates c
-      WHERE c.id = candidate_enrichments.candidate_id
-      AND c.organization_id = current_org_id()
+      WHERE c.id = candidate_enrichments."candidateId"
+      AND c."organizationId" = current_org_id()
     )
   );
 
@@ -394,8 +394,8 @@ CREATE POLICY "candidate_enrichments_delete" ON public.candidate_enrichments
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.candidates c
-      WHERE c.id = candidate_enrichments.candidate_id
-      AND c.organization_id = current_org_id()
+      WHERE c.id = candidate_enrichments."candidateId"
+      AND c."organizationId" = current_org_id()
     )
   );
 
@@ -409,8 +409,8 @@ CREATE POLICY "mission_candidates_select" ON public.mission_candidates
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.missions m
-      WHERE m.id = mission_candidates.mission_id
-      AND m.organization_id = current_org_id()
+      WHERE m.id = mission_candidates."missionId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -419,8 +419,8 @@ CREATE POLICY "mission_candidates_insert" ON public.mission_candidates
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.missions m
-      WHERE m.id = mission_candidates.mission_id
-      AND m.organization_id = current_org_id()
+      WHERE m.id = mission_candidates."missionId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -429,8 +429,8 @@ CREATE POLICY "mission_candidates_update" ON public.mission_candidates
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM public.missions m
-      WHERE m.id = mission_candidates.mission_id
-      AND m.organization_id = current_org_id()
+      WHERE m.id = mission_candidates."missionId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -439,8 +439,8 @@ CREATE POLICY "mission_candidates_delete" ON public.mission_candidates
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.missions m
-      WHERE m.id = mission_candidates.mission_id
-      AND m.organization_id = current_org_id()
+      WHERE m.id = mission_candidates."missionId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -450,19 +450,19 @@ CREATE POLICY "mission_candidates_delete" ON public.mission_candidates
 
 DROP POLICY IF EXISTS "pools_select" ON public.pools;
 CREATE POLICY "pools_select" ON public.pools
-  FOR SELECT USING (organization_id = current_org_id());
+  FOR SELECT USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "pools_insert" ON public.pools;
 CREATE POLICY "pools_insert" ON public.pools
-  FOR INSERT WITH CHECK (organization_id = current_org_id());
+  FOR INSERT WITH CHECK ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "pools_update" ON public.pools;
 CREATE POLICY "pools_update" ON public.pools
-  FOR UPDATE USING (organization_id = current_org_id());
+  FOR UPDATE USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "pools_delete" ON public.pools;
 CREATE POLICY "pools_delete" ON public.pools
-  FOR DELETE USING (organization_id = current_org_id());
+  FOR DELETE USING ("organizationId" = current_org_id());
 
 -- ============================================
 -- RLS POLICIES: CANDIDATE POOLS (join table)
@@ -474,8 +474,8 @@ CREATE POLICY "candidate_pools_select" ON public.candidate_pools
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.pools p
-      WHERE p.id = candidate_pools.pool_id
-      AND p.organization_id = current_org_id()
+      WHERE p.id = candidate_pools."poolId"
+      AND p."organizationId" = current_org_id()
     )
   );
 
@@ -484,8 +484,8 @@ CREATE POLICY "candidate_pools_insert" ON public.candidate_pools
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.pools p
-      WHERE p.id = candidate_pools.pool_id
-      AND p.organization_id = current_org_id()
+      WHERE p.id = candidate_pools."poolId"
+      AND p."organizationId" = current_org_id()
     )
   );
 
@@ -494,8 +494,8 @@ CREATE POLICY "candidate_pools_delete" ON public.candidate_pools
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.pools p
-      WHERE p.id = candidate_pools.pool_id
-      AND p.organization_id = current_org_id()
+      WHERE p.id = candidate_pools."poolId"
+      AND p."organizationId" = current_org_id()
     )
   );
 
@@ -505,19 +505,19 @@ CREATE POLICY "candidate_pools_delete" ON public.candidate_pools
 
 DROP POLICY IF EXISTS "interactions_select" ON public.interactions;
 CREATE POLICY "interactions_select" ON public.interactions
-  FOR SELECT USING (organization_id = current_org_id());
+  FOR SELECT USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "interactions_insert" ON public.interactions;
 CREATE POLICY "interactions_insert" ON public.interactions
-  FOR INSERT WITH CHECK (organization_id = current_org_id());
+  FOR INSERT WITH CHECK ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "interactions_update" ON public.interactions;
 CREATE POLICY "interactions_update" ON public.interactions
-  FOR UPDATE USING (organization_id = current_org_id());
+  FOR UPDATE USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "interactions_delete" ON public.interactions;
 CREATE POLICY "interactions_delete" ON public.interactions
-  FOR DELETE USING (organization_id = current_org_id());
+  FOR DELETE USING ("organizationId" = current_org_id());
 
 -- ============================================
 -- RLS POLICIES: TASKS
@@ -529,8 +529,8 @@ CREATE POLICY "tasks_select" ON public.tasks
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.users u
-      WHERE u.id = tasks.user_id
-      AND u.organization_id = current_org_id()
+      WHERE u.id = tasks."userId"
+      AND u."organizationId" = current_org_id()
     )
   );
 
@@ -539,8 +539,8 @@ CREATE POLICY "tasks_insert" ON public.tasks
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.users u
-      WHERE u.id = tasks.user_id
-      AND u.organization_id = current_org_id()
+      WHERE u.id = tasks."userId"
+      AND u."organizationId" = current_org_id()
     )
   );
 
@@ -549,8 +549,8 @@ CREATE POLICY "tasks_update" ON public.tasks
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM public.users u
-      WHERE u.id = tasks.user_id
-      AND u.organization_id = current_org_id()
+      WHERE u.id = tasks."userId"
+      AND u."organizationId" = current_org_id()
     )
   );
 
@@ -559,8 +559,8 @@ CREATE POLICY "tasks_delete" ON public.tasks
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.users u
-      WHERE u.id = tasks.user_id
-      AND u.organization_id = current_org_id()
+      WHERE u.id = tasks."userId"
+      AND u."organizationId" = current_org_id()
     )
   );
 
@@ -574,8 +574,8 @@ CREATE POLICY "message_templates_select" ON public.message_templates
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.users u
-      WHERE u.id = message_templates.user_id
-      AND u.organization_id = current_org_id()
+      WHERE u.id = message_templates."userId"
+      AND u."organizationId" = current_org_id()
     )
   );
 
@@ -584,8 +584,8 @@ CREATE POLICY "message_templates_insert" ON public.message_templates
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.users u
-      WHERE u.id = message_templates.user_id
-      AND u.organization_id = current_org_id()
+      WHERE u.id = message_templates."userId"
+      AND u."organizationId" = current_org_id()
     )
   );
 
@@ -594,8 +594,8 @@ CREATE POLICY "message_templates_update" ON public.message_templates
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM public.users u
-      WHERE u.id = message_templates.user_id
-      AND u.organization_id = current_org_id()
+      WHERE u.id = message_templates."userId"
+      AND u."organizationId" = current_org_id()
     )
   );
 
@@ -604,8 +604,8 @@ CREATE POLICY "message_templates_delete" ON public.message_templates
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.users u
-      WHERE u.id = message_templates.user_id
-      AND u.organization_id = current_org_id()
+      WHERE u.id = message_templates."userId"
+      AND u."organizationId" = current_org_id()
     )
   );
 
@@ -619,8 +619,8 @@ CREATE POLICY "questionnaires_select" ON public.questionnaires
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.missions m
-      WHERE m.id = questionnaires.mission_id
-      AND m.organization_id = current_org_id()
+      WHERE m.id = questionnaires."missionId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -629,8 +629,8 @@ CREATE POLICY "questionnaires_insert" ON public.questionnaires
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.missions m
-      WHERE m.id = questionnaires.mission_id
-      AND m.organization_id = current_org_id()
+      WHERE m.id = questionnaires."missionId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -639,8 +639,8 @@ CREATE POLICY "questionnaires_update" ON public.questionnaires
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM public.missions m
-      WHERE m.id = questionnaires.mission_id
-      AND m.organization_id = current_org_id()
+      WHERE m.id = questionnaires."missionId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -649,8 +649,8 @@ CREATE POLICY "questionnaires_delete" ON public.questionnaires
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.missions m
-      WHERE m.id = questionnaires.mission_id
-      AND m.organization_id = current_org_id()
+      WHERE m.id = questionnaires."missionId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -664,9 +664,9 @@ CREATE POLICY "questionnaire_questions_select" ON public.questionnaire_questions
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.questionnaires q
-      JOIN public.missions m ON m.id = q.mission_id
-      WHERE q.id = questionnaire_questions.questionnaire_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = q."missionId"
+      WHERE q.id = questionnaire_questions."questionnaireId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -675,9 +675,9 @@ CREATE POLICY "questionnaire_questions_insert" ON public.questionnaire_questions
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.questionnaires q
-      JOIN public.missions m ON m.id = q.mission_id
-      WHERE q.id = questionnaire_questions.questionnaire_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = q."missionId"
+      WHERE q.id = questionnaire_questions."questionnaireId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -686,9 +686,9 @@ CREATE POLICY "questionnaire_questions_update" ON public.questionnaire_questions
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM public.questionnaires q
-      JOIN public.missions m ON m.id = q.mission_id
-      WHERE q.id = questionnaire_questions.questionnaire_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = q."missionId"
+      WHERE q.id = questionnaire_questions."questionnaireId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -697,9 +697,9 @@ CREATE POLICY "questionnaire_questions_delete" ON public.questionnaire_questions
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.questionnaires q
-      JOIN public.missions m ON m.id = q.mission_id
-      WHERE q.id = questionnaire_questions.questionnaire_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = q."missionId"
+      WHERE q.id = questionnaire_questions."questionnaireId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -713,9 +713,9 @@ CREATE POLICY "questionnaire_responses_select" ON public.questionnaire_responses
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.questionnaires q
-      JOIN public.missions m ON m.id = q.mission_id
-      WHERE q.id = questionnaire_responses.questionnaire_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = q."missionId"
+      WHERE q.id = questionnaire_responses."questionnaireId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -724,9 +724,9 @@ CREATE POLICY "questionnaire_responses_insert" ON public.questionnaire_responses
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.questionnaires q
-      JOIN public.missions m ON m.id = q.mission_id
-      WHERE q.id = questionnaire_responses.questionnaire_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = q."missionId"
+      WHERE q.id = questionnaire_responses."questionnaireId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -735,9 +735,9 @@ CREATE POLICY "questionnaire_responses_update" ON public.questionnaire_responses
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM public.questionnaires q
-      JOIN public.missions m ON m.id = q.mission_id
-      WHERE q.id = questionnaire_responses.questionnaire_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = q."missionId"
+      WHERE q.id = questionnaire_responses."questionnaireId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -746,9 +746,9 @@ CREATE POLICY "questionnaire_responses_delete" ON public.questionnaire_responses
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.questionnaires q
-      JOIN public.missions m ON m.id = q.mission_id
-      WHERE q.id = questionnaire_responses.questionnaire_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = q."missionId"
+      WHERE q.id = questionnaire_responses."questionnaireId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -762,10 +762,10 @@ CREATE POLICY "questionnaire_answers_select" ON public.questionnaire_answers
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.questionnaire_responses qr
-      JOIN public.questionnaires q ON q.id = qr.questionnaire_id
-      JOIN public.missions m ON m.id = q.mission_id
-      WHERE qr.id = questionnaire_answers.response_id
-      AND m.organization_id = current_org_id()
+      JOIN public.questionnaires q ON q.id = qr."questionnaireId"
+      JOIN public.missions m ON m.id = q."missionId"
+      WHERE qr.id = questionnaire_answers."responseId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -774,10 +774,10 @@ CREATE POLICY "questionnaire_answers_insert" ON public.questionnaire_answers
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.questionnaire_responses qr
-      JOIN public.questionnaires q ON q.id = qr.questionnaire_id
-      JOIN public.missions m ON m.id = q.mission_id
-      WHERE qr.id = questionnaire_answers.response_id
-      AND m.organization_id = current_org_id()
+      JOIN public.questionnaires q ON q.id = qr."questionnaireId"
+      JOIN public.missions m ON m.id = q."missionId"
+      WHERE qr.id = questionnaire_answers."responseId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -786,10 +786,10 @@ CREATE POLICY "questionnaire_answers_update" ON public.questionnaire_answers
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM public.questionnaire_responses qr
-      JOIN public.questionnaires q ON q.id = qr.questionnaire_id
-      JOIN public.missions m ON m.id = q.mission_id
-      WHERE qr.id = questionnaire_answers.response_id
-      AND m.organization_id = current_org_id()
+      JOIN public.questionnaires q ON q.id = qr."questionnaireId"
+      JOIN public.missions m ON m.id = q."missionId"
+      WHERE qr.id = questionnaire_answers."responseId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -798,10 +798,10 @@ CREATE POLICY "questionnaire_answers_delete" ON public.questionnaire_answers
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.questionnaire_responses qr
-      JOIN public.questionnaires q ON q.id = qr.questionnaire_id
-      JOIN public.missions m ON m.id = q.mission_id
-      WHERE qr.id = questionnaire_answers.response_id
-      AND m.organization_id = current_org_id()
+      JOIN public.questionnaires q ON q.id = qr."questionnaireId"
+      JOIN public.missions m ON m.id = q."missionId"
+      WHERE qr.id = questionnaire_answers."responseId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -815,9 +815,9 @@ CREATE POLICY "interviews_select" ON public.interviews
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.mission_candidates mc
-      JOIN public.missions m ON m.id = mc.mission_id
-      WHERE mc.id = interviews.mission_candidate_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = mc."missionId"
+      WHERE mc.id = interviews."missionCandidateId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -826,9 +826,9 @@ CREATE POLICY "interviews_insert" ON public.interviews
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.mission_candidates mc
-      JOIN public.missions m ON m.id = mc.mission_id
-      WHERE mc.id = interviews.mission_candidate_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = mc."missionId"
+      WHERE mc.id = interviews."missionCandidateId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -837,9 +837,9 @@ CREATE POLICY "interviews_update" ON public.interviews
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM public.mission_candidates mc
-      JOIN public.missions m ON m.id = mc.mission_id
-      WHERE mc.id = interviews.mission_candidate_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = mc."missionId"
+      WHERE mc.id = interviews."missionCandidateId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -848,9 +848,9 @@ CREATE POLICY "interviews_delete" ON public.interviews
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.mission_candidates mc
-      JOIN public.missions m ON m.id = mc.mission_id
-      WHERE mc.id = interviews.mission_candidate_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = mc."missionId"
+      WHERE mc.id = interviews."missionCandidateId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -860,19 +860,19 @@ CREATE POLICY "interviews_delete" ON public.interviews
 
 DROP POLICY IF EXISTS "report_templates_select" ON public.report_templates;
 CREATE POLICY "report_templates_select" ON public.report_templates
-  FOR SELECT USING (organization_id = current_org_id());
+  FOR SELECT USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "report_templates_insert" ON public.report_templates;
 CREATE POLICY "report_templates_insert" ON public.report_templates
-  FOR INSERT WITH CHECK (organization_id = current_org_id());
+  FOR INSERT WITH CHECK ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "report_templates_update" ON public.report_templates;
 CREATE POLICY "report_templates_update" ON public.report_templates
-  FOR UPDATE USING (organization_id = current_org_id());
+  FOR UPDATE USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "report_templates_delete" ON public.report_templates;
 CREATE POLICY "report_templates_delete" ON public.report_templates
-  FOR DELETE USING (organization_id = current_org_id());
+  FOR DELETE USING ("organizationId" = current_org_id());
 
 -- ============================================
 -- RLS POLICIES: SHORTLISTS
@@ -884,8 +884,8 @@ CREATE POLICY "shortlists_select" ON public.shortlists
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.missions m
-      WHERE m.id = shortlists.mission_id
-      AND m.organization_id = current_org_id()
+      WHERE m.id = shortlists."missionId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -894,8 +894,8 @@ CREATE POLICY "shortlists_insert" ON public.shortlists
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.missions m
-      WHERE m.id = shortlists.mission_id
-      AND m.organization_id = current_org_id()
+      WHERE m.id = shortlists."missionId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -904,8 +904,8 @@ CREATE POLICY "shortlists_update" ON public.shortlists
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM public.missions m
-      WHERE m.id = shortlists.mission_id
-      AND m.organization_id = current_org_id()
+      WHERE m.id = shortlists."missionId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -914,8 +914,8 @@ CREATE POLICY "shortlists_delete" ON public.shortlists
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.missions m
-      WHERE m.id = shortlists.mission_id
-      AND m.organization_id = current_org_id()
+      WHERE m.id = shortlists."missionId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -929,9 +929,9 @@ CREATE POLICY "shortlist_candidates_select" ON public.shortlist_candidates
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.shortlists s
-      JOIN public.missions m ON m.id = s.mission_id
-      WHERE s.id = shortlist_candidates.shortlist_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = s."missionId"
+      WHERE s.id = shortlist_candidates."shortlistId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -940,9 +940,9 @@ CREATE POLICY "shortlist_candidates_insert" ON public.shortlist_candidates
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.shortlists s
-      JOIN public.missions m ON m.id = s.mission_id
-      WHERE s.id = shortlist_candidates.shortlist_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = s."missionId"
+      WHERE s.id = shortlist_candidates."shortlistId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -951,9 +951,9 @@ CREATE POLICY "shortlist_candidates_update" ON public.shortlist_candidates
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM public.shortlists s
-      JOIN public.missions m ON m.id = s.mission_id
-      WHERE s.id = shortlist_candidates.shortlist_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = s."missionId"
+      WHERE s.id = shortlist_candidates."shortlistId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -962,9 +962,9 @@ CREATE POLICY "shortlist_candidates_delete" ON public.shortlist_candidates
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.shortlists s
-      JOIN public.missions m ON m.id = s.mission_id
-      WHERE s.id = shortlist_candidates.shortlist_id
-      AND m.organization_id = current_org_id()
+      JOIN public.missions m ON m.id = s."missionId"
+      WHERE s.id = shortlist_candidates."shortlistId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -978,10 +978,10 @@ CREATE POLICY "client_feedbacks_select" ON public.client_feedbacks
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.shortlist_candidates sc
-      JOIN public.shortlists s ON s.id = sc.shortlist_id
-      JOIN public.missions m ON m.id = s.mission_id
-      WHERE sc.id = client_feedbacks.shortlist_candidate_id
-      AND m.organization_id = current_org_id()
+      JOIN public.shortlists s ON s.id = sc."shortlistId"
+      JOIN public.missions m ON m.id = s."missionId"
+      WHERE sc.id = client_feedbacks."shortlistCandidateId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -990,10 +990,10 @@ CREATE POLICY "client_feedbacks_insert" ON public.client_feedbacks
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.shortlist_candidates sc
-      JOIN public.shortlists s ON s.id = sc.shortlist_id
-      JOIN public.missions m ON m.id = s.mission_id
-      WHERE sc.id = client_feedbacks.shortlist_candidate_id
-      AND m.organization_id = current_org_id()
+      JOIN public.shortlists s ON s.id = sc."shortlistId"
+      JOIN public.missions m ON m.id = s."missionId"
+      WHERE sc.id = client_feedbacks."shortlistCandidateId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -1002,10 +1002,10 @@ CREATE POLICY "client_feedbacks_update" ON public.client_feedbacks
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM public.shortlist_candidates sc
-      JOIN public.shortlists s ON s.id = sc.shortlist_id
-      JOIN public.missions m ON m.id = s.mission_id
-      WHERE sc.id = client_feedbacks.shortlist_candidate_id
-      AND m.organization_id = current_org_id()
+      JOIN public.shortlists s ON s.id = sc."shortlistId"
+      JOIN public.missions m ON m.id = s."missionId"
+      WHERE sc.id = client_feedbacks."shortlistCandidateId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -1014,10 +1014,10 @@ CREATE POLICY "client_feedbacks_delete" ON public.client_feedbacks
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.shortlist_candidates sc
-      JOIN public.shortlists s ON s.id = sc.shortlist_id
-      JOIN public.missions m ON m.id = s.mission_id
-      WHERE sc.id = client_feedbacks.shortlist_candidate_id
-      AND m.organization_id = current_org_id()
+      JOIN public.shortlists s ON s.id = sc."shortlistId"
+      JOIN public.missions m ON m.id = s."missionId"
+      WHERE sc.id = client_feedbacks."shortlistCandidateId"
+      AND m."organizationId" = current_org_id()
     )
   );
 
@@ -1027,15 +1027,15 @@ CREATE POLICY "client_feedbacks_delete" ON public.client_feedbacks
 
 DROP POLICY IF EXISTS "csv_imports_select" ON public.csv_imports;
 CREATE POLICY "csv_imports_select" ON public.csv_imports
-  FOR SELECT USING (organization_id = current_org_id());
+  FOR SELECT USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "csv_imports_insert" ON public.csv_imports;
 CREATE POLICY "csv_imports_insert" ON public.csv_imports
-  FOR INSERT WITH CHECK (organization_id = current_org_id());
+  FOR INSERT WITH CHECK ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "csv_imports_update" ON public.csv_imports;
 CREATE POLICY "csv_imports_update" ON public.csv_imports
-  FOR UPDATE USING (organization_id = current_org_id());
+  FOR UPDATE USING ("organizationId" = current_org_id());
 
 -- ============================================
 -- RLS POLICIES: EVENTS
@@ -1043,11 +1043,11 @@ CREATE POLICY "csv_imports_update" ON public.csv_imports
 
 DROP POLICY IF EXISTS "events_select" ON public.events;
 CREATE POLICY "events_select" ON public.events
-  FOR SELECT USING (organization_id = current_org_id());
+  FOR SELECT USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "events_insert" ON public.events;
 CREATE POLICY "events_insert" ON public.events
-  FOR INSERT WITH CHECK (organization_id = current_org_id());
+  FOR INSERT WITH CHECK ("organizationId" = current_org_id());
 
 -- ============================================
 -- RLS POLICIES: LINKEDIN CACHE
@@ -1076,19 +1076,19 @@ CREATE POLICY "linkedin_cache_delete" ON public.linkedin_cache
 
 DROP POLICY IF EXISTS "taxonomy_poles_select" ON public.taxonomy_poles;
 CREATE POLICY "taxonomy_poles_select" ON public.taxonomy_poles
-  FOR SELECT USING (organization_id = current_org_id());
+  FOR SELECT USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "taxonomy_poles_insert" ON public.taxonomy_poles;
 CREATE POLICY "taxonomy_poles_insert" ON public.taxonomy_poles
-  FOR INSERT WITH CHECK (organization_id = current_org_id());
+  FOR INSERT WITH CHECK ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "taxonomy_poles_update" ON public.taxonomy_poles;
 CREATE POLICY "taxonomy_poles_update" ON public.taxonomy_poles
-  FOR UPDATE USING (organization_id = current_org_id());
+  FOR UPDATE USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "taxonomy_poles_delete" ON public.taxonomy_poles;
 CREATE POLICY "taxonomy_poles_delete" ON public.taxonomy_poles
-  FOR DELETE USING (organization_id = current_org_id());
+  FOR DELETE USING ("organizationId" = current_org_id());
 
 -- ============================================
 -- RLS POLICIES: TAXONOMY POSITIONS
@@ -1096,19 +1096,19 @@ CREATE POLICY "taxonomy_poles_delete" ON public.taxonomy_poles
 
 DROP POLICY IF EXISTS "taxonomy_positions_select" ON public.taxonomy_positions;
 CREATE POLICY "taxonomy_positions_select" ON public.taxonomy_positions
-  FOR SELECT USING (organization_id = current_org_id());
+  FOR SELECT USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "taxonomy_positions_insert" ON public.taxonomy_positions;
 CREATE POLICY "taxonomy_positions_insert" ON public.taxonomy_positions
-  FOR INSERT WITH CHECK (organization_id = current_org_id());
+  FOR INSERT WITH CHECK ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "taxonomy_positions_update" ON public.taxonomy_positions;
 CREATE POLICY "taxonomy_positions_update" ON public.taxonomy_positions
-  FOR UPDATE USING (organization_id = current_org_id());
+  FOR UPDATE USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "taxonomy_positions_delete" ON public.taxonomy_positions;
 CREATE POLICY "taxonomy_positions_delete" ON public.taxonomy_positions
-  FOR DELETE USING (organization_id = current_org_id());
+  FOR DELETE USING ("organizationId" = current_org_id());
 
 -- ============================================
 -- RLS POLICIES: CANDIDATE POSITIONS (join table)
@@ -1120,8 +1120,8 @@ CREATE POLICY "candidate_positions_select" ON public.candidate_positions
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.candidates c
-      WHERE c.id = candidate_positions.candidate_id
-      AND c.organization_id = current_org_id()
+      WHERE c.id = candidate_positions."candidateId"
+      AND c."organizationId" = current_org_id()
     )
   );
 
@@ -1130,8 +1130,8 @@ CREATE POLICY "candidate_positions_insert" ON public.candidate_positions
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.candidates c
-      WHERE c.id = candidate_positions.candidate_id
-      AND c.organization_id = current_org_id()
+      WHERE c.id = candidate_positions."candidateId"
+      AND c."organizationId" = current_org_id()
     )
   );
 
@@ -1140,8 +1140,8 @@ CREATE POLICY "candidate_positions_delete" ON public.candidate_positions
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM public.candidates c
-      WHERE c.id = candidate_positions.candidate_id
-      AND c.organization_id = current_org_id()
+      WHERE c.id = candidate_positions."candidateId"
+      AND c."organizationId" = current_org_id()
     )
   );
 
@@ -1153,19 +1153,19 @@ CREATE POLICY "candidate_positions_delete" ON public.candidate_positions
 
 DROP POLICY IF EXISTS "external_access_tokens_select" ON public.external_access_tokens;
 CREATE POLICY "external_access_tokens_select" ON public.external_access_tokens
-  FOR SELECT USING (organization_id = current_org_id());
+  FOR SELECT USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "external_access_tokens_insert" ON public.external_access_tokens;
 CREATE POLICY "external_access_tokens_insert" ON public.external_access_tokens
-  FOR INSERT WITH CHECK (organization_id = current_org_id());
+  FOR INSERT WITH CHECK ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "external_access_tokens_update" ON public.external_access_tokens;
 CREATE POLICY "external_access_tokens_update" ON public.external_access_tokens
-  FOR UPDATE USING (organization_id = current_org_id());
+  FOR UPDATE USING ("organizationId" = current_org_id());
 
 DROP POLICY IF EXISTS "external_access_tokens_delete" ON public.external_access_tokens;
 CREATE POLICY "external_access_tokens_delete" ON public.external_access_tokens
-  FOR DELETE USING (organization_id = current_org_id());
+  FOR DELETE USING ("organizationId" = current_org_id());
 
 -- ============================================
 -- END OF RLS POLICIES

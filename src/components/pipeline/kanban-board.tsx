@@ -41,6 +41,8 @@ interface KanbanBoardProps {
 
 export function KanbanBoard({ missionId, candidates, stages }: KanbanBoardProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, PipelineStage>>({})
+  const [isUpdating, setIsUpdating] = useState<string | null>(null)
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -78,10 +80,24 @@ export function KanbanBoard({ missionId, candidates, stages }: KanbanBoardProps)
       const stageFromCard = targetCard.stage
       const candidate = candidates.find((c) => c.id === candidateId)
       if (!candidate || candidate.stage === stageFromCard) return
+      
+      // Optimistic update
+      setOptimisticUpdates(prev => ({ ...prev, [candidateId]: stageFromCard }))
+      setIsUpdating(candidateId)
+      
       try {
         await updateCandidateStage(candidateId, stageFromCard)
+        toast.success('Candidat déplacé')
       } catch (err) {
+        // Revert optimistic update
+        setOptimisticUpdates(prev => {
+          const next = { ...prev }
+          delete next[candidateId]
+          return next
+        })
         toast.error(err instanceof Error ? err.message : 'Erreur lors du déplacement')
+      } finally {
+        setIsUpdating(null)
       }
       return
     }
@@ -89,16 +105,35 @@ export function KanbanBoard({ missionId, candidates, stages }: KanbanBoardProps)
     const candidate = candidates.find((c) => c.id === candidateId)
     if (!candidate || candidate.stage === targetStage) return
 
+    // Optimistic update
+    setOptimisticUpdates(prev => ({ ...prev, [candidateId]: targetStage }))
+    setIsUpdating(candidateId)
+
     try {
       await updateCandidateStage(candidateId, targetStage)
+      toast.success('Candidat déplacé')
     } catch (err) {
+      // Revert optimistic update
+      setOptimisticUpdates(prev => {
+        const next = { ...prev }
+        delete next[candidateId]
+        return next
+      })
       toast.error(err instanceof Error ? err.message : 'Erreur lors du déplacement')
+    } finally {
+      setIsUpdating(null)
     }
   }
 
-  // Group candidates by stage
+  // Apply optimistic updates to candidates
+  const candidatesWithOptimistic = candidates.map(c => ({
+    ...c,
+    stage: optimisticUpdates[c.id] || c.stage,
+  }))
+
+  // Group candidates by stage (with optimistic updates)
   const candidatesByStage = stages.reduce((acc, stage) => {
-    acc[stage.value] = candidates.filter((c) => c.stage === stage.value)
+    acc[stage.value] = candidatesWithOptimistic.filter((c) => c.stage === stage.value)
     return acc
   }, {} as Record<PipelineStage, CandidateWithDetails[]>)
 

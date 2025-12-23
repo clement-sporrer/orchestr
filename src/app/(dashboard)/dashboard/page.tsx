@@ -19,29 +19,18 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth/helpers'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 // Get current user's organization
 async function getOrganizationId(): Promise<{ organizationId: string; userId: string } | null> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user?.email) {
+  try {
+    const user = await getCurrentUser()
+    return { organizationId: user.organizationId, userId: user.id }
+  } catch {
     return null
   }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
-    select: { organizationId: true, id: true },
-  })
-
-  if (!dbUser) {
-    return null
-  }
-
-  return { organizationId: dbUser.organizationId, userId: dbUser.id }
 }
 
 // Get stats from database
@@ -304,14 +293,18 @@ async function RecentActivity() {
 
   const interactions = await prisma.interaction.findMany({
     where: {
-      candidate: { organizationId: context.organizationId },
+      organizationId: context.organizationId,
     },
-    include: {
+    select: {
+      id: true,
+      type: true,
+      content: true,
+      createdAt: true,
       candidate: {
         select: { firstName: true, lastName: true },
       },
       missionCandidate: {
-        include: {
+        select: {
           mission: {
             select: { title: true, client: { select: { name: true } } },
           },

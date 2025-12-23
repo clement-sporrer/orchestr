@@ -12,14 +12,16 @@ interface ClientsPageProps {
 }
 
 async function ClientsList({ search }: { search?: string }) {
-  let clients: Awaited<ReturnType<typeof getClients>> = []
+  let result: Awaited<ReturnType<typeof getClients>> | null = null
   
   try {
-    clients = await getClients(search)
+    result = await getClients(search, 1, 50)
   } catch {
     // Handle case when database is not connected
-    clients = []
+    result = null
   }
+
+  const clients = result?.clients || []
 
   if (clients.length === 0) {
     return (

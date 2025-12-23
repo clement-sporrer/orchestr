@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@/lib/supabase/server'
+import { getOrganizationId } from '@/lib/auth/helpers'
 
 interface UpdateOrganizationData {
   name?: string
@@ -12,27 +12,6 @@ interface UpdateOrganizationData {
   retentionDaysIgnored?: number
   retentionDaysActive?: number
   onboardingCompleted?: boolean
-}
-
-// Helper to get current user's organization
-async function getOrganizationId(): Promise<string> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user?.email) {
-    throw new Error('Non authentifie')
-  }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
-    select: { organizationId: true },
-  })
-
-  if (!dbUser) {
-    throw new Error('Utilisateur non trouve')
-  }
-
-  return dbUser.organizationId
 }
 
 export async function getOrganization() {

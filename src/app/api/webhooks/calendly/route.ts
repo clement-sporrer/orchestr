@@ -61,17 +61,26 @@ export async function POST(request: NextRequest) {
         data: { stage: 'INTERVIEW_SCHEDULED' },
       })
 
-      await prisma.interaction.create({
-        data: {
-          candidateId: candidate.id,
-          missionCandidateId: missionCandidate.id,
-          type: 'INTERVIEW_SCHEDULED',
-          content: `Entretien planifié: ${eventName || 'Calendly'}`,
-          scheduledAt: startTime ? new Date(startTime) : null,
-          calendlyEventId: eventUri,
-          calendlyEventUrl: rescheduleUrl,
-        },
+      // Get organizationId from mission
+      const mission = await prisma.mission.findUnique({
+        where: { id: missionCandidate.missionId },
+        select: { organizationId: true },
       })
+
+      if (mission) {
+        await prisma.interaction.create({
+          data: {
+            organizationId: mission.organizationId,
+            candidateId: candidate.id,
+            missionCandidateId: missionCandidate.id,
+            type: 'INTERVIEW_SCHEDULED',
+            content: `Entretien planifié: ${eventName || 'Calendly'}`,
+            scheduledAt: startTime ? new Date(startTime) : null,
+            calendlyEventId: eventUri,
+            calendlyEventUrl: rescheduleUrl,
+          },
+        })
+      }
 
       // Create task to prepare interview
       const recruiter = await prisma.mission.findUnique({
@@ -91,16 +100,25 @@ export async function POST(request: NextRequest) {
         })
       }
     } else if (event === 'invitee.canceled') {
-      // Interview canceled
-      await prisma.interaction.create({
-        data: {
-          candidateId: candidate.id,
-          missionCandidateId: missionCandidate.id,
-          type: 'STATUS_CHANGE',
-          content: 'Entretien annulé',
-          calendlyEventId: eventUri,
-        },
+      // Get organizationId from mission
+      const mission = await prisma.mission.findUnique({
+        where: { id: missionCandidate.missionId },
+        select: { organizationId: true },
       })
+
+      if (mission) {
+        // Interview canceled
+        await prisma.interaction.create({
+          data: {
+            organizationId: mission.organizationId,
+            candidateId: candidate.id,
+            missionCandidateId: missionCandidate.id,
+            type: 'STATUS_CHANGE',
+            content: 'Entretien annulé',
+            calendlyEventId: eventUri,
+          },
+        })
+      }
 
       // Update status back
       await prisma.missionCandidate.update({

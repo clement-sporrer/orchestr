@@ -2,10 +2,10 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { CandidateStatus, Seniority } from '@/generated/prisma'
 import { parseLinkedInUrl, generateProfileTags, enrichProfileFromText, type EnrichedProfileData } from '@/lib/ai/structuring'
+import { getOrganizationId, getCurrentUserId } from '@/lib/auth/helpers'
 
 // Schema
 const candidateSchema = z.object({
@@ -25,67 +25,81 @@ const candidateSchema = z.object({
   status: z.enum(['ACTIVE', 'TO_RECONTACT', 'BLACKLIST', 'DELETED']).default('ACTIVE'),
 })
 
-// Helper to get current user's organization
-async function getOrganizationId(): Promise<string> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user?.email) {
-    throw new Error('Non authentifié')
-  }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
-    select: { organizationId: true },
-  })
-
-  if (!dbUser) {
-    throw new Error('Utilisateur non trouvé')
-  }
-
-  return dbUser.organizationId
-}
-
-// Get all candidates
+// Get all candidates with pagination
 export async function getCandidates(filters?: {
   search?: string
   status?: CandidateStatus
   tags?: string[]
   poolId?: string
+  page?: number
+  limit?: number
 }) {
   const organizationId = await getOrganizationId()
+  const page = filters?.page || 1
+  const limit = Math.min(filters?.limit || 50, 100) // Max 100 per page
+  const skip = (page - 1) * limit
 
-  const candidates = await prisma.candidate.findMany({
-    where: {
-      organizationId,
-      status: filters?.status || { not: 'DELETED' },
-      ...(filters?.search ? {
-        OR: [
-          { firstName: { contains: filters.search, mode: 'insensitive' } },
-          { lastName: { contains: filters.search, mode: 'insensitive' } },
-          { email: { contains: filters.search, mode: 'insensitive' } },
-          { currentCompany: { contains: filters.search, mode: 'insensitive' } },
-          { currentPosition: { contains: filters.search, mode: 'insensitive' } },
-        ],
-      } : {}),
-      ...(filters?.tags?.length ? {
-        tags: { hasSome: filters.tags },
-      } : {}),
-      ...(filters?.poolId ? {
-        poolMemberships: {
-          some: { poolId: filters.poolId },
-        },
-      } : {}),
-    },
-    include: {
-      _count: {
-        select: { missionCandidates: true },
+  // Build where clause once to avoid duplication
+  const whereClause = {
+    organizationId,
+    status: filters?.status || { not: 'DELETED' },
+    ...(filters?.search ? {
+      OR: [
+        { firstName: { contains: filters.search, mode: 'insensitive' } },
+        { lastName: { contains: filters.search, mode: 'insensitive' } },
+        { email: { contains: filters.search, mode: 'insensitive' } },
+        { currentCompany: { contains: filters.search, mode: 'insensitive' } },
+        { currentPosition: { contains: filters.search, mode: 'insensitive' } },
+      ],
+    } : {}),
+    ...(filters?.tags?.length ? {
+      tags: { hasSome: filters.tags },
+    } : {}),
+    ...(filters?.poolId ? {
+      poolMemberships: {
+        some: { poolId: filters.poolId },
       },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+    } : {}),
+  }
 
-  return candidates
+  const [candidates, total] = await Promise.all([
+    prisma.candidate.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        currentPosition: true,
+        currentCompany: true,
+        location: true,
+        tags: true,
+        status: true,
+        relationshipLevel: true,
+        createdAt: true,
+        _count: {
+          select: { missionCandidates: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    }),
+    prisma.candidate.count({
+      where: whereClause,
+    }),
+  ])
+
+  return {
+    candidates,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  }
 }
 
 // Get single candidate
@@ -315,15 +329,10 @@ export async function addInteraction(
 ) {
   const organizationId = await getOrganizationId()
   
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const userId = await getCurrentUserId()
   
-  if (!user?.email) {
-    throw new Error('Non authentifié')
-  }
-
   const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
+    where: { id: userId },
   })
 
   // Verify candidate ownership
@@ -337,6 +346,7 @@ export async function addInteraction(
 
   const interaction = await prisma.interaction.create({
     data: {
+      organizationId,
       candidateId,
       userId: dbUser?.id,
       type: data.type,

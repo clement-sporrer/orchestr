@@ -40,31 +40,44 @@ const statusColors: Record<MissionStatus, string> = {
 }
 
 async function MissionsList({ search, status }: { search?: string; status?: MissionStatus }) {
-  let missions: Awaited<ReturnType<typeof getMissions>> = []
+  let result: Awaited<ReturnType<typeof getMissions>> | null = null
   
   try {
-    missions = await getMissions({ search, status })
+    result = await getMissions({ search, status, page: 1, limit: 50 })
   } catch {
-    missions = []
+    result = null
   }
+
+  const missions = result?.missions || []
 
   if (missions.length === 0) {
     return (
       <Card className="border-dashed">
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Briefcase className="h-12 w-12 text-muted-foreground/50" />
-          <h3 className="mt-4 text-lg font-semibold">Aucune mission</h3>
+        <CardContent className="flex flex-col items-center justify-center py-16">
+          <div className="rounded-full bg-muted p-4 mb-4">
+            <Briefcase className="h-12 w-12 text-muted-foreground/50" />
+          </div>
+          <h3 className="mt-2 text-lg font-semibold">
+            {search || status ? 'Aucun résultat' : 'Aucune mission'}
+          </h3>
           <p className="mt-2 text-sm text-muted-foreground text-center max-w-sm">
             {search || status
-              ? 'Aucune mission ne correspond à vos critères'
+              ? 'Aucune mission ne correspond à vos critères de recherche. Essayez de modifier vos filtres.'
               : 'Créez votre première mission pour commencer à recruter.'
             }
           </p>
           {!search && !status && (
-            <Button asChild className="mt-4">
+            <Button asChild size="lg" className="mt-6">
               <Link href="/missions/new">
                 <Plus className="mr-2 h-4 w-4" />
                 Créer une mission
+              </Link>
+            </Button>
+          )}
+          {(search || status) && (
+            <Button variant="outline" asChild className="mt-4">
+              <Link href="/missions">
+                Réinitialiser les filtres
               </Link>
             </Button>
           )}

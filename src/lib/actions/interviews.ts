@@ -2,9 +2,9 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { InterviewType, InterviewStatus, TranscriptSource } from '@/generated/prisma'
+import { getOrganizationId } from '@/lib/auth/helpers'
 
 // Schema for creating/updating interviews
 const interviewSchema = z.object({
@@ -16,27 +16,6 @@ const interviewSchema = z.object({
   meetingUrl: z.string().url().optional().or(z.literal('')),
   recruiterNotes: z.string().optional(),
 })
-
-// Helper to get current user's organization
-async function getOrganizationId(): Promise<string> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user?.email) {
-    throw new Error('Non authentifie')
-  }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
-    select: { organizationId: true },
-  })
-
-  if (!dbUser) {
-    throw new Error('Utilisateur non trouve')
-  }
-
-  return dbUser.organizationId
-}
 
 // Verify mission candidate ownership
 async function verifyMissionCandidate(missionCandidateId: string, organizationId: string) {
@@ -130,9 +109,20 @@ export async function createInterview(data: z.infer<typeof interviewSchema>) {
     data: { stage: 'INTERVIEW_SCHEDULED' },
   })
 
+  // Get organizationId from mission
+  const mission = await prisma.mission.findUnique({
+    where: { id: mc.mission.id },
+    select: { organizationId: true },
+  })
+
+  if (!mission) {
+    throw new Error('Mission non trouvée')
+  }
+
   // Create interaction
   await prisma.interaction.create({
     data: {
+      organizationId: mission.organizationId,
       candidateId: mc.candidate.id,
       missionCandidateId: mc.id,
       type: 'INTERVIEW_SCHEDULED',
@@ -182,6 +172,7 @@ export async function updateInterview(
     // Create interaction
     await prisma.interaction.create({
       data: {
+        organizationId: existing.missionCandidate.mission.organizationId,
         candidateId: existing.missionCandidate.candidateId,
         missionCandidateId: existing.missionCandidateId,
         type: 'INTERVIEW_DONE',

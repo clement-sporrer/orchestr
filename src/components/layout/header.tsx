@@ -1,8 +1,7 @@
 'use client'
 
-import { Bell, Search, Plus } from 'lucide-react'
+import { Bell, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { GlobalSearch } from '@/components/search/global-search'
 import Link from 'next/link'
 
 interface HeaderProps {
@@ -33,14 +33,7 @@ export function Header({ user }: HeaderProps) {
     <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background px-6">
       {/* Search */}
       <div className="flex-1 flex items-center gap-4">
-        <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Rechercher candidats, missions, clients..."
-            className="pl-10 bg-muted/50 border-0 focus-visible:ring-1"
-          />
-        </div>
+        <GlobalSearch />
       </div>
 
       {/* Quick Actions */}

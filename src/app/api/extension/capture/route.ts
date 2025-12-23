@@ -300,16 +300,25 @@ export async function POST(request: NextRequest) {
           },
         })
         
-        // Create interaction for tracking
-        await prisma.interaction.create({
-          data: {
-            candidateId: candidate.id,
-            missionCandidateId: missionCandidate.id,
-            userId,
-            type: 'NOTE',
-            content: `Candidat ajouté via extension Chrome (score: ${scoringResult.score}%)`,
-          },
+        // Get organizationId from mission
+        const missionWithOrg = await prisma.mission.findUnique({
+          where: { id: mission.id },
+          select: { organizationId: true },
         })
+
+        if (missionWithOrg) {
+          // Create interaction for tracking
+          await prisma.interaction.create({
+            data: {
+              organizationId: missionWithOrg.organizationId,
+              candidateId: candidate.id,
+              missionCandidateId: missionCandidate.id,
+              userId,
+              type: 'NOTE',
+              content: `Candidat ajouté via extension Chrome (score: ${scoringResult.score}%)`,
+            },
+          })
+        }
       } else {
         missionCandidate = existingMc
         score = existingMc.score

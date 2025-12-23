@@ -21,53 +21,63 @@ const contactSchema = z.object({
   notes: z.string().optional(),
 })
 
-// Helper to get current user's organization
-async function getOrganizationId(): Promise<string> {
-  const supabase = await createSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user?.email) {
-    throw new Error('Non authentifié')
-  }
+// Import secure auth helper
+import { getOrganizationId } from '@/lib/auth/helpers'
 
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
-    select: { organizationId: true },
-  })
-
-  if (!dbUser) {
-    throw new Error('Utilisateur non trouvé')
-  }
-
-  return dbUser.organizationId
-}
-
-// Client Actions
-export async function getClients(search?: string) {
+// Client Actions with pagination
+export async function getClients(search?: string, page?: number, limit?: number) {
   const organizationId = await getOrganizationId()
+  const pageNum = page || 1
+  const limitNum = Math.min(limit || 50, 100) // Max 100 per page
+  const skip = (pageNum - 1) * limitNum
 
-  const clients = await prisma.client.findMany({
-    where: {
-      organizationId,
-      ...(search ? {
-        OR: [
-          { name: { contains: search, mode: 'insensitive' } },
-          { sector: { contains: search, mode: 'insensitive' } },
-        ],
-      } : {}),
-    },
-    include: {
-      _count: {
-        select: {
-          missions: true,
-          contacts: true,
+  // Build where clause once to avoid duplication
+  const whereClause = {
+    organizationId,
+    ...(search ? {
+      OR: [
+        { name: { contains: search, mode: 'insensitive' } },
+        { sector: { contains: search, mode: 'insensitive' } },
+      ],
+    } : {}),
+  }
+
+  const [clients, total] = await Promise.all([
+    prisma.client.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        name: true,
+        sector: true,
+        website: true,
+        notes: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            missions: true,
+            contacts: true,
+          },
         },
       },
-    },
-    orderBy: { name: 'asc' },
-  })
+      orderBy: { name: 'asc' },
+      skip,
+      take: limitNum,
+    }),
+    prisma.client.count({
+      where: whereClause,
+    }),
+  ])
 
-  return clients
+  return {
+    clients,
+    pagination: {
+      page: pageNum,
+      limit: limitNum,
+      total,
+      totalPages: Math.ceil(total / limitNum),
+    },
+  }
 }
 
 export async function getClient(id: string) {

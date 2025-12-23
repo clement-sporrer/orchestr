@@ -2,29 +2,9 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@/lib/supabase/server'
 import { generateToken, getTokenExpiry } from '@/lib/utils/tokens'
 import type { FeedbackDecision } from '@/generated/prisma'
-
-async function getOrganizationId(): Promise<string> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user?.email) {
-    throw new Error('Non authentifié')
-  }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
-    select: { organizationId: true },
-  })
-
-  if (!dbUser) {
-    throw new Error('Utilisateur non trouvé')
-  }
-
-  return dbUser.organizationId
-}
+import { getOrganizationId } from '@/lib/auth/helpers'
 
 // Create shortlist
 export async function createShortlist(
@@ -105,9 +85,20 @@ export async function submitClientFeedback(
     },
   })
 
+  // Get organizationId from mission
+  const mission = await prisma.mission.findUnique({
+    where: { id: shortlistCandidate.shortlist.missionId },
+    select: { organizationId: true },
+  })
+
+  if (!mission) {
+    throw new Error('Mission non trouvée')
+  }
+
   // Create interaction
   await prisma.interaction.create({
     data: {
+      organizationId: mission.organizationId,
       candidateId: shortlistCandidate.missionCandidate.candidateId,
       missionCandidateId: shortlistCandidate.missionCandidateId,
       type: 'CLIENT_FEEDBACK',

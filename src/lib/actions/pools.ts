@@ -2,33 +2,13 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { getOrganizationId } from '@/lib/auth/helpers'
 
 const poolSchema = z.object({
   name: z.string().min(1, 'Nom requis'),
   description: z.string().optional(),
 })
-
-async function getOrganizationId(): Promise<string> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user?.email) {
-    throw new Error('Non authentifié')
-  }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
-    select: { organizationId: true },
-  })
-
-  if (!dbUser) {
-    throw new Error('Utilisateur non trouvé')
-  }
-
-  return dbUser.organizationId
-}
 
 export async function getPools() {
   const organizationId = await getOrganizationId()

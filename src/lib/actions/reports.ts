@@ -2,10 +2,10 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import OpenAI from 'openai'
 import type { ReportType } from '@/generated/prisma'
+import { getOrganizationId } from '@/lib/auth/helpers'
 
 // Schema for report template sections
 const sectionSchema = z.object({
@@ -21,27 +21,6 @@ const reportTemplateSchema = z.object({
   sections: z.array(sectionSchema).min(1, 'Au moins une section requise'),
   isDefault: z.boolean().default(false),
 })
-
-// Helper to get current user's organization
-async function getOrganizationId(): Promise<string> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user?.email) {
-    throw new Error('Non authentifie')
-  }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
-    select: { organizationId: true },
-  })
-
-  if (!dbUser) {
-    throw new Error('Utilisateur non trouve')
-  }
-
-  return dbUser.organizationId
-}
 
 function getOpenAI() {
   const apiKey = process.env.OPENAI_API_KEY

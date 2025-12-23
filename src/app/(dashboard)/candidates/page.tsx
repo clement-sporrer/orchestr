@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { getCandidates } from '@/lib/actions/candidates'
+import { ExportButton } from '@/components/candidates/export-button'
+import { formatDateClient } from '@/lib/utils/date'
 import type { CandidateStatus } from '@/generated/prisma'
 
 interface CandidatesPageProps {
@@ -38,41 +40,54 @@ const statusColors: Record<CandidateStatus, string> = {
 }
 
 async function CandidatesList({ search, status }: { search?: string; status?: CandidateStatus }) {
-  let candidates: Awaited<ReturnType<typeof getCandidates>> = []
+  let result: Awaited<ReturnType<typeof getCandidates>> | null = null
   
   try {
-    candidates = await getCandidates({ search, status })
+    result = await getCandidates({ search, status, page: 1, limit: 50 })
   } catch {
-    candidates = []
+    result = null
   }
+
+  const candidates = result?.candidates || []
 
   if (candidates.length === 0) {
     return (
       <Card className="border-dashed">
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Users className="h-12 w-12 text-muted-foreground/50" />
-          <h3 className="mt-4 text-lg font-semibold">Aucun candidat</h3>
+        <CardContent className="flex flex-col items-center justify-center py-16">
+          <div className="rounded-full bg-muted p-4 mb-4">
+            <Users className="h-12 w-12 text-muted-foreground/50" />
+          </div>
+          <h3 className="mt-2 text-lg font-semibold">
+            {search || status ? 'Aucun résultat' : 'Aucun candidat'}
+          </h3>
           <p className="mt-2 text-sm text-muted-foreground text-center max-w-sm">
             {search || status
-              ? 'Aucun candidat ne correspond à vos critères'
-              : 'Ajoutez des candidats à votre vivier pour commencer.'
+              ? 'Aucun candidat ne correspond à vos critères de recherche. Essayez de modifier vos filtres.'
+              : 'Ajoutez des candidats à votre vivier pour commencer à recruter.'
             }
           </p>
           {!search && !status && (
-            <div className="flex gap-2 mt-4">
-              <Button asChild>
+            <div className="flex flex-col sm:flex-row gap-2 mt-6">
+              <Button asChild size="lg">
                 <Link href="/candidates/new">
                   <Plus className="mr-2 h-4 w-4" />
                   Créer un candidat
                 </Link>
               </Button>
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild size="lg">
                 <Link href="/import">
                   <Upload className="mr-2 h-4 w-4" />
                   Importer CSV
                 </Link>
               </Button>
             </div>
+          )}
+          {(search || status) && (
+            <Button variant="outline" asChild className="mt-4">
+              <Link href="/candidates">
+                Réinitialiser les filtres
+              </Link>
+            </Button>
           )}
         </CardContent>
       </Card>
@@ -122,7 +137,7 @@ async function CandidatesList({ search, status }: { search?: string; status?: Ca
 
               <div className="flex items-center justify-between mt-3 pt-3 border-t text-xs text-muted-foreground">
                 <span>{candidate._count.missionCandidates} mission{candidate._count.missionCandidates !== 1 ? 's' : ''}</span>
-                <span>Ajouté le {new Date(candidate.createdAt).toLocaleDateString('fr-FR')}</span>
+                <span>Ajouté le {formatDateClient(candidate.createdAt, 'fr')}</span>
               </div>
             </CardContent>
           </Card>
@@ -164,6 +179,7 @@ export default async function CandidatesPage({ searchParams }: CandidatesPagePro
           </p>
         </div>
         <div className="flex gap-2">
+          <ExportButton filters={{ status }} />
           <Button variant="outline" asChild>
             <Link href="/import">
               <Upload className="mr-2 h-4 w-4" />

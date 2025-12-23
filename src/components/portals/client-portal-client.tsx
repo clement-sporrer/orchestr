@@ -176,7 +176,7 @@ export function ClientPortalClient({ shortlist }: ClientPortalClientProps) {
                       rows={2}
                     />
                     
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2" role="group" aria-label="Options de feedback">
                       <Button
                         variant={state.decision === 'OK' ? 'default' : 'outline'}
                         className={cn(
@@ -185,11 +185,14 @@ export function ClientPortalClient({ shortlist }: ClientPortalClientProps) {
                         )}
                         onClick={() => handleFeedback(sc.id, 'OK')}
                         disabled={state.loading || state.submitted}
+                        size="lg"
+                        aria-pressed={state.decision === 'OK'}
+                        aria-label="Feedback positif - OK"
                       >
                         {state.loading && state.decision === 'OK' ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                         ) : (
-                          <ThumbsUp className="mr-2 h-4 w-4" />
+                          <ThumbsUp className="mr-2 h-4 w-4" aria-hidden="true" />
                         )}
                         OK
                       </Button>
@@ -201,11 +204,14 @@ export function ClientPortalClient({ shortlist }: ClientPortalClientProps) {
                         )}
                         onClick={() => handleFeedback(sc.id, 'TO_DISCUSS')}
                         disabled={state.loading || state.submitted}
+                        size="lg"
+                        aria-pressed={state.decision === 'TO_DISCUSS'}
+                        aria-label="Feedback à discuter - À creuser"
                       >
                         {state.loading && state.decision === 'TO_DISCUSS' ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                         ) : (
-                          <HelpCircle className="mr-2 h-4 w-4" />
+                          <HelpCircle className="mr-2 h-4 w-4" aria-hidden="true" />
                         )}
                         À creuser
                       </Button>
@@ -217,11 +223,14 @@ export function ClientPortalClient({ shortlist }: ClientPortalClientProps) {
                         )}
                         onClick={() => handleFeedback(sc.id, 'NO')}
                         disabled={state.loading || state.submitted}
+                        size="lg"
+                        aria-pressed={state.decision === 'NO'}
+                        aria-label="Feedback négatif - Non"
                       >
                         {state.loading && state.decision === 'NO' ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                         ) : (
-                          <ThumbsDown className="mr-2 h-4 w-4" />
+                          <ThumbsDown className="mr-2 h-4 w-4" aria-hidden="true" />
                         )}
                         Non
                       </Button>

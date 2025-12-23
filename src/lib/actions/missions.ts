@@ -48,85 +48,78 @@ const missionSchema = z.object({
 // Input type for creating missions (makes optional fields truly optional)
 export type CreateMissionInput = z.input<typeof missionSchema>
 
-// Helper to get current user's organization
-async function getOrganizationId(): Promise<string> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user?.email) {
-    throw new Error('Non authentifié')
-  }
+// Import secure auth helpers
+import { getOrganizationId, getCurrentUserId } from '@/lib/auth/helpers'
 
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
-    select: { organizationId: true, id: true },
-  })
-
-  if (!dbUser) {
-    throw new Error('Utilisateur non trouvé')
-  }
-
-  return dbUser.organizationId
-}
-
-async function getCurrentUserId(): Promise<string> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user?.email) {
-    throw new Error('Non authentifié')
-  }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
-    select: { id: true },
-  })
-
-  if (!dbUser) {
-    throw new Error('Utilisateur non trouvé')
-  }
-
-  return dbUser.id
-}
-
-// Get all missions
+// Get all missions with pagination
 export async function getMissions(filters?: {
   status?: MissionStatus
   clientId?: string
   search?: string
+  page?: number
+  limit?: number
 }) {
   const organizationId = await getOrganizationId()
+  const page = filters?.page || 1
+  const limit = Math.min(filters?.limit || 50, 100) // Max 100 per page
+  const skip = (page - 1) * limit
 
-  const missions = await prisma.mission.findMany({
-    where: {
-      organizationId,
-      ...(filters?.status ? { status: filters.status } : {}),
-      ...(filters?.clientId ? { clientId: filters.clientId } : {}),
-      ...(filters?.search ? {
-        OR: [
-          { title: { contains: filters.search, mode: 'insensitive' } },
-          { client: { name: { contains: filters.search, mode: 'insensitive' } } },
-        ],
-      } : {}),
-    },
-    include: {
-      client: {
-        select: { name: true },
-      },
-      recruiter: {
-        select: { name: true },
-      },
-      _count: {
-        select: { missionCandidates: true },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+  // Build where clause once to avoid duplication
+  const whereClause = {
+    organizationId,
+    ...(filters?.status ? { status: filters.status } : {}),
+    ...(filters?.clientId ? { clientId: filters.clientId } : {}),
+    ...(filters?.search ? {
+      OR: [
+        { title: { contains: filters.search, mode: 'insensitive' } },
+        { client: { name: { contains: filters.search, mode: 'insensitive' } } },
+      ],
+    } : {}),
+  }
 
-  return missions
+  const [missions, total] = await Promise.all([
+    prisma.mission.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        location: true,
+        contractType: true,
+        seniority: true,
+        createdAt: true,
+        updatedAt: true,
+        client: {
+          select: { id: true, name: true },
+        },
+        recruiter: {
+          select: { id: true, name: true },
+        },
+        _count: {
+          select: { missionCandidates: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    }),
+    prisma.mission.count({
+      where: whereClause,
+    }),
+  ])
+
+  return {
+    missions,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  }
 }
 
-// Get single mission
+// Get single mission with optimized query
 export async function getMission(id: string) {
   const organizationId = await getOrganizationId()
 
@@ -135,28 +128,123 @@ export async function getMission(id: string) {
       id,
       organizationId,
     },
-    include: {
-      client: true,
-      recruiter: true,
+    select: {
+      id: true,
+      organizationId: true,
+      clientId: true,
+      recruiterId: true,
+      title: true,
+      status: true,
+      location: true,
+      contractType: true,
+      seniority: true,
+      salaryMin: true,
+      salaryMax: true,
+      salaryVisible: true,
+      currency: true,
+      context: true,
+      contextVisibility: true,
+      responsibilities: true,
+      responsibilitiesVisibility: true,
+      mustHave: true,
+      mustHaveVisibility: true,
+      niceToHave: true,
+      niceToHaveVisibility: true,
+      redFlags: true,
+      process: true,
+      processVisibility: true,
+      calendlyLink: true,
+      calendlyEmbed: true,
+      scoreThreshold: true,
+      shortlistDeadline: true,
+      createdAt: true,
+      updatedAt: true,
+      client: {
+        select: {
+          id: true,
+          name: true,
+          sector: true,
+          website: true,
+        },
+      },
+      recruiter: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
       questionnaire: {
-        include: {
+        select: {
+          id: true,
+          name: true,
           questions: {
+            select: {
+              id: true,
+              text: true,
+              type: true,
+              options: true,
+              required: true,
+              shareableWithClient: true,
+              order: true,
+            },
             orderBy: { order: 'asc' },
           },
         },
       },
       missionCandidates: {
-        include: {
-          candidate: true,
+        select: {
+          id: true,
+          stage: true,
+          score: true,
+          scoreReasons: true,
+          contactStatus: true,
+          portalToken: true,
+          portalTokenExpiry: true,
+          portalStep: true,
+          portalCompleted: true,
+          createdAt: true,
+          candidate: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              currentPosition: true,
+              currentCompany: true,
+              location: true,
+              tags: true,
+              relationshipLevel: true,
+            },
+          },
           interactions: {
+            select: {
+              id: true,
+              type: true,
+              content: true,
+              createdAt: true,
+            },
             orderBy: { createdAt: 'desc' },
-            take: 1,
+            take: 5, // Limit interactions per candidate
           },
         },
         orderBy: { createdAt: 'desc' },
+        take: 100, // Limit candidates to prevent huge payloads
       },
       shortlists: {
+        select: {
+          id: true,
+          name: true,
+          accessToken: true,
+          accessTokenExpiry: true,
+          createdAt: true,
+          _count: {
+            select: { candidates: true },
+          },
+        },
         orderBy: { createdAt: 'desc' },
+        take: 10, // Limit shortlists
       },
     },
   })

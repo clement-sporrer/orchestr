@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useLocale } from 'next-intl'
 import { 
   MessageSquare, 
   Mail, 
@@ -30,6 +31,7 @@ import {
 } from '@/components/ui/select'
 import { addInteraction } from '@/lib/actions/candidates'
 import { toast } from 'sonner'
+import { formatDateTimeClient } from '@/lib/utils/date'
 import type { Interaction, InteractionType } from '@/generated/prisma'
 
 interface InteractionsListProps {
@@ -64,6 +66,7 @@ const interactionLabels: Record<InteractionType, string> = {
 }
 
 export function InteractionsList({ candidateId, interactions }: InteractionsListProps) {
+  const locale = useLocale()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [type, setType] = useState<InteractionType>('NOTE')
@@ -162,33 +165,33 @@ export function InteractionsList({ candidateId, interactions }: InteractionsList
       </CardHeader>
       <CardContent>
         {interactions.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            Aucune interaction
-          </p>
+          <div className="flex flex-col items-center justify-center py-8">
+            <MessageSquare className="h-12 w-12 text-muted-foreground/30 mb-3" />
+            <p className="text-sm text-muted-foreground text-center">
+              Aucune interaction enregistrée
+            </p>
+            <p className="text-xs text-muted-foreground/70 text-center mt-1">
+              Les interactions avec ce candidat apparaîtront ici
+            </p>
+          </div>
         ) : (
           <div className="space-y-4">
             {interactions.map((interaction) => (
-              <div key={interaction.id} className="flex gap-3">
-                <div className="p-2 rounded-full bg-muted h-fit">
+              <div key={interaction.id} className="flex gap-3 group hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors">
+                <div className="p-2 rounded-full bg-muted group-hover:bg-muted-foreground/10 h-fit transition-colors">
                   {interactionIcons[interaction.type]}
                 </div>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-2">
+                <div className="flex-1 space-y-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium">
                       {interactionLabels[interaction.type]}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(interaction.createdAt).toLocaleDateString('fr-FR', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {formatDateTimeClient(interaction.createdAt, locale)}
                     </span>
                   </div>
                   {interaction.content && (
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
                       {interaction.content}
                     </p>
                   )}

@@ -2,30 +2,9 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@/lib/supabase/server'
 import { generateToken, getTokenExpiry } from '@/lib/utils/tokens'
 import type { PipelineStage, ContactStatus } from '@/generated/prisma'
-
-// Helper to get current user's organization
-async function getOrganizationId(): Promise<string> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user?.email) {
-    throw new Error('Non authentifié')
-  }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
-    select: { organizationId: true },
-  })
-
-  if (!dbUser) {
-    throw new Error('Utilisateur non trouvé')
-  }
-
-  return dbUser.organizationId
-}
+import { getOrganizationId } from '@/lib/auth/helpers'
 
 // Update candidate stage
 export async function updateCandidateStage(missionCandidateId: string, stage: PipelineStage) {
@@ -53,6 +32,7 @@ export async function updateCandidateStage(missionCandidateId: string, stage: Pi
   // Create status change interaction
   await prisma.interaction.create({
     data: {
+      organizationId: mc.mission.organizationId,
       candidateId: mc.candidateId,
       missionCandidateId: mc.id,
       type: 'STATUS_CHANGE',
@@ -110,6 +90,7 @@ export async function updateContactStatus(missionCandidateId: string, status: Co
     // Create interaction with the portal link ready to copy
     await prisma.interaction.create({
       data: {
+        organizationId: mc.mission.organizationId,
         candidateId: mc.candidate.id,
         missionCandidateId,
         type: 'PORTAL_INVITED',

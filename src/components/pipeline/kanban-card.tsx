@@ -68,8 +68,10 @@ const contactStatusColors: Record<ContactStatus, string> = {
 }
 
 export function KanbanCard({ candidate, missionId, isDragging }: KanbanCardProps) {
+  const locale = useLocale()
   const [copied, setCopied] = useState(false)
   const [showInviteDialog, setShowInviteDialog] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
   
   const {
     attributes,
@@ -116,9 +118,13 @@ export function KanbanCard({ candidate, missionId, isDragging }: KanbanCardProps
     <Card
       ref={setNodeRef}
       style={style}
+      role="button"
+      tabIndex={0}
+      aria-label={`Candidat ${candidate.candidate.firstName} ${candidate.candidate.lastName}, score ${candidate.score || 'N/A'}%`}
       className={cn(
-        "cursor-pointer hover:border-primary/50 transition-colors",
-        (isDragging || isSortableDragging) && "opacity-50 shadow-lg rotate-2"
+        "cursor-pointer hover:border-primary/50 transition-all",
+        (isDragging || isSortableDragging) && "opacity-50 shadow-lg rotate-2",
+        isUpdating && "opacity-75"
       )}
     >
       <CardContent className="p-3">
@@ -128,8 +134,9 @@ export function KanbanCard({ candidate, missionId, isDragging }: KanbanCardProps
             {...attributes}
             {...listeners}
             className="mt-1 p-1 rounded hover:bg-muted cursor-grab active:cursor-grabbing"
+            aria-label={`Déplacer ${candidate.candidate.firstName} ${candidate.candidate.lastName}`}
           >
-            <GripVertical className="h-3 w-3 text-muted-foreground" />
+            <GripVertical className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
           </button>
 
           {/* Content */}
@@ -223,9 +230,9 @@ export function KanbanCard({ candidate, missionId, isDragging }: KanbanCardProps
             {/* Last Interaction */}
             {lastInteraction && (
               <p className="text-xs text-muted-foreground mt-2 truncate">
-                {lastInteraction.type === 'MESSAGE' && <MessageSquare className="inline h-3 w-3 mr-1" />}
-                {lastInteraction.type === 'INTERVIEW_SCHEDULED' && <Calendar className="inline h-3 w-3 mr-1" />}
-                {new Date(lastInteraction.createdAt).toLocaleDateString('fr-FR')}
+                {lastInteraction.type === 'MESSAGE' && <MessageSquare className="inline h-3 w-3 mr-1" aria-hidden="true" />}
+                {lastInteraction.type === 'INTERVIEW_SCHEDULED' && <Calendar className="inline h-3 w-3 mr-1" aria-hidden="true" />}
+                {formatDateClient(lastInteraction.createdAt, locale)}
               </p>
             )}
           </div>
@@ -233,8 +240,13 @@ export function KanbanCard({ candidate, missionId, isDragging }: KanbanCardProps
           {/* Actions */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-6 w-6">
-                <MoreHorizontal className="h-3 w-3" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6"
+                aria-label={`Actions pour ${candidate.candidate.firstName} ${candidate.candidate.lastName}`}
+              >
+                <MoreHorizontal className="h-3 w-3" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

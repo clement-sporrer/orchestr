@@ -141,18 +141,31 @@ export async function POST(request: NextRequest) {
         data: { stage: 'INTERVIEW_DONE' },
       })
 
-      // Create interaction
-      await prisma.interaction.create({
-        data: {
-          candidateId: interview.missionCandidate.candidateId,
-          missionCandidateId: interview.missionCandidateId,
-          type: 'INTERVIEW_DONE',
-          content: transcriptFile 
-            ? 'Entretien termine - Transcript Zoom disponible'
-            : 'Entretien termine via Zoom',
-          completedAt: new Date(),
+      // Get organizationId from mission
+      const mission = await prisma.missionCandidate.findUnique({
+        where: { id: interview.missionCandidateId },
+        select: {
+          mission: {
+            select: { organizationId: true },
+          },
         },
       })
+
+      if (mission) {
+        // Create interaction
+        await prisma.interaction.create({
+          data: {
+            organizationId: mission.mission.organizationId,
+            candidateId: interview.missionCandidate.candidateId,
+            missionCandidateId: interview.missionCandidateId,
+            type: 'INTERVIEW_DONE',
+            content: transcriptFile 
+              ? 'Entretien termine - Transcript Zoom disponible'
+              : 'Entretien termine via Zoom',
+            completedAt: new Date(),
+          },
+        })
+      }
 
       return NextResponse.json({
         success: true,

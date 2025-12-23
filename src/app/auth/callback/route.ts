@@ -32,13 +32,14 @@ export async function GET(request: Request) {
             },
           })
 
-          // Create user
+          // Create user with authUserId link
           await prisma.user.create({
             data: {
               email: data.user.email!,
               name: userName,
               organizationId: organization.id,
               role: 'ADMIN', // First user is always admin
+              authUserId: data.user.id, // Link to Supabase Auth user
             },
           })
         }

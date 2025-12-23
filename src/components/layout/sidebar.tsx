@@ -76,11 +76,13 @@ export function Sidebar() {
             size="icon"
             className="h-8 w-8 text-sidebar-foreground hover:bg-sidebar-accent"
             onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? "Développer la barre latérale" : "Réduire la barre latérale"}
+            aria-expanded={!collapsed}
           >
             {collapsed ? (
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
             ) : (
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
             )}
           </Button>
         </div>
@@ -101,7 +103,7 @@ export function Sidebar() {
                       : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                   )}
                 >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  <item.icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
                   {!collapsed && <span>{item.name}</span>}
                 </Link>
               )
@@ -132,6 +134,7 @@ export function Sidebar() {
                 <Link
                   key={item.name}
                   href={item.href}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                     isActive
@@ -139,7 +142,7 @@ export function Sidebar() {
                       : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                   )}
                 >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  <item.icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
                   {!collapsed && <span>{item.name}</span>}
                 </Link>
               )
@@ -185,8 +188,9 @@ export function Sidebar() {
                     size="icon"
                     className="w-full text-sidebar-foreground hover:bg-sidebar-accent"
                     onClick={handleLogout}
+                    aria-label={t('logout')}
                   >
-                    <LogOut className="h-5 w-5" />
+                    <LogOut className="h-5 w-5" aria-hidden="true" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="right">

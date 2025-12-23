@@ -2,9 +2,9 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { TaskPriority } from '@/generated/prisma'
+import { getCurrentUserId } from '@/lib/auth/helpers'
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Titre requis'),
@@ -13,25 +13,6 @@ const taskSchema = z.object({
   dueDate: z.date().optional(),
   missionCandidateId: z.string().optional(),
 })
-
-async function getCurrentUserId(): Promise<string> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user?.email) {
-    throw new Error('Non authentifié')
-  }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
-  })
-
-  if (!dbUser) {
-    throw new Error('Utilisateur non trouvé')
-  }
-
-  return dbUser.id
-}
 
 export async function getTasks(filters?: {
   completed?: boolean

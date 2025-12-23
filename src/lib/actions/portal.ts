@@ -95,9 +95,20 @@ export async function completePortal(missionCandidateId: string) {
     },
   })
 
+  // Get organizationId from mission
+  const mission = await prisma.mission.findUnique({
+    where: { id: mc.missionId },
+    select: { organizationId: true },
+  })
+
+  if (!mission) {
+    throw new Error('Mission non trouvée')
+  }
+
   // Create interaction
   await prisma.interaction.create({
     data: {
+      organizationId: mission.organizationId,
       candidateId: mc.candidateId,
       missionCandidateId,
       type: 'PORTAL_COMPLETED',

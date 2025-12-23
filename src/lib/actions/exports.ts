@@ -1,27 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@/lib/supabase/server'
-
-async function getOrganizationId(): Promise<string> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user?.email) {
-    throw new Error('Non authentifié')
-  }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { email: user.email },
-    select: { organizationId: true },
-  })
-
-  if (!dbUser) {
-    throw new Error('Utilisateur non trouvé')
-  }
-
-  return dbUser.organizationId
-}
+import { getOrganizationId } from '@/lib/auth/helpers'
 
 // Export candidates as CSV
 export async function exportCandidatesCsv(filters?: {

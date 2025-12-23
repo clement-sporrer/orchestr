@@ -16,13 +16,29 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  // Get user from database
+  // Get user from database using authUserId (secure)
   let dbUser = null
   try {
     dbUser = await prisma.user.findUnique({
-      where: { email: authUser.email! },
+      where: { authUserId: authUser.id },
       select: { name: true, email: true, role: true },
     })
+    
+    // Fallback to email lookup if authUserId not set (migration path)
+    if (!dbUser && authUser.email) {
+      dbUser = await prisma.user.findUnique({
+        where: { email: authUser.email },
+        select: { name: true, email: true, role: true, id: true },
+      })
+      
+      // Update with authUserId for future lookups
+      if (dbUser) {
+        await prisma.user.update({
+          where: { id: dbUser.id },
+          data: { authUserId: authUser.id },
+        })
+      }
+    }
   } catch {
     // Database might not be connected yet during development
   }

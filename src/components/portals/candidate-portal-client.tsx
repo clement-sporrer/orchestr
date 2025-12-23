@@ -36,6 +36,7 @@ export function CandidatePortalClient({
   )
   const [loading, setLoading] = useState(false)
   const [consent, setConsent] = useState(candidate.consentGiven)
+  const [questionnaireAnswers, setQuestionnaireAnswers] = useState<Record<string, string>>({})
   
   // Form data
   const [profileData, setProfileData] = useState({
@@ -82,6 +83,17 @@ export function CandidatePortalClient({
     if (!consent) {
       toast.error('Veuillez accepter les conditions')
       return
+    }
+    
+    // Validate required questionnaire answers
+    if (questionnaire && questionnaire.questions.length > 0) {
+      const missingRequired = questionnaire.questions.filter(
+        q => q.required && !questionnaireAnswers[q.id]?.trim()
+      )
+      if (missingRequired.length > 0) {
+        toast.error(`Veuillez répondre à ${missingRequired.length} question(s) requise(s)`)
+        return
+      }
     }
     
     setLoading(true)
@@ -185,7 +197,7 @@ export function CandidatePortalClient({
             </CardHeader>
             <CardContent>
               <form onSubmit={handleProfileSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">Prénom</Label>
                     <Input
@@ -340,27 +352,57 @@ export function CandidatePortalClient({
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              {questionnaire.questions.map((question) => (
-                <div key={question.id} className="space-y-2">
-                  <Label>
-                    {question.text}
-                    {question.required && <span className="text-destructive ml-1">*</span>}
-                  </Label>
-                  {question.type === 'TEXT' && (
-                    <Textarea rows={3} />
-                  )}
-                  {question.type === 'SINGLE_CHOICE' && (
-                    <div className="space-y-2">
-                      {question.options.map((option) => (
-                        <label key={option} className="flex items-center gap-2">
-                          <input type="radio" name={question.id} value={option} />
-                          {option}
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+              {questionnaire.questions.map((question) => {
+                const answer = questionnaireAnswers[question.id] || ''
+                const isRequired = question.required
+                const hasError = isRequired && !answer.trim()
+                
+                return (
+                  <div key={question.id} className="space-y-2">
+                    <Label htmlFor={question.id}>
+                      {question.text}
+                      {isRequired && <span className="text-destructive ml-1">*</span>}
+                    </Label>
+                    {question.type === 'TEXT' && (
+                      <Textarea
+                        id={question.id}
+                        rows={3}
+                        value={answer}
+                        onChange={(e) => setQuestionnaireAnswers(prev => ({
+                          ...prev,
+                          [question.id]: e.target.value
+                        }))}
+                        className={hasError ? 'border-destructive' : ''}
+                        required={isRequired}
+                      />
+                    )}
+                    {question.type === 'SINGLE_CHOICE' && (
+                      <div className="space-y-2">
+                        {question.options.map((option) => (
+                          <label key={option} className="flex items-center gap-2 p-2 rounded hover:bg-muted cursor-pointer">
+                            <input
+                              type="radio"
+                              name={question.id}
+                              value={option}
+                              checked={answer === option}
+                              onChange={(e) => setQuestionnaireAnswers(prev => ({
+                                ...prev,
+                                [question.id]: e.target.value
+                              }))}
+                              required={isRequired}
+                              className="cursor-pointer"
+                            />
+                            <span>{option}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    {hasError && (
+                      <p className="text-xs text-destructive">Ce champ est requis</p>
+                    )}
+                  </div>
+                )
+              })}
 
               {/* Consent */}
               <div className="pt-4 border-t">
@@ -376,7 +418,12 @@ export function CandidatePortalClient({
                 </label>
               </div>
 
-              <Button onClick={handleComplete} disabled={loading || !consent} className="w-full">
+              <Button 
+                onClick={handleComplete} 
+                disabled={loading || !consent || (questionnaire && questionnaire.questions.some(q => q.required && !questionnaireAnswers[q.id]?.trim()))} 
+                className="w-full"
+                size="lg"
+              >
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Terminer
                 <Check className="ml-2 h-4 w-4" />
