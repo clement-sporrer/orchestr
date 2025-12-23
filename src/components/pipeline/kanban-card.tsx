@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useLocale } from 'next-intl'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import Link from 'next/link'
@@ -38,6 +39,7 @@ import {
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { formatDateClient } from '@/lib/utils/date'
 import type { MissionCandidate, Candidate, Interaction, ContactStatus } from '@/generated/prisma'
 
 interface CandidateWithDetails extends MissionCandidate {
