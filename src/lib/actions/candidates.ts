@@ -26,7 +26,7 @@ const candidateSchema = z.object({
 })
 
 // Type for candidate with _count
-const candidateSelect = {
+const candidateSelect: Prisma.CandidateSelect = {
   id: true,
   firstName: true,
   lastName: true,
@@ -42,10 +42,26 @@ const candidateSelect = {
   _count: {
     select: { missionCandidates: true },
   },
-} satisfies Prisma.CandidateSelect
+}
 
 export type CandidateWithCount = Prisma.CandidateGetPayload<{
-  select: typeof candidateSelect
+  select: {
+    id: true
+    firstName: true
+    lastName: true
+    email: true
+    phone: true
+    currentPosition: true
+    currentCompany: true
+    location: true
+    tags: true
+    status: true
+    relationshipLevel: true
+    createdAt: true
+    _count: {
+      select: { missionCandidates: true }
+    }
+  }
 }>
 
 // Get all candidates with pagination
@@ -56,7 +72,15 @@ export async function getCandidates(filters?: {
   poolId?: string
   page?: number
   limit?: number
-}) {
+}): Promise<{
+  candidates: CandidateWithCount[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}> {
   const organizationId = await getOrganizationId()
   const page = filters?.page || 1
   const limit = Math.min(filters?.limit || 50, 100) // Max 100 per page
