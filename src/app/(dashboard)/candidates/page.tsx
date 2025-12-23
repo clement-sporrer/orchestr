@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getCandidates } from '@/lib/actions/candidates'
+import { getCandidates, type CandidateWithCount } from '@/lib/actions/candidates'
 import { ExportButton } from '@/components/candidates/export-button'
 import { formatDateClient } from '@/lib/utils/date'
 import type { CandidateStatus } from '@/generated/prisma'
@@ -40,15 +40,14 @@ const statusColors: Record<CandidateStatus, string> = {
 }
 
 async function CandidatesList({ search, status }: { search?: string; status?: CandidateStatus }) {
-  let result: Awaited<ReturnType<typeof getCandidates>> | null = null
+  let candidates: CandidateWithCount[] = []
   
   try {
-    result = await getCandidates({ search, status, page: 1, limit: 50 })
+    const result = await getCandidates({ search, status, page: 1, limit: 50 })
+    candidates = result.candidates
   } catch {
-    result = null
+    candidates = []
   }
-
-  const candidates = result?.candidates || []
 
   if (candidates.length === 0) {
     return (
