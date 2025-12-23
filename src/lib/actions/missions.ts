@@ -104,15 +104,17 @@ export async function getMissions(filters?: {
   const skip = (page - 1) * limit
 
   // Build where clause once to avoid duplication
-  const whereClause = {
+  const searchMode = 'insensitive' as const
+
+  const whereClause: Prisma.MissionWhereInput = {
     organizationId,
     ...(filters?.status ? { status: filters.status } : {}),
     ...(filters?.clientId ? { clientId: filters.clientId } : {}),
     ...(filters?.search ? {
       OR: [
-        { title: { contains: filters.search, mode: 'insensitive' } },
-        { client: { name: { contains: filters.search, mode: 'insensitive' } } },
-      ],
+        { title: { contains: filters.search, mode: searchMode } },
+        { client: { name: { contains: filters.search, mode: searchMode } } },
+      ] satisfies Prisma.MissionWhereInput[],
     } : {}),
   }
 

@@ -87,17 +87,19 @@ export async function getCandidates(filters?: {
   const skip = (page - 1) * limit
 
   // Build where clause once to avoid duplication
-  const whereClause = {
+  const searchMode = 'insensitive' as const
+
+  const whereClause: Prisma.CandidateWhereInput = {
     organizationId,
-    status: filters?.status || { not: 'DELETED' },
+    status: filters?.status || { not: 'DELETED' as const },
     ...(filters?.search ? {
       OR: [
-        { firstName: { contains: filters.search, mode: 'insensitive' } },
-        { lastName: { contains: filters.search, mode: 'insensitive' } },
-        { email: { contains: filters.search, mode: 'insensitive' } },
-        { currentCompany: { contains: filters.search, mode: 'insensitive' } },
-        { currentPosition: { contains: filters.search, mode: 'insensitive' } },
-      ],
+        { firstName: { contains: filters.search, mode: searchMode } },
+        { lastName: { contains: filters.search, mode: searchMode } },
+        { email: { contains: filters.search, mode: searchMode } },
+        { currentCompany: { contains: filters.search, mode: searchMode } },
+        { currentPosition: { contains: filters.search, mode: searchMode } },
+      ] satisfies Prisma.CandidateWhereInput[],
     } : {}),
     ...(filters?.tags?.length ? {
       tags: { hasSome: filters.tags },
@@ -551,9 +553,9 @@ export async function checkCandidateExists(data: {
     const byName = await prisma.candidate.findFirst({
       where: {
         organizationId,
-        firstName: { equals: data.firstName, mode: 'insensitive' },
-        lastName: { equals: data.lastName, mode: 'insensitive' },
-        status: { not: 'DELETED' },
+        firstName: { equals: data.firstName, mode: 'insensitive' as const },
+        lastName: { equals: data.lastName, mode: 'insensitive' as const },
+        status: { not: 'DELETED' as const },
       },
       select: { id: true, firstName: true, lastName: true },
     })

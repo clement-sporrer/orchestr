@@ -64,13 +64,15 @@ export async function getClients(
   const skip = (pageNum - 1) * limitNum
 
   // Build where clause once to avoid duplication
-  const whereClause = {
+  const searchMode = 'insensitive' as const
+
+  const whereClause: Prisma.ClientWhereInput = {
     organizationId,
     ...(search ? {
       OR: [
-        { name: { contains: search, mode: 'insensitive' } },
-        { sector: { contains: search, mode: 'insensitive' } },
-      ],
+        { name: { contains: search, mode: searchMode } },
+        { sector: { contains: search, mode: searchMode } },
+      ] satisfies Prisma.ClientWhereInput[],
     } : {}),
   }
 
