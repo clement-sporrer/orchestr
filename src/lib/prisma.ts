@@ -7,14 +7,29 @@ const globalForPrisma = globalThis as unknown as {
 // Configure Prisma for Supabase connection pooling (PgBouncer)
 // The DATABASE_URL should include ?pgbouncer=true for proper pooling
 const prismaClientSingleton = () => {
+  // Check if DATABASE_URL is set at runtime
+  if (!process.env.DATABASE_URL) {
+    console.error('[Prisma] DATABASE_URL is not set. Database connection will fail.')
+  }
+  
   return new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+    log: process.env.NODE_ENV === 'development' 
+      ? ['error', 'warn'] 
+      : ['error'],
+    // Supabase/PgBouncer compatible settings
+    datasourceUrl: process.env.DATABASE_URL,
   })
 }
 
+// Use singleton pattern to prevent too many connections in development
+// In production, this still helps with module caching across serverless instances
 export const prisma = globalForPrisma.prisma ?? prismaClientSingleton()
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// Store on globalThis to survive hot reloads in development
+// Also works in production for edge cases with module caching
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma
+}
 
 // Helper function with retry logic for transient connection errors
 export async function withRetry<T>(

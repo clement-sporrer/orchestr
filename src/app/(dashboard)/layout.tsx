@@ -39,8 +39,15 @@ export default async function DashboardLayout({
         })
       }
     }
-  } catch {
-    // Database might not be connected yet during development
+  } catch (error) {
+    // Log database errors safely (no credentials, no query data)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown DB error'
+    const errorCode = errorMessage.match(/P\d{4}/)?.[0] || 'UNKNOWN'
+    console.error('[Dashboard Layout DB Error]', {
+      code: errorCode,
+      context: 'user_lookup',
+      authUserId: authUser.id.substring(0, 8) + '...', // Truncated for privacy
+    })
   }
 
   const user = dbUser || {
