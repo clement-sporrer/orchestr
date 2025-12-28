@@ -1,75 +1,54 @@
-# 📥 ORCHESTR - Extension Chrome LinkedIn
+# ORCHESTR Chrome Extension
 
-Extension Chrome gratuite pour capturer les profils LinkedIn directement dans votre base ORCHESTR.
+> Capture LinkedIn profiles directly into your ORCHESTR talent database
 
-## 🚀 Démarrage rapide
+## Quick Start
 
-1. **Installez l'extension** : Suivez le [guide d'installation complet](./INSTALLATION.md)
-2. **Configurez** : Entrez l'URL de votre API et votre email
-3. **Utilisez** : Cliquez sur l'icône ORCHESTR sur n'importe quel profil LinkedIn
+1. **Install**: Load the extension in Chrome (see [Installation Guide](../docs/chrome-extension.md))
+2. **Configure**: Enter your ORCHESTR URL and email
+3. **Capture**: Click the extension icon on any LinkedIn profile
 
-## ✨ Fonctionnalités
+## Features
 
-- ✅ **100% gratuit** - Pas de connexion OAuth nécessaire
-- ✅ **Extraction automatique** : Nom, headline, expériences, formation, compétences, langues
-- ✅ **Déduplication intelligente** : Les candidats existants sont mis à jour, pas dupliqués
-- ✅ **Scoring automatique** : Si ajouté à une mission, scoring par IA
-- ✅ **Ajout au vivier** : Sans mission, ajout au vivier global
+- ✅ **Free** — No OAuth or paid API required
+- ✅ **Auto-extraction** — Name, headline, experiences, education, skills, languages
+- ✅ **Deduplication** — Existing candidates are updated, not duplicated
+- ✅ **AI Scoring** — Optional scoring against mission requirements
+- ✅ **Privacy** — Data only sent to your ORCHESTR instance
 
-## 📚 Documentation
+## Files
 
-- **[Guide d'installation complet](./INSTALLATION.md)** - Installation détaillée étape par étape
-- **[Guide dans l'application](../src/app/(dashboard)/settings/extension/page.tsx)** - Interface web avec instructions
+```
+chrome-extension/
+├── manifest.json    # Extension configuration (Manifest V3)
+├── popup.html/js    # User interface
+├── content.js       # LinkedIn page scraper
+├── background.js    # Service worker
+├── styles.css       # Popup styling
+└── icons/           # Extension icons
+```
 
-## 🔧 Configuration
+## Configuration
 
-### Paramètres requis
+| Setting | Description |
+|---------|-------------|
+| **API URL** | Your ORCHESTR instance (no trailing slash) |
+| **API Key** | Your ORCHESTR login email |
 
-1. **URL de l'API** : L'URL de votre instance ORCHESTR
-   - Production : `https://votre-domaine.com`
-   - Local : `http://localhost:3000`
-   - ⚠️ Sans slash final
+## Documentation
 
-2. **Clé API** : Votre email de connexion ORCHESTR
-   - L'email que vous utilisez pour vous connecter à l'application
+See the full [Chrome Extension Guide](../docs/chrome-extension.md) for:
+- Detailed installation steps
+- Troubleshooting
+- API integration details
+- Development guide
 
-## 📖 Utilisation
+## Security
 
-1. Naviguez vers un profil LinkedIn (`linkedin.com/in/nom-prenom`)
-2. Cliquez sur l'icône ORCHESTR dans la barre d'extensions
-3. Sélectionnez une mission (optionnel)
-4. Cliquez sur "Capturer ce profil"
+- No data sent to third parties
+- Credentials stored locally in Chrome
+- Minimal permissions required
 
-## 🛠️ Structure technique
+---
 
-- **Manifest V3** : Dernière version du manifest Chrome
-- `manifest.json` : Configuration de l'extension
-- `popup.html/js` : Interface utilisateur
-- `content.js` : Script d'extraction des données LinkedIn
-- `background.js` : Service worker
-
-## 🎨 Personnalisation
-
-### Icônes
-
-Remplacez les fichiers dans `icons/` :
-- `icon16.png` (16x16 pixels)
-- `icon48.png` (48x48 pixels)
-- `icon128.png` (128x128 pixels)
-
-## 🔒 Sécurité
-
-- ✅ Aucune donnée n'est envoyée en dehors de votre instance ORCHESTR
-- ✅ La clé API (email) est stockée localement dans Chrome
-- ✅ Permissions minimales : uniquement LinkedIn et stockage local
-
-## 🆘 Support
-
-Consultez le [guide d'installation](./INSTALLATION.md) pour le dépannage détaillé.
-
-## 📝 Version
-
-**Version actuelle** : 1.0.0
-
-
-
+**Version**: 1.0.0
