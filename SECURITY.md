@@ -13,7 +13,7 @@ We actively support security updates for the following versions:
 
 If you discover a security vulnerability, please do **not** open a public issue. Instead, please report it via one of the following methods:
 
-- **Email**: [Your security email]
+- **Email**: clement@sporrer.fr
 - **GitHub Security Advisory**: Use the "Report a vulnerability" button on the repository's Security tab
 
 Please include the following information:
