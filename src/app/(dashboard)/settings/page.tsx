@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Building2, Shield, Clock } from 'lucide-react'
+import Link from 'next/link'
+import { Loader2, Building2, Shield, Clock, ListChecks, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -63,6 +64,27 @@ export default function SettingsPage() {
                 disabled={loading}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Champs et listes (domaines, secteurs, etc.) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ListChecks className="h-5 w-5" />
+              Champs et listes
+            </CardTitle>
+            <CardDescription>
+              Configurez les listes utilisées dans l&apos;application : domaines, secteurs, familles de métiers, catégories clients, types de contrat, séniorités.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/settings/organization">
+              <Button variant="outline" className="w-full sm:w-auto justify-between gap-2">
+                Configurer les champs
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 
