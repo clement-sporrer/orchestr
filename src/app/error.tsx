@@ -27,10 +27,12 @@ export default function Error({ error, reset }: ErrorProps) {
   const isDatabaseError = error.message?.includes('Prisma') ||
     error.message?.includes('database') ||
     error.message?.includes('connect') ||
-    error.message?.includes('P1') || // Prisma connection errors
-    error.message?.includes('P2') || // Prisma query errors
+    error.message?.includes('P1') ||
+    error.message?.includes('P2') ||
     error.message?.includes('relation') ||
-    error.message?.includes('column')
+    error.message?.includes('column') ||
+    error.message?.includes('does not exist')
+  const showDevHint = process.env.NODE_ENV === 'development'
 
   return (
     <div className="min-h-[50vh] flex items-center justify-center p-4">
@@ -42,9 +44,14 @@ export default function Error({ error, reset }: ErrorProps) {
           <CardTitle>Une erreur est survenue</CardTitle>
           <CardDescription>
             {isDatabaseError
-              ? 'Problème de connexion à la base de données. Veuillez réessayer.'
+              ? 'Problème lié à la base de données. Vérifiez que les migrations Prisma ont été appliquées (npx prisma migrate deploy).'
               : 'Nous nous excusons pour ce désagrément. Notre équipe a été notifiée.'}
           </CardDescription>
+          {showDevHint && error.message && (
+            <p className="text-left text-xs text-muted-foreground mt-2 font-mono break-all">
+              {error.message}
+            </p>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Show digest for support reference */}

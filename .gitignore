@@ -40,10 +40,16 @@ ENV/
 # Build outputs
 dist/
 build/
+.next/
+.vercel/
+*.tsbuildinfo
 *.egg-info/
 *.so
 *.dylib
 *.dll
+
+# Generated (Prisma client — run `npm run db:generate`)
+src/generated/
 
 # Environment variables
 .env
