@@ -1,7 +1,36 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Routes that never need auth check - skip Supabase call entirely
+const PUBLIC_PATHS = [
+  '/',
+  '/contact',
+  '/pricing',
+  '/product',
+  '/extension',
+  '/security',
+  '/signup',
+  '/check-email',
+  '/reset-password',
+  '/update-password',
+  '/legal/privacy',
+  '/legal/terms',
+]
+
+function isPublicPath(pathname: string): boolean {
+  if (PUBLIC_PATHS.includes(pathname)) return true
+  if (pathname.startsWith('/invite/')) return true
+  if (pathname.startsWith('/candidate/')) return true
+  if (pathname.startsWith('/client/')) return true
+  return false
+}
+
 export async function updateSession(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+  if (isPublicPath(pathname)) {
+    return NextResponse.next({ request })
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   })

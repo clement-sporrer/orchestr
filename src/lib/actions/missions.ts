@@ -161,7 +161,57 @@ export async function getMissions(filters?: {
   }
 }
 
-// Get single mission with optimized query
+// Light mission payload for header (no questionnaire, missionCandidates, shortlists)
+export type MissionHeaderPayload = Prisma.MissionGetPayload<{
+  select: {
+    id: true
+    clientId: true
+    title: true
+    status: true
+    location: true
+    city: true
+    country: true
+    client: { select: { id: true; name: true; companyName: true } }
+    mainContact: {
+      select: { id: true; firstName: true; lastName: true; name: true; email: true }
+    }
+    recruiter: { select: { id: true; name: true; email: true } }
+    _count: { select: { missionCandidates: true } }
+  }
+}>
+
+export async function getMissionHeader(id: string): Promise<MissionHeaderPayload | null> {
+  const organizationId = await getOrganizationId()
+
+  const mission = await prisma.mission.findFirst({
+    where: { id, organizationId },
+    select: {
+      id: true,
+      clientId: true,
+      title: true,
+      status: true,
+      location: true,
+      city: true,
+      country: true,
+      client: {
+        select: { id: true, name: true, companyName: true },
+      },
+      mainContact: {
+        select: { id: true, firstName: true, lastName: true, name: true, email: true },
+      },
+      recruiter: {
+        select: { id: true, name: true, email: true },
+      },
+      _count: {
+        select: { missionCandidates: true },
+      },
+    },
+  })
+
+  return mission
+}
+
+// Get single mission with optimized query (full payload for tabs)
 export async function getMission(id: string) {
   const organizationId = await getOrganizationId()
 
