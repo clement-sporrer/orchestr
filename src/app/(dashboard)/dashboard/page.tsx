@@ -41,6 +41,7 @@ async function getDashboardStats() {
   const { organizationId, userId } = context
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
 
   const [
     activeMissionsCount,
@@ -49,6 +50,7 @@ async function getDashboardStats() {
     urgentTasksCount,
     shortlistsSentCount,
     pendingFeedbackCount,
+    candidatesLastMonth,
   ] = await Promise.all([
     // Active missions
     prisma.mission.count({
@@ -77,16 +79,14 @@ async function getDashboardStats() {
         feedback: null,
       },
     }),
+    // Last month's candidates for comparison
+    prisma.candidate.count({
+      where: {
+        organizationId,
+        createdAt: { gte: lastMonthStart, lt: startOfMonth },
+      },
+    }),
   ])
-
-  // Get last month's candidates for comparison
-  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-  const candidatesLastMonth = await prisma.candidate.count({
-    where: {
-      organizationId,
-      createdAt: { gte: lastMonthStart, lt: startOfMonth },
-    },
-  })
 
   const candidateChange = candidatesLastMonth > 0
     ? Math.round(((candidatesThisMonth - candidatesLastMonth) / candidatesLastMonth) * 100)

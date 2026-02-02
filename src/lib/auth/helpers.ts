@@ -1,17 +1,17 @@
 'use server'
 
+import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
 /**
- * Get the current authenticated user's database record
- * Uses authUserId for secure lookup (not email which can change)
- * Throws if user is not authenticated or not found
+ * Cached resolution of current user (Supabase auth + Prisma).
+ * Deduplicated per request so layout + all server components share one auth/DB round-trip.
  */
-export async function getCurrentUser() {
+const getCachedCurrentUser = cache(async () => {
   const supabase = await createClient()
   const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
-  
+
   if (authError || !authUser) {
     throw new Error('Non authentifié')
   }
@@ -19,7 +19,7 @@ export async function getCurrentUser() {
   // Use authUserId for secure lookup (immutable, tied to Supabase Auth)
   const dbUser = await prisma.user.findUnique({
     where: { authUserId: authUser.id },
-    select: { 
+    select: {
       id: true,
       email: true,
       name: true,
@@ -33,7 +33,7 @@ export async function getCurrentUser() {
     if (authUser.email) {
       const userByEmail = await prisma.user.findUnique({
         where: { email: authUser.email },
-        select: { 
+        select: {
           id: true,
           email: true,
           name: true,
@@ -41,30 +41,38 @@ export async function getCurrentUser() {
           organizationId: true,
         },
       })
-      
+
       // If found by email, update with authUserId for future lookups
       if (userByEmail) {
-        // Check if authUserId needs to be set
         const fullUser = await prisma.user.findUnique({
           where: { id: userByEmail.id },
           select: { authUserId: true },
         })
-        
+
         if (fullUser && !fullUser.authUserId) {
           await prisma.user.update({
             where: { id: userByEmail.id },
             data: { authUserId: authUser.id },
           })
         }
-        
+
         return userByEmail
       }
     }
-    
+
     throw new Error('Utilisateur non trouvé dans la base de données')
   }
 
   return dbUser
+})
+
+/**
+ * Get the current authenticated user's database record
+ * Uses authUserId for secure lookup (not email which can change)
+ * Throws if user is not authenticated or not found
+ */
+export async function getCurrentUser() {
+  return getCachedCurrentUser()
 }
 
 /**

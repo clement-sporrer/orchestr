@@ -1,8 +1,7 @@
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import { CommandPaletteProvider } from '@/components/layout/command-palette-provider'
-import { createClient } from '@/lib/supabase/server'
-import { prisma } from '@/lib/prisma'
+import { getCurrentUser } from '@/lib/auth/helpers'
 import { redirect } from 'next/navigation'
 
 export default async function DashboardLayout({
@@ -10,51 +9,16 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-
-  if (!authUser) {
-    redirect('/login')
-  }
-
-  // Get user from database using authUserId (secure)
-  let dbUser = null
+  let user: { name: string; email: string; role: string }
   try {
-    dbUser = await prisma.user.findUnique({
-      where: { authUserId: authUser.id },
-      select: { name: true, email: true, role: true },
-    })
-    
-    // Fallback to email lookup if authUserId not set (migration path)
-    if (!dbUser && authUser.email) {
-      dbUser = await prisma.user.findUnique({
-        where: { email: authUser.email },
-        select: { name: true, email: true, role: true, id: true },
-      })
-      
-      // Update with authUserId for future lookups
-      if (dbUser) {
-        await prisma.user.update({
-          where: { id: dbUser.id },
-          data: { authUserId: authUser.id },
-        })
-      }
+    const dbUser = await getCurrentUser()
+    user = {
+      name: dbUser.name ?? dbUser.email?.split('@')[0] ?? 'User',
+      email: dbUser.email,
+      role: dbUser.role,
     }
-  } catch (error) {
-    // Log database errors safely (no credentials, no query data)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown DB error'
-    const errorCode = errorMessage.match(/P\d{4}/)?.[0] || 'UNKNOWN'
-    console.error('[Dashboard Layout DB Error]', {
-      code: errorCode,
-      context: 'user_lookup',
-      authUserId: authUser.id.substring(0, 8) + '...', // Truncated for privacy
-    })
-  }
-
-  const user = dbUser || {
-    name: authUser.email?.split('@')[0] || 'User',
-    email: authUser.email || '',
-    role: 'RECRUITER',
+  } catch {
+    redirect('/login')
   }
 
   return (
