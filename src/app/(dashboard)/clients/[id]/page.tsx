@@ -19,6 +19,8 @@ import { getOrganizationSettings } from '@/lib/actions/organization-settings'
 import { ContactDialog } from '@/components/clients/contact-dialog'
 import { ClientActions } from '@/components/clients/client-actions'
 
+export const dynamic = 'force-dynamic'
+
 interface ClientDetailPageProps {
   params: Promise<{ id: string }>
 }
