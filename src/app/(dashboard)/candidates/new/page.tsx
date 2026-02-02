@@ -161,7 +161,9 @@ export default function NewCandidatePage() {
         comments: formData.comments?.trim() || undefined,
         references: formData.references?.trim() || undefined,
         recruitable: formData.recruitable ?? 'UNKNOWN',
+        files: [],
         tags: formData.tags ?? [],
+        status: 'ACTIVE',
       }
 
       const candidate = await createCandidate(payload)
