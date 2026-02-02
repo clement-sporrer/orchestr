@@ -4,14 +4,11 @@ import { useState } from 'react'
 import { Download, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { exportCandidatesCsv } from '@/lib/actions/exports'
+import type { CandidateFilters } from '@/lib/validations/candidate'
 import { toast } from 'sonner'
 
 interface ExportButtonProps {
-  filters?: {
-    tags?: string[]
-    status?: string
-    poolId?: string
-  }
+  filters?: Partial<CandidateFilters>
   className?: string
 }
 

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, Users, Search, Upload, Building2, Loader2 } from 'lucide-react'
+import { Plus, Users, Search, Upload, Building2, Loader2, Briefcase } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/table'
 import { ViewToggle, type ViewMode } from '@/components/list-views/view-toggle'
 import { BulkActionBar } from '@/components/list-views/bulk-action-bar'
+import { AddToMissionDialog } from '@/components/candidates/add-to-mission-dialog'
 import { formatDateClient } from '@/lib/utils/date'
 import { deleteCandidate } from '@/lib/actions/candidates'
 import { toast } from 'sonner'
@@ -43,17 +44,21 @@ interface CandidatesListWithViewsProps {
   candidates: CandidateWithCount[]
   search?: string
   status?: CandidateStatus
+  hasActiveFilters?: boolean
 }
 
 export function CandidatesListWithViews({
   candidates,
   search,
   status,
+  hasActiveFilters = !!(search || status),
 }: CandidatesListWithViewsProps) {
   const router = useRouter()
   const [viewMode, setViewMode] = useState<ViewMode>('cards')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isDeleting, setIsDeleting] = useState(false)
+  const [addToMissionOpen, setAddToMissionOpen] = useState(false)
+  const [addToMissionCandidateIds, setAddToMissionCandidateIds] = useState<string[]>([])
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -95,15 +100,15 @@ export function CandidatesListWithViews({
             <Users className="h-12 w-12 text-muted-foreground/50" />
           </div>
           <h3 className="mt-2 text-lg font-semibold">
-            {search || status ? 'Aucun résultat' : 'Aucun candidat'}
+            {hasActiveFilters ? 'Aucun résultat' : 'Aucun candidat'}
           </h3>
           <p className="mt-2 text-sm text-muted-foreground text-center max-w-sm">
-            {search || status
+            {hasActiveFilters
               ? 'Aucun candidat ne correspond à vos critères. Essayez de modifier vos filtres.'
               : 'Ajoutez des candidats à votre vivier pour commencer à recruter.'
             }
           </p>
-          {!search && !status && (
+          {!hasActiveFilters && (
             <div className="flex flex-col sm:flex-row gap-2 mt-6">
               <Button asChild size="lg">
                 <Link href="/candidates/new">
@@ -137,8 +142,29 @@ export function CandidatesListWithViews({
           onDelete={handleBulkDelete}
           isDeleting={isDeleting}
           entityLabel="candidat"
+          secondaryAction={{
+            label: 'Ajouter à une mission',
+            icon: <Briefcase className="h-4 w-4 mr-1" />,
+            onClick: () => {
+              setAddToMissionCandidateIds(Array.from(selectedIds))
+              setAddToMissionOpen(true)
+            },
+          }}
         />
       )}
+
+      <AddToMissionDialog
+        candidateIds={addToMissionCandidateIds}
+        open={addToMissionOpen}
+        onOpenChange={(open) => {
+          setAddToMissionOpen(open)
+          if (!open) setAddToMissionCandidateIds([])
+        }}
+        onSuccess={() => {
+          setSelectedIds(new Set())
+          router.refresh()
+        }}
+      />
 
       {viewMode === 'cards' ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -154,25 +180,25 @@ export function CandidatesListWithViews({
               <Link href={`/candidates/${candidate.id}`} className="flex-1 min-w-0">
                 <Card
                   data-testid="candidate-card"
-                  className="hover:border-primary/50 transition-colors cursor-pointer h-full"
+                  className="hover:border-primary/50 transition-colors cursor-pointer h-full focus-within:ring-2 focus-within:ring-primary/20"
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <h3 className="font-medium">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <h3 className="font-semibold text-foreground truncate">
                           {candidate.firstName} {candidate.lastName}
                         </h3>
                         {(candidate.currentPosition || candidate.currentCompany) && (
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-muted-foreground truncate">
                             {candidate.currentPosition}
                             {candidate.currentCompany && ` @ ${candidate.currentCompany}`}
                           </p>
                         )}
                         {candidate.location && (
-                          <p className="text-xs text-muted-foreground">{candidate.location}</p>
+                          <p className="text-xs text-muted-foreground truncate">{candidate.location}</p>
                         )}
                       </div>
-                      <Badge className={statusColors[candidate.status]}>
+                      <Badge className={statusColors[candidate.status]} aria-label={`Statut : ${statusLabels[candidate.status]}`}>
                         {statusLabels[candidate.status]}
                       </Badge>
                     </div>
@@ -190,9 +216,27 @@ export function CandidatesListWithViews({
                         )}
                       </div>
                     )}
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t text-xs text-muted-foreground">
+                    <div className="flex items-center justify-between pt-2 border-t text-xs text-muted-foreground">
                       <span>{candidate._count.missionCandidates} mission{candidate._count.missionCandidates !== 1 ? 's' : ''}</span>
                       <span>Ajouté le {formatDateClient(candidate.createdAt, 'fr')}</span>
+                    </div>
+                    <div className="pt-2 border-t">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-xs w-full justify-start focus-visible:ring-2 focus-visible:ring-primary"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setAddToMissionCandidateIds([candidate.id])
+                          setAddToMissionOpen(true)
+                        }}
+                        aria-label={`Ajouter ${candidate.firstName} ${candidate.lastName} à une mission`}
+                      >
+                        <Briefcase className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                        Ajouter à une mission
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -215,8 +259,9 @@ export function CandidatesListWithViews({
                 <TableHead>Nom</TableHead>
                 <TableHead>Poste / Entreprise</TableHead>
                 <TableHead>Statut</TableHead>
-                <TableHead>Missions</TableHead>
+                <TableHead className="text-right">Missions</TableHead>
                 <TableHead>Ajouté le</TableHead>
+                <TableHead className="w-[140px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -246,9 +291,25 @@ export function CandidatesListWithViews({
                       {statusLabels[candidate.status]}
                     </Badge>
                   </TableCell>
-                  <TableCell>{candidate._count.missionCandidates}</TableCell>
+                  <TableCell className="text-right tabular-nums">{candidate._count.missionCandidates}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {formatDateClient(candidate.createdAt, 'fr')}
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()} className="text-right">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-xs focus-visible:ring-2 focus-visible:ring-primary"
+                      onClick={() => {
+                        setAddToMissionCandidateIds([candidate.id])
+                        setAddToMissionOpen(true)
+                      }}
+                      aria-label={`Ajouter ${candidate.firstName} ${candidate.lastName} à une mission`}
+                    >
+                      <Briefcase className="h-3.5 w-3.5 mr-1" />
+                      Ajouter à une mission
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

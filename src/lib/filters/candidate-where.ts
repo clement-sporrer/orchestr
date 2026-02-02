@@ -40,5 +40,8 @@ export function buildCandidateWhereClause(
     ...(validated.poolId
       ? { poolMemberships: { some: { poolId: validated.poolId } } }
       : {}),
+    ...(validated.excludeMissionId
+      ? { missionCandidates: { none: { missionId: validated.excludeMissionId } } }
+      : {}),
   }
 }

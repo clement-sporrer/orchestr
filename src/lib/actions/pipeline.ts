@@ -164,6 +164,7 @@ export async function addCandidateToMission(
   })
 
   revalidatePath(`/missions/${missionId}`)
+  revalidatePath('/candidates')
   return mc
 }
 

@@ -21,6 +21,11 @@ interface BulkActionBarProps {
   onDelete: () => void | Promise<void>
   isDeleting?: boolean
   entityLabel?: string
+  secondaryAction?: {
+    label: string
+    icon?: React.ReactNode
+    onClick: () => void
+  }
   className?: string
 }
 
@@ -30,6 +35,7 @@ export function BulkActionBar({
   onDelete,
   isDeleting = false,
   entityLabel = 'élément',
+  secondaryAction,
   className,
 }: BulkActionBarProps) {
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -73,6 +79,18 @@ export function BulkActionBar({
           <X className="h-4 w-4 mr-1" />
           Tout désélectionner
         </Button>
+        {secondaryAction && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={secondaryAction.onClick}
+            disabled={isDeleting || deleting}
+          >
+            {secondaryAction.icon}
+            {secondaryAction.label}
+          </Button>
+        )}
         <Button
           type="button"
           variant="destructive"

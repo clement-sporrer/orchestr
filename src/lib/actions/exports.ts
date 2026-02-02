@@ -2,25 +2,16 @@
 
 import { prisma } from '@/lib/prisma'
 import { getOrganizationId } from '@/lib/auth/helpers'
+import { buildCandidateWhereClause } from '@/lib/filters/candidate-where'
+import type { CandidateFilters } from '@/lib/validations/candidate'
 
-// Export candidates as CSV
-export async function exportCandidatesCsv(filters?: {
-  tags?: string[]
-  status?: string
-  poolId?: string
-}) {
+// Export candidates as CSV (uses same filters as list)
+export async function exportCandidatesCsv(filters?: Partial<CandidateFilters>) {
   const organizationId = await getOrganizationId()
+  const whereClause = buildCandidateWhereClause(organizationId, filters)
 
   const candidates = await prisma.candidate.findMany({
-    where: {
-      organizationId,
-      status: { not: 'DELETED' },
-      ...(filters?.tags?.length ? { tags: { hasSome: filters.tags } } : {}),
-      ...(filters?.status ? { status: filters.status as 'ACTIVE' | 'TO_RECONTACT' | 'BLACKLIST' } : {}),
-      ...(filters?.poolId ? {
-        poolMemberships: { some: { poolId: filters.poolId } },
-      } : {}),
-    },
+    where: whereClause,
     orderBy: { lastName: 'asc' },
   })
 

@@ -29,6 +29,7 @@ import {
 import { getCandidate } from '@/lib/actions/candidates'
 import { CandidateTagsEditor } from '@/components/candidates/tags-editor'
 import { CandidateStatusBadge } from '@/components/candidates/status-badge'
+import { AddToMissionButton } from '@/components/candidates/add-to-mission-button'
 import { InteractionsList } from '@/components/candidates/interactions-list'
 import { EnrichmentPanel } from '@/components/candidates/enrichment-panel'
 import type { CandidateStatus, PipelineStage, MissionStatus } from '@/generated/prisma'
@@ -113,6 +114,7 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
         </div>
         
         <div className="flex gap-2">
+          <AddToMissionButton candidateId={candidate.id} />
           <Button variant="outline" asChild>
             <Link href={`/candidates/${candidate.id}/edit`}>
               <Pencil className="mr-2 h-4 w-4" />
