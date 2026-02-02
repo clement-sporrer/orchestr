@@ -336,6 +336,10 @@ model Mission {
   @@index([recruiterId])
   @@index([status])
   @@index([jobTitle])
+  // Composite indexes for filtered queries (performance optimization)
+  @@index([organizationId, status, updatedAt(sort: Desc)])
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([clientId, status])
   @@map("missions")
 }
 
@@ -533,6 +537,10 @@ model Candidate {
   @@index([domain])
   @@index([sector])
   @@index([recruitable])
+  // Composite indexes for filtered queries (performance optimization)
+  @@index([organizationId, status, updatedAt(sort: Desc)])
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([organizationId, relationshipLevel, updatedAt(sort: Desc)])
   @@map("candidates")
 }
 
@@ -644,6 +652,9 @@ model MissionCandidate {
   @@index([stage])
   @@index([missionId, stage])
   @@index([portalToken])
+  // Composite indexes for pipeline queries (performance optimization)
+  @@index([candidateId, stage, updatedAt(sort: Desc)])
+  @@index([missionId, stage, updatedAt(sort: Desc)])
   @@map("mission_candidates")
 }
 

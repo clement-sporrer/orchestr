@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
+import { CommandPaletteProvider } from '@/components/layout/command-palette-provider'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
@@ -65,6 +66,7 @@ export default async function DashboardLayout({
           {children}
         </main>
       </div>
+      <CommandPaletteProvider />
     </div>
   )
 }
