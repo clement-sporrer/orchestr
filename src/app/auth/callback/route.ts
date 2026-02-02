@@ -16,14 +16,23 @@ export async function GET(request: Request) {
     const { error, data } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error && data.user) {
-      // Create organization and user in database if not exists
+      // Create or link user in database
       try {
         const existingUser = await prisma.user.findUnique({
           where: { email: data.user.email! },
         })
 
-        if (!existingUser) {
-          // Get user metadata
+        if (existingUser) {
+          // User exists - ensure authUserId is linked
+          if (!existingUser.authUserId) {
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: { authUserId: data.user.id },
+            })
+            console.log(`Linked authUserId for existing user: ${existingUser.email}`)
+          }
+        } else {
+          // New user - create organization and user
           const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User'
           const orgName = data.user.user_metadata?.organization_name || `${userName}'s Organization`
 
@@ -47,7 +56,7 @@ export async function GET(request: Request) {
           })
         }
       } catch (err) {
-        console.error('Error creating user/organization:', err)
+        console.error('Error creating/linking user:', err)
         // Continue anyway - user can complete setup later
       }
 

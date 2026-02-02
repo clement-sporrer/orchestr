@@ -34,3 +34,5 @@ CREATE UNIQUE INDEX IF NOT EXISTS "linkedin_cache_linkedinUrl_key" ON "linkedin_
 CREATE INDEX IF NOT EXISTS "linkedin_cache_linkedinUrl_idx" ON "linkedin_cache"("linkedinUrl");
 CREATE INDEX IF NOT EXISTS "linkedin_cache_expiresAt_idx" ON "linkedin_cache"("expiresAt");
 
+
+

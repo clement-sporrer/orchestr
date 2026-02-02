@@ -2,28 +2,19 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
 import type { CandidateStatus, Seniority, Prisma } from '@/generated/prisma'
 import { parseLinkedInUrl, generateProfileTags, enrichProfileFromText, type EnrichedProfileData } from '@/lib/ai/structuring'
 import { getOrganizationId, getCurrentUserId } from '@/lib/auth/helpers'
-
-// Schema
-const candidateSchema = z.object({
-  firstName: z.string().min(1, 'Prénom requis'),
-  lastName: z.string().min(1, 'Nom requis'),
-  email: z.string().email().optional().or(z.literal('')),
-  phone: z.string().optional(),
-  location: z.string().optional(),
-  currentPosition: z.string().optional(),
-  currentCompany: z.string().optional(),
-  profileUrl: z.string().url().optional().or(z.literal('')),
-  cvUrl: z.string().optional(),
-  tags: z.array(z.string()).default([]),
-  notes: z.string().optional(),
-  estimatedSeniority: z.enum(['JUNIOR', 'MID', 'SENIOR', 'LEAD', 'EXECUTIVE']).optional(),
-  estimatedSector: z.string().optional(),
-  status: z.enum(['ACTIVE', 'TO_RECONTACT', 'BLACKLIST', 'DELETED']).default('ACTIVE'),
-})
+import {
+  createCandidateSchema,
+  updateCandidateSchema,
+  candidateFiltersSchema,
+  transformCandidateInput,
+  type CreateCandidateInput,
+  type UpdateCandidateInput,
+  type CandidateFilters,
+} from '@/lib/validations/candidate'
+import { buildCandidateWhereClause } from '@/lib/filters/candidate-where'
 
 // Type for candidate with _count
 const candidateSelect: Prisma.CandidateSelect = {
@@ -45,34 +36,11 @@ const candidateSelect: Prisma.CandidateSelect = {
 }
 
 export type CandidateWithCount = Prisma.CandidateGetPayload<{
-  select: {
-    id: true
-    firstName: true
-    lastName: true
-    email: true
-    phone: true
-    currentPosition: true
-    currentCompany: true
-    location: true
-    tags: true
-    status: true
-    relationshipLevel: true
-    createdAt: true
-    _count: {
-      select: { missionCandidates: true }
-    }
-  }
+  select: typeof candidateSelect
 }>
 
-// Get all candidates with pagination
-export async function getCandidates(filters?: {
-  search?: string
-  status?: CandidateStatus
-  tags?: string[]
-  poolId?: string
-  page?: number
-  limit?: number
-}): Promise<{
+// Get all candidates with pagination and full filters
+export async function getCandidates(filters?: Partial<CandidateFilters>): Promise<{
   candidates: CandidateWithCount[]
   pagination: {
     page: number
@@ -82,34 +50,14 @@ export async function getCandidates(filters?: {
   }
 }> {
   const organizationId = await getOrganizationId()
-  const page = filters?.page || 1
-  const limit = Math.min(filters?.limit || 50, 100) // Max 100 per page
+  const validated = filters
+    ? candidateFiltersSchema.partial().parse(filters)
+    : {}
+  const page = validated.page ?? 1
+  const limit = Math.min(validated.limit ?? 50, 100)
   const skip = (page - 1) * limit
 
-  // Build where clause once to avoid duplication
-  const searchMode = 'insensitive' as const
-
-  const whereClause: Prisma.CandidateWhereInput = {
-    organizationId,
-    status: filters?.status || { not: 'DELETED' as const },
-    ...(filters?.search ? {
-      OR: [
-        { firstName: { contains: filters.search, mode: searchMode } },
-        { lastName: { contains: filters.search, mode: searchMode } },
-        { email: { contains: filters.search, mode: searchMode } },
-        { currentCompany: { contains: filters.search, mode: searchMode } },
-        { currentPosition: { contains: filters.search, mode: searchMode } },
-      ] satisfies Prisma.CandidateWhereInput[],
-    } : {}),
-    ...(filters?.tags?.length ? {
-      tags: { hasSome: filters.tags },
-    } : {}),
-    ...(filters?.poolId ? {
-      poolMemberships: {
-        some: { poolId: filters.poolId },
-      },
-    } : {}),
-  }
+  const whereClause = buildCandidateWhereClause(organizationId, validated)
 
   const [candidates, total] = await Promise.all([
     prisma.candidate.findMany({
@@ -119,9 +67,7 @@ export async function getCandidates(filters?: {
       skip,
       take: limit,
     }),
-    prisma.candidate.count({
-      where: whereClause,
-    }),
+    prisma.candidate.count({ where: whereClause }),
   ])
 
   return {
@@ -175,31 +121,54 @@ export async function getCandidate(id: string) {
   return candidate
 }
 
-// Create candidate
-export async function createCandidate(data: z.infer<typeof candidateSchema>) {
+// Create candidate (full 28-field schema, validation + normalisation)
+export async function createCandidate(data: CreateCandidateInput) {
   const organizationId = await getOrganizationId()
-  const validated = candidateSchema.parse(data)
+  const validated = createCandidateSchema.parse(data)
+  const transformed = transformCandidateInput(validated)
 
-  // Check for duplicates
-  if (validated.email) {
-    const existing = await prisma.candidate.findFirst({
-      where: {
-        organizationId,
-        email: validated.email,
-      },
-    })
-
-    if (existing) {
-      throw new Error(`Un candidat avec l'email ${validated.email} existe déjà`)
-    }
+  const dup = await checkCandidateDuplicate(transformed.email ?? null, transformed.linkedin ?? null)
+  if (dup.duplicate) {
+    throw new Error(
+      `Un candidat existe déjà: ${dup.duplicate.firstName} ${dup.duplicate.lastName}`
+    )
   }
 
   const candidate = await prisma.candidate.create({
     data: {
-      ...validated,
-      email: validated.email || null,
-      profileUrl: validated.profileUrl || null,
       organizationId,
+      firstName: transformed.firstName!,
+      lastName: transformed.lastName!,
+      email: transformed.email ?? null,
+      linkedin: transformed.linkedin ?? null,
+      phone: transformed.phone ?? null,
+      age: transformed.age ?? null,
+      country: transformed.country ?? null,
+      city: transformed.city ?? null,
+      region: transformed.region ?? null,
+      languages: transformed.languages
+        ? (transformed.languages as unknown as Prisma.InputJsonValue)
+        : undefined,
+      seniority: transformed.seniority ?? null,
+      domain: transformed.domain ?? null,
+      sector: transformed.sector ?? null,
+      currentCompany: transformed.currentCompany ?? null,
+      currentPosition: transformed.currentPosition ?? null,
+      pastCompanies: transformed.pastCompanies ?? null,
+      jobFamily: transformed.jobFamily ?? null,
+      hardSkills: transformed.hardSkills ?? null,
+      softSkills: transformed.softSkills ?? null,
+      compensation: transformed.compensation ?? null,
+      comments: transformed.comments ?? null,
+      references: transformed.references ?? null,
+      recruitable: transformed.recruitable ?? 'UNKNOWN',
+      files: transformed.files ?? [],
+      profileUrl: transformed.profileUrl ?? null,
+      cvUrl: transformed.cvUrl ?? null,
+      location: transformed.location ?? null,
+      notes: transformed.notes ?? null,
+      tags: transformed.tags ?? [],
+      status: transformed.status ?? 'ACTIVE',
     },
   })
 
@@ -207,41 +176,49 @@ export async function createCandidate(data: z.infer<typeof candidateSchema>) {
   return candidate
 }
 
-// Update candidate
-export async function updateCandidate(id: string, data: Partial<z.infer<typeof candidateSchema>>) {
+// Update candidate (partial: only provided fields are updated, validation + normalisation)
+export async function updateCandidate(id: string, data: Partial<UpdateCandidateInput>) {
   const organizationId = await getOrganizationId()
+  const validated = updateCandidateSchema.parse({ ...data, id })
+  const transformed = transformCandidateInput(validated) as UpdateCandidateInput
+  const { id: _id, ...transformedData } = transformed
 
-  // Verify ownership
   const existing = await prisma.candidate.findFirst({
     where: { id, organizationId },
+    select: { id: true, email: true, linkedin: true },
   })
+  if (!existing) throw new Error('Candidat non trouvé')
 
-  if (!existing) {
-    throw new Error('Candidat non trouvé')
+  if (transformedData.email !== undefined || transformedData.linkedin !== undefined) {
+    const dup = await checkCandidateDuplicate(
+      transformedData.email ?? null,
+      transformedData.linkedin ?? null
+    )
+    if (dup.duplicate && dup.duplicate.id !== id) {
+      throw new Error(
+        `Un autre candidat existe avec ce profil: ${dup.duplicate.firstName} ${dup.duplicate.lastName}`
+      )
+    }
   }
 
-  // Check for duplicate email if changing email
-  if (data.email && data.email !== existing.email) {
-    const duplicate = await prisma.candidate.findFirst({
-      where: {
-        organizationId,
-        email: data.email,
-        id: { not: id },
-      },
-    })
-
-    if (duplicate) {
-      throw new Error(`Un candidat avec l'email ${data.email} existe déjà`)
+  const keysProvided = new Set(Object.keys(data)) as Set<keyof UpdateCandidateInput>
+  const updatePayload: Record<string, unknown> = {}
+  for (const key of keysProvided) {
+    if (key === 'id') continue
+    const v = transformedData[key as keyof typeof transformedData]
+    if (v === undefined) continue
+    if (key === 'languages') {
+      updatePayload[key] = v ? (v as unknown as Prisma.InputJsonValue) : undefined
+    } else if (v === '') {
+      updatePayload[key] = null
+    } else {
+      updatePayload[key] = v
     }
   }
 
   const candidate = await prisma.candidate.update({
     where: { id },
-    data: {
-      ...data,
-      email: data.email || null,
-      profileUrl: data.profileUrl || null,
-    },
+    data: updatePayload as Prisma.CandidateUpdateInput,
   })
 
   revalidatePath('/candidates')
@@ -567,6 +544,71 @@ export async function checkCandidateExists(data: {
   return { exists: false }
 }
 
+/** Check duplicate by email or LinkedIn (new field). Returns existing candidate if found. */
+export async function checkCandidateDuplicate(
+  email?: string | null,
+  linkedin?: string | null
+): Promise<{
+  success: boolean
+  duplicate: { id: string; firstName: string; lastName: string; email: string | null; linkedin: string | null; currentCompany: string | null; currentPosition: string | null } | null
+  error?: string
+}> {
+  const organizationId = await getOrganizationId()
+  if (!email && !linkedin) return { success: true, duplicate: null }
+
+  const conditions: Prisma.CandidateWhereInput[] = []
+  if (email) conditions.push({ email })
+  if (linkedin) conditions.push({ linkedin })
+
+  const duplicate = await prisma.candidate.findFirst({
+    where: {
+      organizationId,
+      status: { not: 'DELETED' },
+      OR: conditions,
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      linkedin: true,
+      currentCompany: true,
+      currentPosition: true,
+    },
+  })
+  return { success: true, duplicate: duplicate ?? null }
+}
+
+/** Append entry to candidate solicitation history (e.g. when added to mission). */
+export async function addSolicitationHistoryEntry(
+  candidateId: string,
+  action: string,
+  missionId?: string,
+  missionName?: string
+) {
+  const organizationId = await getOrganizationId()
+  const candidate = await prisma.candidate.findFirst({
+    where: { id: candidateId, organizationId },
+    select: { solicitationHistory: true },
+  })
+  if (!candidate) throw new Error('Candidat non trouvé')
+
+  const history = (candidate.solicitationHistory as { date: string; action: string; missionId?: string; missionName?: string }[]) ?? []
+  const newEntry = {
+    date: new Date().toISOString(),
+    action,
+    ...(missionId && { missionId }),
+    ...(missionName && { missionName }),
+  }
+  await prisma.candidate.update({
+    where: { id: candidateId },
+    data: {
+      solicitationHistory: [...history, newEntry] as unknown as Prisma.InputJsonValue,
+    },
+  })
+  revalidatePath(`/candidates/${candidateId}`)
+}
+
 // Create candidate with enrichment data
 export async function createCandidateWithEnrichment(data: {
   // Basic info
@@ -617,7 +659,7 @@ export async function createCandidateWithEnrichment(data: {
     }
   }
 
-  const hasEnrichmentData = data.linkedinHeadline || data.linkedinSummary || 
+  const hasEnrichmentData = data.linkedinHeadline || data.linkedinSummary ||
     (data.experiences && data.experiences.length > 0) ||
     (data.education && data.education.length > 0) ||
     (data.skills && data.skills.length > 0)
@@ -633,12 +675,12 @@ export async function createCandidateWithEnrichment(data: {
       currentPosition: data.currentPosition || null,
       currentCompany: data.currentCompany || null,
       profileUrl: data.profileUrl || null,
+      linkedin: data.profileUrl || null,
       tags: data.tags || [],
       notes: data.notes || null,
       estimatedSeniority: data.estimatedSeniority || null,
       estimatedSector: data.estimatedSector || null,
       status: 'ACTIVE',
-      // Create enrichment if we have LinkedIn data
       ...(hasEnrichmentData ? {
         enrichment: {
           create: {

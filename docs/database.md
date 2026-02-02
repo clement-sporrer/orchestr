@@ -86,9 +86,22 @@ model Organization {
   pools                 Pool[]
   events                Event[]
   subscription          Subscription?
+  settings              OrganizationSettings?
   // ... other relations
 }
 ```
+
+### OrganizationSettings
+
+Organization-scoped configurable lists for candidate management (1:1 with Organization).
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | cuid | Primary key |
+| `organizationId` | string | FK to Organization (unique) |
+| `domains` | string[] | Ex: Leasing, Crédit Conso, IT, M&A |
+| `sectors` | string[] | Ex: Courtier, Captive, Asset Management |
+| `jobFamilies` | string[] | Ex: Commercial, Manager, Direction |
 
 ### User
 
@@ -122,37 +135,61 @@ Billing and plan information for an organization.
 
 ### Candidate
 
-A unique person within an organization's talent database.
+A unique person within an organization's talent database. Full profile has 28 fields (identity, contact, location, languages, experience, skills, metadata). Validation and normalisation (e.g. lastName → UPPERCASE, firstName → Capitalized) are applied in `src/lib/validations/candidate.ts` and `src/lib/actions/candidates.ts`.
+
+**Identity:** `id`, `firstName`, `lastName`  
+**Contact:** `email`, `linkedin`, `phone`, `age`  
+**Location:** `country`, `city`, `region` (normalised; region can be auto-filled from city/country)  
+**Languages:** `languages` (JSON: `[{language, level}]`, level = BEGINNER | INTERMEDIATE | FLUENT | NATIVE)  
+**Experience:** `seniority` (CandidateSeniority: 1–5 ans, 5–10 ans, 10–20 ans, 20+ ans), `domain`, `sector`, `currentCompany`, `currentPosition`, `pastCompanies` (semicolon-separated), `jobFamily`  
+**Skills:** `hardSkills`, `softSkills` (semicolon-separated)  
+**Additional:** `compensation`, `comments`, `references`, `recruitable` (YES | NO | UNKNOWN)  
+**Files:** `files` (string[] – Supabase Storage paths)  
+**System:** `solicitationHistory` (JSON), `createdAt`, `updatedAt`  
+**Legacy (kept for compatibility):** `profileUrl`, `cvUrl`, `location`, `estimatedSeniority`, `estimatedSector`, `notes`, `tags`, `status`, `relationshipLevel`, consent and merge fields.
 
 ```prisma
 model Candidate {
-  id                 String            @id @default(cuid())
-  organizationId     String
-  firstName          String
-  lastName           String
-  email              String?
-  phone              String?
-  location           String?
-  currentPosition    String?
-  currentCompany     String?
-  profileUrl         String?           // LinkedIn or other
-  cvUrl              String?
+  id             String   @id @default(cuid())
+  organizationId String
+  lastName       String
+  firstName      String
+  email          String?
+  linkedin       String?
+  phone          String?
+  age            Int?
+  country        String?
+  city           String?
+  region         String?
+  languages      Json?
+  seniority      CandidateSeniority?
+  domain         String?
+  sector         String?
+  currentCompany String?
+  currentPosition String?
+  pastCompanies  String?
+  jobFamily      String?
+  hardSkills     String?
+  softSkills     String?
+  compensation   String?
+  comments       String?
+  references     String?
+  recruitable    RecruitableStatus @default(UNKNOWN)
+  files          String[] @default([])
+  solicitationHistory Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  // Legacy + relations
+  profileUrl     String?
+  cvUrl          String?
+  location       String?
   estimatedSeniority Seniority?
   estimatedSector    String?
   relationshipLevel  RelationshipLevel @default(SOURCED)
-  tags               String[]          @default([])
-  status             CandidateStatus   @default(ACTIVE)
-  notes              String?
-  consentGiven       Boolean           @default(false)
-  consentDate        DateTime?
-  mergedFromIds      String[]          @default([])
-  
-  // Relations
-  missionCandidates  MissionCandidate[]
-  interactions       Interaction[]
-  poolMemberships    CandidatePool[]
-  enrichment         CandidateEnrichment?
-  positions          CandidatePosition[]
+  tags           String[] @default([])
+  status         CandidateStatus @default(ACTIVE)
+  notes          String?
+  // ... consent, mergedFromIds, relations
 }
 ```
 
@@ -582,4 +619,5 @@ npx prisma studio
 | `prisma/migrations/` | Migration history |
 | `supabase/policies.sql` | RLS policies |
 | `src/generated/prisma/` | Generated Prisma client |
+
 

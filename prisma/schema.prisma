@@ -41,8 +41,28 @@ model Organization {
   taxonomyPoles        TaxonomyPole[]
   taxonomyPositions    TaxonomyPosition[]
   externalAccessTokens ExternalAccessToken[]
+  settings             OrganizationSettings?
 
   @@map("organizations")
+}
+
+// Organization Settings - Configurable lists for candidate management
+model OrganizationSettings {
+  id             String   @id @default(cuid())
+  organizationId String   @unique
+  
+  // Configurable lists for candidate fields
+  domains        String[] @default([]) // Ex: ["Leasing", "Crédit Conso", "IT", "M&A"]
+  sectors        String[] @default([]) // Ex: ["Courtier", "Captive", "Asset Management"]
+  jobFamilies    String[] @default([]) // Ex: ["Commercial", "Manager", "Direction"]
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("organization_settings")
 }
 
 // ============================================
@@ -337,24 +357,112 @@ enum RelationshipLevel {
   PLACED      // Successfully placed in a role
 }
 
+// Candidate Seniority brackets (years of experience)
+enum CandidateSeniority {
+  ONE_TO_FIVE      // 1-5 ans
+  FIVE_TO_TEN      // 5-10 ans
+  TEN_TO_TWENTY    // 10-20 ans
+  TWENTY_PLUS      // 20+ ans
+}
+
+// Candidate recruitable status
+enum RecruitableStatus {
+  YES
+  NO
+  UNKNOWN // Empty value represented as UNKNOWN
+}
+
+// Language proficiency levels
+enum LanguageLevel {
+  BEGINNER      // Débutant
+  INTERMEDIATE  // Intermédiaire
+  FLUENT        // Courant
+  NATIVE        // Natif
+}
+
 model Candidate {
   id             String          @id @default(cuid())
   organizationId String
   
-  // Identity
-  firstName      String
+  // ========== IDENTITY (Champs 1-3) ==========
+  // #1 id - Auto-generated above
+  // #2 lastName - Auto-transformed to UPPERCASE
   lastName       String
-  email          String?
-  phone          String?
-  location       String?
+  // #3 firstName - Auto-transformed to Capitalized
+  firstName      String
   
-  // Professional
-  currentPosition  String?
-  currentCompany   String?
-  profileUrl       String?         // LinkedIn or other
-  cvUrl            String?
-  estimatedSeniority Seniority?
-  estimatedSector    String?
+  // ========== CONTACT (Champs 4-7) ==========
+  // #4 email - Validated format, optional
+  email          String?
+  // #5 linkedin - Validated LinkedIn URL format, optional
+  linkedin       String?
+  // #6 phone - Country code + number stored as single string
+  phone          String?
+  // #7 age - Integer range 18-99, optional
+  age            Int?
+  
+  // ========== LOCALISATION (Champs 8-10) ==========
+  // #8 country - Normalized country name (ISO 3166-1)
+  country        String?
+  // #9 city - Normalized city name, filtered by country
+  city           String?
+  // #10 region - Auto-filled based on city/country
+  region         String?
+  
+  // ========== COMPÉTENCES LINGUISTIQUES (Champ 11) ==========
+  // #11 languages - JSON array [{lang: string, level: enum}]
+  languages      Json?  // Array of {language: string, level: LanguageLevel}
+  
+  // ========== EXPÉRIENCE PROFESSIONNELLE (Champs 12-18) ==========
+  // #12 seniority - Experience bracket (1-5, 5-10, 10-20, 20+)
+  seniority      CandidateSeniority?
+  // #13 domain - User-defined configurable list (from OrganizationSettings)
+  domain         String?
+  // #14 sector - User-defined configurable list (from OrganizationSettings)
+  sector         String?
+  // #15 currentCompany - Auto-suggest from existing, transformed to MAJ
+  currentCompany String?
+  // #16 currentPosition - Auto-suggest from existing, transformed to MAJ
+  currentPosition String?
+  // #17 pastCompanies - Semicolon-separated list
+  pastCompanies  String?
+  // #18 jobFamily - User-defined configurable list (from OrganizationSettings)
+  jobFamily      String?
+  
+  // ========== COMPÉTENCES (Champs 19-20) ==========
+  // #19 hardSkills - Semicolon-separated list
+  hardSkills     String?
+  // #20 softSkills - Semicolon-separated list
+  softSkills     String?
+  
+  // ========== INFORMATIONS ADDITIONNELLES (Champs 21-24) ==========
+  // #21 compensation - Free-form multi-line text
+  compensation   String?
+  // #22 comments - Free-form internal notes
+  comments       String?
+  // #23 references - Free-form contacts/referents
+  references     String?
+  // #24 recruitable - YES / NO / UNKNOWN (empty = UNKNOWN)
+  recruitable    RecruitableStatus @default(UNKNOWN)
+  
+  // ========== FICHIERS (Champ 25) ==========
+  // #25 files - Array of file paths in Supabase Storage
+  files          String[]        @default([])
+  
+  // ========== MÉTADONNÉES SYSTÈME (Champs 26-28) ==========
+  // #26 solicitationHistory - Auto-tracked JSON array
+  solicitationHistory Json?  // Array of {date, action, missionId, missionName}
+  // #27 createdAt - Auto timestamp
+  createdAt      DateTime        @default(now())
+  // #28 updatedAt - Auto timestamp
+  updatedAt      DateTime        @updatedAt
+  
+  // ========== LEGACY FIELDS (kept for backward compatibility) ==========
+  profileUrl       String?         // LinkedIn or other (legacy, use linkedin field)
+  cvUrl            String?         // Legacy CV URL (use files array)
+  location         String?         // Legacy location (use country/city/region)
+  estimatedSeniority Seniority?    // Legacy seniority (use seniority field)
+  estimatedSector    String?       // Legacy sector (use sector field)
   
   // Relationship level (global, not mission-specific)
   relationshipLevel RelationshipLevel @default(SOURCED)
@@ -362,7 +470,7 @@ model Candidate {
   // Tags and status
   tags           String[]        @default([])
   status         CandidateStatus @default(ACTIVE)
-  notes          String?
+  notes          String?         // Legacy notes (use comments field)
   
   // Consent
   consentGiven     Boolean       @default(false)
@@ -371,9 +479,6 @@ model Candidate {
   
   // Deduplication tracking
   mergedFromIds    String[]      @default([])
-  
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
 
   organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   missionCandidates    MissionCandidate[]
@@ -387,9 +492,17 @@ model Candidate {
   @@index([organizationId])
   @@index([email])
   @@index([phone])
+  @@index([linkedin])
   @@index([profileUrl])
   @@index([status])
   @@index([relationshipLevel])
+  @@index([lastName, firstName])
+  @@index([currentCompany])
+  @@index([currentPosition])
+  @@index([seniority])
+  @@index([domain])
+  @@index([sector])
+  @@index([recruitable])
   @@map("candidates")
 }
 

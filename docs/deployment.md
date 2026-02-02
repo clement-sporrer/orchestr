@@ -416,3 +416,4 @@ SELECT * FROM candidates LIMIT 1;
 
 See [`.env.example`](../.env.example) for complete variable list.
 
+

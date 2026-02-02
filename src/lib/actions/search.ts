@@ -106,3 +106,5 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
   return results
 }
 
+
+

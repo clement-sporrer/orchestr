@@ -366,3 +366,4 @@ Set API URL to `http://localhost:3000` for local development.
 - [ ] Pool selection
 - [ ] Offline queue for later sync
 
+

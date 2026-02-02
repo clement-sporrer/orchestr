@@ -163,6 +163,12 @@ CREATE TRIGGER set_updated_at_external_access_tokens
   BEFORE UPDATE ON public.external_access_tokens
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
+-- Organization Settings
+DROP TRIGGER IF EXISTS set_updated_at_organization_settings ON public.organization_settings;
+CREATE TRIGGER set_updated_at_organization_settings
+  BEFORE UPDATE ON public.organization_settings
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
 -- ============================================
 -- ENABLE ROW LEVEL SECURITY
 -- ============================================
@@ -200,6 +206,7 @@ ALTER TABLE public.taxonomy_poles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.taxonomy_positions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.candidate_positions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.external_access_tokens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.organization_settings ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
 -- RLS POLICIES: ORGANIZATIONS
@@ -1165,6 +1172,27 @@ CREATE POLICY "external_access_tokens_update" ON public.external_access_tokens
 
 DROP POLICY IF EXISTS "external_access_tokens_delete" ON public.external_access_tokens;
 CREATE POLICY "external_access_tokens_delete" ON public.external_access_tokens
+  FOR DELETE USING ("organizationId" = current_org_id());
+
+-- ============================================
+-- RLS POLICIES: ORGANIZATION SETTINGS
+-- Each organization has exactly one settings record
+-- ============================================
+
+DROP POLICY IF EXISTS "organization_settings_select" ON public.organization_settings;
+CREATE POLICY "organization_settings_select" ON public.organization_settings
+  FOR SELECT USING ("organizationId" = current_org_id());
+
+DROP POLICY IF EXISTS "organization_settings_insert" ON public.organization_settings;
+CREATE POLICY "organization_settings_insert" ON public.organization_settings
+  FOR INSERT WITH CHECK ("organizationId" = current_org_id());
+
+DROP POLICY IF EXISTS "organization_settings_update" ON public.organization_settings;
+CREATE POLICY "organization_settings_update" ON public.organization_settings
+  FOR UPDATE USING ("organizationId" = current_org_id());
+
+DROP POLICY IF EXISTS "organization_settings_delete" ON public.organization_settings;
+CREATE POLICY "organization_settings_delete" ON public.organization_settings
   FOR DELETE USING ("organizationId" = current_org_id());
 
 -- ============================================
