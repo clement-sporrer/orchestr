@@ -18,24 +18,67 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { createMission } from '@/lib/actions/missions'
+import { createMission, updateMission } from '@/lib/actions/missions'
 import { VisibilitySelect } from './visibility-select'
 import { JobPreview } from './job-preview'
 import { toast } from 'sonner'
 import type { Visibility } from '@/generated/prisma'
 
-interface Client {
+interface Contact {
+  id: string
+  firstName: string | null
+  lastName: string | null
+  name: string | null
+  email: string | null
+  isPrimary: boolean
+}
+
+interface ClientWithContacts {
   id: string
   name: string
+  companyName: string | null
+  contacts: Contact[]
+}
+
+interface MissionInitialData {
+  clientId?: string
+  mainContactId?: string | null
+  title?: string
+  location?: string | null
+  contractType?: string | null
+  seniority?: string | null
+  salaryMin?: number | null
+  salaryMax?: number | null
+  salaryVisible?: boolean
+  currency?: string
+  context?: string | null
+  contextVisibility?: Visibility
+  responsibilities?: string | null
+  responsibilitiesVisibility?: Visibility
+  mustHave?: string | null
+  mustHaveVisibility?: Visibility
+  niceToHave?: string | null
+  niceToHaveVisibility?: Visibility
+  redFlags?: string | null
+  process?: string | null
+  processVisibility?: Visibility
+  calendlyLink?: string | null
+  calendlyEmbed?: boolean
+  scoreThreshold?: number
 }
 
 interface JobBuilderFormProps {
-  clients: Client[]
+  clients?: ClientWithContacts[]
+  clientsWithContacts?: ClientWithContacts[]
   defaultClientId?: string
+  /** Edit mode: mission id + initial values */
+  missionId?: string
+  initialData?: MissionInitialData
 }
 
 interface FormData {
   clientId: string
+  mainContactId: string
   title: string
   location: string
   contractType: string
@@ -62,6 +105,7 @@ interface FormData {
 
 const defaultFormData: FormData = {
   clientId: '',
+  mainContactId: '',
   title: '',
   location: '',
   contractType: '',
@@ -86,20 +130,62 @@ const defaultFormData: FormData = {
   scoreThreshold: 60,
 }
 
-export function JobBuilderForm({ clients, defaultClientId }: JobBuilderFormProps) {
+export function JobBuilderForm({
+  clients,
+  clientsWithContacts,
+  defaultClientId,
+  missionId,
+  initialData,
+}: JobBuilderFormProps) {
   const router = useRouter()
+  const list = clientsWithContacts ?? clients ?? []
+  const isEdit = !!missionId && !!initialData
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('edit')
   const [previewAudience, setPreviewAudience] = useState<'internal' | 'client' | 'candidate'>('internal')
-  const [formData, setFormData] = useState<FormData>({
-    ...defaultFormData,
-    clientId: defaultClientId || '',
+  const [formData, setFormData] = useState<FormData>(() => {
+    const base = initialData
+      ? {
+          clientId: initialData.clientId ?? '',
+          mainContactId: initialData.mainContactId ?? '',
+          title: initialData.title ?? '',
+          location: initialData.location ?? '',
+          contractType: initialData.contractType ?? '',
+          seniority: initialData.seniority ?? '',
+          salaryMin: initialData.salaryMin != null ? String(initialData.salaryMin) : '',
+          salaryMax: initialData.salaryMax != null ? String(initialData.salaryMax) : '',
+          salaryVisible: initialData.salaryVisible ?? false,
+          currency: initialData.currency ?? 'EUR',
+          context: initialData.context ?? '',
+          contextVisibility: (initialData.contextVisibility ?? 'INTERNAL') as Visibility,
+          responsibilities: initialData.responsibilities ?? '',
+          responsibilitiesVisibility: (initialData.responsibilitiesVisibility ?? 'ALL') as Visibility,
+          mustHave: initialData.mustHave ?? '',
+          mustHaveVisibility: (initialData.mustHaveVisibility ?? 'ALL') as Visibility,
+          niceToHave: initialData.niceToHave ?? '',
+          niceToHaveVisibility: (initialData.niceToHaveVisibility ?? 'ALL') as Visibility,
+          redFlags: initialData.redFlags ?? '',
+          process: initialData.process ?? '',
+          processVisibility: (initialData.processVisibility ?? 'INTERNAL_CLIENT') as Visibility,
+          calendlyLink: initialData.calendlyLink ?? '',
+          calendlyEmbed: initialData.calendlyEmbed ?? false,
+          scoreThreshold: initialData.scoreThreshold ?? 60,
+        }
+      : { ...defaultFormData, clientId: defaultClientId || '', mainContactId: '' }
+    return base
   })
 
   const updateField = <K extends keyof FormData>(field: K, value: FormData[K]) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => {
+      const next = { ...prev, [field]: value }
+      if (field === 'clientId') next.mainContactId = ''
+      return next
+    })
   }
+
+  const selectedClient = list.find((c) => c.id === formData.clientId)
+  const contacts = selectedClient?.contacts ?? []
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -109,6 +195,7 @@ export function JobBuilderForm({ clients, defaultClientId }: JobBuilderFormProps
     try {
       const data = {
         clientId: formData.clientId,
+        mainContactId: formData.mainContactId || undefined,
         title: formData.title,
         location: formData.location || undefined,
         contractType: formData.contractType as 'CDI' | 'CDD' | 'FREELANCE' | 'INTERNSHIP' | 'APPRENTICESHIP' | 'OTHER' | undefined,
@@ -133,9 +220,15 @@ export function JobBuilderForm({ clients, defaultClientId }: JobBuilderFormProps
         scoreThreshold: formData.scoreThreshold,
       }
 
-      const mission = await createMission(data)
-      toast.success('Mission créée avec succès')
-      router.push(`/missions/${mission.id}`)
+      if (isEdit && missionId) {
+        await updateMission(missionId, data)
+        toast.success('Mission mise à jour')
+        router.push(`/missions/${missionId}`)
+      } else {
+        const mission = await createMission(data)
+        toast.success('Mission créée avec succès')
+        router.push(`/missions/${mission.id}`)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue')
     } finally {
@@ -181,14 +274,40 @@ export function JobBuilderForm({ clients, defaultClientId }: JobBuilderFormProps
                           <SelectValue placeholder="Sélectionner un client" />
                         </SelectTrigger>
                         <SelectContent>
-                          {clients.map((client) => (
+                          {list.map((client) => (
                             <SelectItem key={client.id} value={client.id}>
-                              {client.name}
+                              {client.companyName ?? client.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="mainContactId">Contact principal</Label>
+                      <Select 
+                        value={formData.mainContactId} 
+                        onValueChange={(v) => updateField('mainContactId', v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner un contact" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {contacts.map((contact) => {
+                            const label = (contact.firstName && contact.lastName)
+                              ? `${contact.firstName} ${contact.lastName}`
+                              : contact.name ?? contact.email ?? contact.id
+                            return (
+                              <SelectItem key={contact.id} value={contact.id}>
+                                {label}
+                                {contact.isPrimary ? ' ★' : ''}
+                              </SelectItem>
+                            )
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="title">Titre du poste *</Label>
                       <Input

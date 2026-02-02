@@ -4,22 +4,22 @@ import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { JobBuilderForm } from '@/components/job-builder/form'
-import { getClientsForSelect } from '@/lib/actions/missions'
+import { getClientsWithContactsForSelect } from '@/lib/actions/missions'
 
 interface NewMissionPageProps {
   searchParams: Promise<{ clientId?: string }>
 }
 
 async function JobBuilderWithClients({ defaultClientId }: { defaultClientId?: string }) {
-  let clients: Awaited<ReturnType<typeof getClientsForSelect>> = []
+  let clients: Awaited<ReturnType<typeof getClientsWithContactsForSelect>> = []
   
   try {
-    clients = await getClientsForSelect()
+    clients = await getClientsWithContactsForSelect()
   } catch {
     clients = []
   }
 
-  return <JobBuilderForm clients={clients} defaultClientId={defaultClientId} />
+  return <JobBuilderForm clientsWithContacts={clients} defaultClientId={defaultClientId} />
 }
 
 function JobBuilderSkeleton() {

@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import NextLink from 'next/link'
-import { Loader2, Building2, Link, Shield, Clock, CreditCard, ChevronRight, Linkedin } from 'lucide-react'
+import { Loader2, Building2, Shield, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,25 +31,7 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      {/* Billing Link */}
-      <NextLink href="/settings/billing">
-        <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-          <CardContent className="flex items-center justify-between p-6">
-            <div className="flex items-center gap-4">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <CreditCard className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="font-medium text-foreground">Facturation</p>
-                <p className="text-sm text-muted-foreground">
-                  Gerez votre abonnement et vos moyens de paiement
-                </p>
-              </div>
-            </div>
-            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-          </CardContent>
-        </Card>
-      </NextLink>
+      {/* PRD v2: Billing and Extension out of scope - cards hidden */}
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Organization */}
@@ -85,31 +66,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Calendly */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Link className="h-5 w-5" />
-              Calendly
-            </CardTitle>
-            <CardDescription>
-              Configuration par défaut pour les missions
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="defaultCalendly">Lien Calendly par défaut</Label>
-              <Input
-                id="defaultCalendly"
-                placeholder="https://calendly.com/votre-lien"
-                disabled={loading}
-              />
-              <p className="text-xs text-muted-foreground">
-                Ce lien sera utilisé par défaut pour les nouvelles missions
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        {/* PRD v2: Calendly out of scope */}
 
         {/* Retention */}
         <Card>
@@ -149,55 +106,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* LinkedIn Extension */}
-        <Card className="border-[#0077B5]/20 bg-gradient-to-br from-[#0077B5]/5 to-transparent">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Linkedin className="h-5 w-5 text-[#0077B5]" />
-              Extension Chrome LinkedIn
-            </CardTitle>
-            <CardDescription>
-              Capturez les profils LinkedIn en 1 clic
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4 p-4 bg-white dark:bg-slate-900 rounded-lg border">
-              <div className="flex-shrink-0 p-3 rounded-xl bg-[#0077B5] text-white">
-                <Linkedin className="h-6 w-6" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium">100% gratuit • Installation en 30 secondes</p>
-                <p className="text-sm text-muted-foreground">
-                  Extraction automatique + scoring IA
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <a 
-                href="/orchestr-extension.zip"
-                download="orchestr-extension.zip"
-              >
-                <Button
-                  type="button"
-                  className="w-full bg-[#0077B5] hover:bg-[#006399]"
-                >
-                  <Linkedin className="mr-2 h-4 w-4" />
-                  Télécharger
-                </Button>
-              </a>
-              <NextLink href="/settings/extension">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                >
-                  Guide d&apos;installation
-                </Button>
-              </NextLink>
-            </div>
-          </CardContent>
-        </Card>
+        {/* PRD v2: Chrome Extension out of scope */}
 
         {/* Security */}
         <Card>

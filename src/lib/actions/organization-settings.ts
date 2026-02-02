@@ -25,25 +25,26 @@ export async function getOrganizationSettings() {
         domains: true,
         sectors: true,
         jobFamilies: true,
+        clientCategories: true,
+        contractTypes: true,
+        seniorities: true,
         createdAt: true,
         updatedAt: true,
       },
     })
 
-    // Create default settings if none exist
+    // Create default settings if none exist (Prisma defaults used for new fields)
     if (!settings) {
       settings = await prisma.organizationSettings.create({
-        data: {
-          organizationId,
-          domains: [],
-          sectors: [],
-          jobFamilies: [],
-        },
+        data: { organizationId },
         select: {
           id: true,
           domains: true,
           sectors: true,
           jobFamilies: true,
+          clientCategories: true,
+          contractTypes: true,
+          seniorities: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -85,6 +86,9 @@ export async function updateOrganizationSettings(
         domains: true,
         sectors: true,
         jobFamilies: true,
+        clientCategories: true,
+        contractTypes: true,
+        seniorities: true,
         updatedAt: true,
       },
     })
@@ -121,12 +125,7 @@ export async function patchOrganizationSettings(
 
     if (!settings) {
       settings = await prisma.organizationSettings.create({
-        data: {
-          organizationId,
-          domains: [],
-          sectors: [],
-          jobFamilies: [],
-        },
+        data: { organizationId },
       })
     }
 
@@ -139,6 +138,9 @@ export async function patchOrganizationSettings(
         domains: true,
         sectors: true,
         jobFamilies: true,
+        clientCategories: true,
+        contractTypes: true,
+        seniorities: true,
         updatedAt: true,
       },
     })
@@ -411,6 +413,160 @@ export async function removeJobFamily(jobFamily: string) {
 }
 
 /**
+ * Add a client category (PRD v2)
+ */
+export async function addClientCategory(category: string) {
+  try {
+    const organizationId = await getOrganizationId()
+    const result = await getOrganizationSettings()
+    if (!result.success || !result.data) {
+      return { success: false, error: 'Impossible de récupérer les paramètres' }
+    }
+    const current = result.data.clientCategories || []
+    if (current.includes(category)) {
+      return { success: false, error: 'Cette catégorie existe déjà' }
+    }
+    const updated = await prisma.organizationSettings.update({
+      where: { organizationId },
+      data: { clientCategories: [...current, category] },
+      select: { clientCategories: true },
+    })
+    revalidatePath('/settings/organization')
+    revalidatePath('/clients')
+    return { success: true, data: updated.clientCategories }
+  } catch (error) {
+    console.error('Error adding client category:', error)
+    return { success: false, error: "Erreur lors de l'ajout" }
+  }
+}
+
+export async function removeClientCategory(category: string) {
+  try {
+    const organizationId = await getOrganizationId()
+    const result = await getOrganizationSettings()
+    if (!result.success || !result.data) {
+      return { success: false, error: 'Impossible de récupérer les paramètres' }
+    }
+    const current = result.data.clientCategories || []
+    const updated = await prisma.organizationSettings.update({
+      where: { organizationId },
+      data: { clientCategories: current.filter((c) => c !== category) },
+      select: { clientCategories: true },
+    })
+    revalidatePath('/settings/organization')
+    revalidatePath('/clients')
+    return { success: true, data: updated.clientCategories }
+  } catch (error) {
+    console.error('Error removing client category:', error)
+    return { success: false, error: 'Erreur lors de la suppression' }
+  }
+}
+
+/**
+ * Add a contract type (PRD v2)
+ */
+export async function addContractType(contractType: string) {
+  try {
+    const organizationId = await getOrganizationId()
+    const result = await getOrganizationSettings()
+    if (!result.success || !result.data) {
+      return { success: false, error: 'Impossible de récupérer les paramètres' }
+    }
+    const current = result.data.contractTypes || []
+    if (current.includes(contractType)) {
+      return { success: false, error: 'Ce type existe déjà' }
+    }
+    const updated = await prisma.organizationSettings.update({
+      where: { organizationId },
+      data: { contractTypes: [...current, contractType] },
+      select: { contractTypes: true },
+    })
+    revalidatePath('/settings/organization')
+    return { success: true, data: updated.contractTypes }
+  } catch (error) {
+    console.error('Error adding contract type:', error)
+    return { success: false, error: "Erreur lors de l'ajout" }
+  }
+}
+
+export async function removeContractType(contractType: string) {
+  try {
+    const organizationId = await getOrganizationId()
+    const result = await getOrganizationSettings()
+    if (!result.success || !result.data) {
+      return { success: false, error: 'Impossible de récupérer les paramètres' }
+    }
+    const current = result.data.contractTypes || []
+    const updated = await prisma.organizationSettings.update({
+      where: { organizationId },
+      data: { contractTypes: current.filter((c) => c !== contractType) },
+      select: { contractTypes: true },
+    })
+    revalidatePath('/settings/organization')
+    return { success: true, data: updated.contractTypes }
+  } catch (error) {
+    console.error('Error removing contract type:', error)
+    return { success: false, error: 'Erreur lors de la suppression' }
+  }
+}
+
+/**
+ * Add a seniority (PRD v2)
+ */
+export async function addSeniority(seniority: string) {
+  try {
+    const organizationId = await getOrganizationId()
+    const result = await getOrganizationSettings()
+    if (!result.success || !result.data) {
+      return { success: false, error: 'Impossible de récupérer les paramètres' }
+    }
+    const current = result.data.seniorities || []
+    if (current.includes(seniority)) {
+      return { success: false, error: 'Cette séniorité existe déjà' }
+    }
+    const updated = await prisma.organizationSettings.update({
+      where: { organizationId },
+      data: { seniorities: [...current, seniority] },
+      select: { seniorities: true },
+    })
+    revalidatePath('/settings/organization')
+    return { success: true, data: updated.seniorities }
+  } catch (error) {
+    console.error('Error adding seniority:', error)
+    return { success: false, error: "Erreur lors de l'ajout" }
+  }
+}
+
+export async function removeSeniority(seniority: string) {
+  try {
+    const organizationId = await getOrganizationId()
+    const result = await getOrganizationSettings()
+    if (!result.success || !result.data) {
+      return { success: false, error: 'Impossible de récupérer les paramètres' }
+    }
+    const current = result.data.seniorities || []
+    const updated = await prisma.organizationSettings.update({
+      where: { organizationId },
+      data: { seniorities: current.filter((s) => s !== seniority) },
+      select: { seniorities: true },
+    })
+    revalidatePath('/settings/organization')
+    return { success: true, data: updated.seniorities }
+  } catch (error) {
+    console.error('Error removing seniority:', error)
+    return { success: false, error: 'Erreur lors de la suppression' }
+  }
+}
+
+// PRD v2.0 default list values
+const DEFAULT_DOMAINS = ['Leasing', 'Crédit Consommation', 'Informatique', 'M&A', 'Finance']
+const DEFAULT_SECTORS = ['Courtier/Loueur', 'Captive', 'Établissement Financier', 'Asset Management', 'Banque']
+const DEFAULT_JOB_FAMILIES = ['Commercial', 'Manager Commercial', 'Direction', 'Support', 'Technique']
+const DEFAULT_CLIENT_CATEGORIES = ['Loueur', 'Établissement Financier', 'Industriel', 'Startup', 'Corporate']
+const DEFAULT_CONTRACT_TYPES = ['CDI', 'CDD', 'Freelance', 'Stage', 'Alternance']
+const DEFAULT_SENIORITIES = ['1-5 ans', '5-10 ans', '10-20 ans', '20+ ans']
+
+/**
  * Reset organization settings to defaults
  */
 export async function resetOrganizationSettings() {
@@ -420,15 +576,21 @@ export async function resetOrganizationSettings() {
     const settings = await prisma.organizationSettings.update({
       where: { organizationId },
       data: {
-        domains: [],
-        sectors: [],
-        jobFamilies: [],
+        domains: DEFAULT_DOMAINS,
+        sectors: DEFAULT_SECTORS,
+        jobFamilies: DEFAULT_JOB_FAMILIES,
+        clientCategories: DEFAULT_CLIENT_CATEGORIES,
+        contractTypes: DEFAULT_CONTRACT_TYPES,
+        seniorities: DEFAULT_SENIORITIES,
       },
       select: {
         id: true,
         domains: true,
         sectors: true,
         jobFamilies: true,
+        clientCategories: true,
+        contractTypes: true,
+        seniorities: true,
         updatedAt: true,
       },
     })

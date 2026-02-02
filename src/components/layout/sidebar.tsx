@@ -9,9 +9,6 @@ import {
   Building2,
   Briefcase,
   Users,
-  FolderKanban,
-  ListTodo,
-  Upload,
   Settings,
   LogOut,
   ChevronLeft,
@@ -32,17 +29,15 @@ export function Sidebar() {
   const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
 
+  // PRD v2.0: Dashboard, Clients, Missions, Candidats, Settings only
   const navigation = [
     { name: t('dashboard'), href: '/dashboard', icon: LayoutDashboard },
     { name: t('clients'), href: '/clients', icon: Building2 },
     { name: t('missions'), href: '/missions', icon: Briefcase },
     { name: t('candidates'), href: '/candidates', icon: Users },
-    { name: t('pools'), href: '/pools', icon: FolderKanban },
-    { name: t('tasks'), href: '/tasks', icon: ListTodo },
   ]
 
   const secondaryNavigation = [
-    { name: t('import'), href: '/import', icon: Upload },
     { name: t('settings'), href: '/settings', icon: Settings },
   ]
 

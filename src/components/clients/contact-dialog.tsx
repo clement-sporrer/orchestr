@@ -19,11 +19,15 @@ import { toast } from 'sonner'
 
 interface Contact {
   id: string
-  name: string
+  name: string | null
+  firstName: string | null
+  lastName: string | null
+  title: string | null
   role: string | null
   email: string | null
   phone: string | null
   notes: string | null
+  isPrimary: boolean
 }
 
 interface ContactDialogProps {
@@ -45,11 +49,14 @@ export function ContactDialog({ clientId, contact, children }: ContactDialogProp
 
     const formData = new FormData(e.currentTarget)
     const data = {
-      name: formData.get('name') as string,
-      role: formData.get('role') as string || undefined,
-      email: formData.get('email') as string || undefined,
-      phone: formData.get('phone') as string || undefined,
-      notes: formData.get('notes') as string || undefined,
+      firstName: (formData.get('firstName') as string)?.trim() || undefined,
+      lastName: (formData.get('lastName') as string)?.trim() || undefined,
+      name: (formData.get('name') as string)?.trim() || undefined,
+      title: (formData.get('title') as string) || undefined,
+      email: (formData.get('email') as string)?.trim() ?? '',
+      phone: (formData.get('phone') as string) || undefined,
+      notes: (formData.get('notes') as string) || undefined,
+      isPrimary: formData.get('isPrimary') === 'on',
     }
 
     try {
@@ -100,36 +107,51 @@ export function ContactDialog({ clientId, contact, children }: ContactDialogProp
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nom *</Label>
-            <Input
-              id="name"
-              name="name"
-              defaultValue={contact?.name}
-              required
-              disabled={loading}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">Prénom *</Label>
+              <Input
+                id="firstName"
+                name="firstName"
+                placeholder="Jean"
+                defaultValue={contact?.firstName ?? contact?.name?.split(/\s+/)[0]}
+                required
+                disabled={loading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Nom *</Label>
+              <Input
+                id="lastName"
+                name="lastName"
+                placeholder="DUPONT"
+                defaultValue={contact?.lastName ?? contact?.name?.split(/\s+/).slice(1).join(' ')}
+                required
+                disabled={loading}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="role">Fonction</Label>
+            <Label htmlFor="title">Fonction / Titre</Label>
             <Input
-              id="role"
-              name="role"
-              placeholder="Ex: DRH, Hiring Manager..."
-              defaultValue={contact?.role || ''}
+              id="title"
+              name="title"
+              placeholder="Ex: Directeur RH, Hiring Manager..."
+              defaultValue={contact?.title ?? contact?.role ?? ''}
               disabled={loading}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                defaultValue={contact?.email || ''}
+                defaultValue={contact?.email ?? ''}
+                required
                 disabled={loading}
               />
             </div>
@@ -138,10 +160,26 @@ export function ContactDialog({ clientId, contact, children }: ContactDialogProp
               <Input
                 id="phone"
                 name="phone"
-                defaultValue={contact?.phone || ''}
+                placeholder="+33 6 12 34 56 78"
+                defaultValue={contact?.phone ?? ''}
                 disabled={loading}
               />
             </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="isPrimary"
+              name="isPrimary"
+              value="on"
+              defaultChecked={contact?.isPrimary ?? false}
+              disabled={loading}
+              className="h-4 w-4 rounded border-input"
+            />
+            <Label htmlFor="isPrimary" className="text-sm font-normal cursor-pointer">
+              Contact principal du client
+            </Label>
           </div>
 
           <div className="space-y-2">
@@ -150,7 +188,7 @@ export function ContactDialog({ clientId, contact, children }: ContactDialogProp
               id="notes"
               name="notes"
               rows={3}
-              defaultValue={contact?.notes || ''}
+              defaultValue={contact?.notes ?? ''}
               disabled={loading}
             />
           </div>

@@ -175,6 +175,10 @@ export const organizationSettingsSchema = z.object({
   domains: z.array(z.string()).default([]),
   sectors: z.array(z.string()).default([]),
   jobFamilies: z.array(z.string()).default([]),
+  // PRD v2.0
+  clientCategories: z.array(z.string()).default([]),
+  contractTypes: z.array(z.string()).default([]),
+  seniorities: z.array(z.string()).default([]),
 })
 
 export type OrganizationSettingsInput = z.infer<

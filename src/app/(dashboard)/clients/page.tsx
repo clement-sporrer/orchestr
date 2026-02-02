@@ -55,10 +55,10 @@ async function ClientsList({ search }: { search?: string }) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-primary" />
-                {client.name}
+                {client.companyName ?? client.name}
               </CardTitle>
-              {client.sector && (
-                <CardDescription>{client.sector}</CardDescription>
+              {(client.category ?? client.sector) && (
+                <CardDescription>{client.category ?? client.sector}</CardDescription>
               )}
             </CardHeader>
             <CardContent>

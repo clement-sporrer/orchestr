@@ -83,18 +83,32 @@ export default async function MissionDetailPage({ params, searchParams }: Missio
                 {statusLabels[mission.status]}
               </Badge>
             </div>
-            <div className="flex items-center gap-4 mt-2 text-muted-foreground">
+            <div className="flex items-center gap-4 mt-2 text-muted-foreground flex-wrap">
               <Link 
                 href={`/clients/${mission.clientId}`}
                 className="flex items-center gap-1 hover:text-foreground"
               >
                 <Building2 className="h-4 w-4" />
-                {mission.client.name}
+                {mission.client.companyName ?? mission.client.name}
               </Link>
-              {mission.location && (
+              {mission.mainContact && (
+                <span className="flex items-center gap-1">
+                  <Users className="h-4 w-4" />
+                  {(mission.mainContact.firstName && mission.mainContact.lastName)
+                    ? `${mission.mainContact.firstName} ${mission.mainContact.lastName}`
+                    : mission.mainContact.name}
+                  {mission.mainContact.email && (
+                    <a href={`mailto:${mission.mainContact.email}`} className="hover:text-foreground">
+                      ({mission.mainContact.email})
+                    </a>
+                  )}
+                </span>
+              )}
+              {(mission.location ?? mission.city) && (
                 <span className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
-                  {mission.location}
+                  {mission.city ?? mission.location}
+                  {mission.country && `, ${mission.country}`}
                 </span>
               )}
               <span className="flex items-center gap-1">

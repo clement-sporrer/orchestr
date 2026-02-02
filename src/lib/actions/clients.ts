@@ -6,30 +6,39 @@ import { createClient as createSupabaseClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { Prisma } from '@/generated/prisma'
 
-// Schemas
+// Schemas (PRD v2: companyName MAJ, category from Settings)
 const clientSchema = z.object({
   name: z.string().min(1, 'Le nom est requis'),
+  companyName: z.string().min(1, 'Le nom entreprise est requis').optional(),
+  category: z.string().optional(),
   sector: z.string().optional(),
   website: z.string().url().optional().or(z.literal('')),
   notes: z.string().optional(),
 })
 
+// PRD v2: firstName (capitalized), lastName (MAJ), title, email required, isPrimary. Legacy: name.
 const contactSchema = z.object({
-  name: z.string().min(1, 'Le nom est requis'),
+  name: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  title: z.string().optional(),
   role: z.string().optional(),
-  email: z.string().email().optional().or(z.literal('')),
+  email: z.string().min(1, "L'email est requis").email("Format email invalide"),
   phone: z.string().optional(),
   notes: z.string().optional(),
+  isPrimary: z.boolean().optional(),
 })
 
 // Import secure auth helper
 import { getOrganizationId } from '@/lib/auth/helpers'
 
-// Type for client with _count
+// Type for client with _count (PRD v2: companyName, category)
 export type ClientWithCount = Prisma.ClientGetPayload<{
   select: {
     id: true
     name: true
+    companyName: true
+    category: true
     sector: true
     website: true
     notes: true
@@ -71,6 +80,8 @@ export async function getClients(
     ...(search ? {
       OR: [
         { name: { contains: search, mode: searchMode } },
+        { companyName: { contains: search, mode: searchMode } },
+        { category: { contains: search, mode: searchMode } },
         { sector: { contains: search, mode: searchMode } },
       ] satisfies Prisma.ClientWhereInput[],
     } : {}),
@@ -82,6 +93,8 @@ export async function getClients(
       select: {
         id: true,
         name: true,
+        companyName: true,
+        category: true,
         sector: true,
         website: true,
         notes: true,
@@ -94,7 +107,7 @@ export async function getClients(
           },
         },
       },
-      orderBy: { name: 'asc' },
+      orderBy: [{ companyName: 'asc' }, { name: 'asc' }],
       skip,
       take: limitNum,
     }),
@@ -147,11 +160,17 @@ export async function getClient(id: string) {
 export async function createClient(data: z.infer<typeof clientSchema>) {
   const organizationId = await getOrganizationId()
   const validated = clientSchema.parse(data)
+  const displayName = (validated.companyName ?? validated.name).trim()
+  const companyNameUpper = displayName.toUpperCase()
 
   const client = await prisma.client.create({
     data: {
-      ...validated,
+      name: displayName,
+      companyName: companyNameUpper,
+      category: validated.category || null,
+      sector: validated.sector || null,
       website: validated.website || null,
+      notes: validated.notes || null,
       organizationId,
     },
   })
@@ -163,8 +182,9 @@ export async function createClient(data: z.infer<typeof clientSchema>) {
 export async function updateClient(id: string, data: z.infer<typeof clientSchema>) {
   const organizationId = await getOrganizationId()
   const validated = clientSchema.parse(data)
+  const displayName = (validated.companyName ?? validated.name).trim()
+  const companyNameUpper = displayName.toUpperCase()
 
-  // Verify ownership
   const existing = await prisma.client.findFirst({
     where: { id, organizationId },
   })
@@ -176,8 +196,12 @@ export async function updateClient(id: string, data: z.infer<typeof clientSchema
   const client = await prisma.client.update({
     where: { id },
     data: {
-      ...validated,
+      name: displayName,
+      companyName: companyNameUpper,
+      category: validated.category || null,
+      sector: validated.sector || null,
       website: validated.website || null,
+      notes: validated.notes || null,
     },
   })
 
@@ -219,10 +243,33 @@ export async function createContact(clientId: string, data: z.infer<typeof conta
     throw new Error('Client non trouvé')
   }
 
+  const firstName = validated.firstName?.trim()
+  const lastName = validated.lastName?.trim()
+  const legacyName = validated.name?.trim()
+  const name = (firstName && lastName)
+    ? `${firstName} ${lastName}`
+    : (legacyName ?? '')
+  const displayFirstName = firstName ?? legacyName?.split(/\s+/)[0] ?? ''
+  const displayLastName = lastName ?? legacyName?.split(/\s+/).slice(1).join(' ') ?? legacyName ?? ''
+
+  if (validated.isPrimary) {
+    await prisma.contact.updateMany({
+      where: { clientId },
+      data: { isPrimary: false },
+    })
+  }
+
   const contact = await prisma.contact.create({
     data: {
-      ...validated,
-      email: validated.email || null,
+      name: name || null,
+      firstName: displayFirstName || null,
+      lastName: displayLastName || null,
+      title: validated.title || validated.role || null,
+      role: validated.role || null,
+      email: validated.email,
+      phone: validated.phone || null,
+      notes: validated.notes || null,
+      isPrimary: validated.isPrimary ?? false,
       clientId,
     },
   })
@@ -245,11 +292,34 @@ export async function updateContact(id: string, data: z.infer<typeof contactSche
     throw new Error('Contact non trouvé')
   }
 
+  const firstName = validated.firstName?.trim()
+  const lastName = validated.lastName?.trim()
+  const legacyName = validated.name?.trim()
+  const name = (firstName && lastName)
+    ? `${firstName} ${lastName}`
+    : (legacyName ?? undefined)
+  const displayFirstName = firstName ?? legacyName?.split(/\s+/)[0] ?? undefined
+  const displayLastName = lastName ?? ((legacyName?.split(/\s+/).slice(1).join(' ') || legacyName) ?? undefined)
+
+  if (validated.isPrimary === true) {
+    await prisma.contact.updateMany({
+      where: { clientId: contact.clientId },
+      data: { isPrimary: false },
+    })
+  }
+
   const updated = await prisma.contact.update({
     where: { id },
     data: {
-      ...validated,
-      email: validated.email || null,
+      name: name ?? undefined,
+      firstName: displayFirstName ?? undefined,
+      lastName: displayLastName ?? undefined,
+      title: validated.title || validated.role || undefined,
+      role: validated.role ?? undefined,
+      email: validated.email,
+      phone: validated.phone || null,
+      notes: validated.notes ?? undefined,
+      isPrimary: validated.isPrimary ?? undefined,
     },
   })
 

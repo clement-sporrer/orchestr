@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { getClient } from '@/lib/actions/clients'
+import { getOrganizationSettings } from '@/lib/actions/organization-settings'
 import { ContactDialog } from '@/components/clients/contact-dialog'
 import { ClientActions } from '@/components/clients/client-actions'
 
@@ -24,13 +25,18 @@ interface ClientDetailPageProps {
 
 export default async function ClientDetailPage({ params }: ClientDetailPageProps) {
   const { id } = await params
-  
+
   let client
   try {
     client = await getClient(id)
   } catch {
     notFound()
   }
+
+  const settingsResult = await getOrganizationSettings()
+  const clientCategories = settingsResult.success && settingsResult.data?.clientCategories
+    ? settingsResult.data.clientCategories
+    : []
 
   const getMissionStatusColor = (status: string) => {
     switch (status) {
@@ -75,10 +81,14 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
           <div>
             <div className="flex items-center gap-3">
               <Building2 className="h-6 w-6 text-primary" />
-              <h1 className="text-2xl font-bold tracking-tight">{client.name}</h1>
+              <h1 className="text-2xl font-bold tracking-tight">
+                {client.companyName ?? client.name}
+              </h1>
             </div>
-            {client.sector && (
-              <p className="text-muted-foreground mt-1">{client.sector}</p>
+            {(client.category ?? client.sector) && (
+              <p className="text-muted-foreground mt-1">
+                {client.category ?? client.sector}
+              </p>
             )}
             {client.website && (
               <a 
@@ -102,7 +112,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
               Nouvelle mission
             </Link>
           </Button>
-          <ClientActions client={client} />
+          <ClientActions client={client} clientCategories={clientCategories} />
         </div>
       </div>
 
@@ -197,18 +207,27 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                 </p>
               ) : (
                 <div className="space-y-4">
-                  {client.contacts.map((contact) => (
+                  {client.contacts.map((contact) => {
+                    const displayName = (contact.firstName && contact.lastName)
+                      ? `${contact.firstName} ${contact.lastName}`
+                      : contact.name ?? '—'
+                    return (
                     <div key={contact.id} className="space-y-1">
                       <div className="flex items-center justify-between">
-                        <p className="font-medium">{contact.name}</p>
+                        <p className="font-medium">
+                          {displayName}
+                          {contact.isPrimary && (
+                            <span className="ml-2 text-xs font-normal text-primary">★ Principal</span>
+                          )}
+                        </p>
                         <ContactDialog clientId={client.id} contact={contact}>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
                             <Pencil className="h-3 w-3" />
                           </Button>
                         </ContactDialog>
                       </div>
-                      {contact.role && (
-                        <p className="text-sm text-muted-foreground">{contact.role}</p>
+                      {(contact.title ?? contact.role) && (
+                        <p className="text-sm text-muted-foreground">{contact.title ?? contact.role}</p>
                       )}
                       {contact.email && (
                         <a 
@@ -230,7 +249,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                         <Separator className="mt-3" />
                       )}
                     </div>
-                  ))}
+                  )})}
                 </div>
               )}
             </CardContent>

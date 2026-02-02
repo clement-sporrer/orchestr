@@ -36,6 +36,12 @@ import {
   removeSector,
   addJobFamily,
   removeJobFamily,
+  addClientCategory,
+  removeClientCategory,
+  addContractType,
+  removeContractType,
+  addSeniority,
+  removeSeniority,
   resetOrganizationSettings,
 } from '@/lib/actions/organization-settings'
 
@@ -48,11 +54,17 @@ export default function OrganizationSettingsPage() {
   const [domains, setDomains] = useState<string[]>([])
   const [sectors, setSectors] = useState<string[]>([])
   const [jobFamilies, setJobFamilies] = useState<string[]>([])
+  const [clientCategories, setClientCategories] = useState<string[]>([])
+  const [contractTypes, setContractTypes] = useState<string[]>([])
+  const [seniorities, setSeniorities] = useState<string[]>([])
 
   // Input state
   const [newDomain, setNewDomain] = useState('')
   const [newSector, setNewSector] = useState('')
   const [newJobFamily, setNewJobFamily] = useState('')
+  const [newClientCategory, setNewClientCategory] = useState('')
+  const [newContractType, setNewContractType] = useState('')
+  const [newSeniority, setNewSeniority] = useState('')
 
   // Load settings
   useEffect(() => {
@@ -66,6 +78,9 @@ export default function OrganizationSettingsPage() {
         setDomains(result.data.domains || [])
         setSectors(result.data.sectors || [])
         setJobFamilies(result.data.jobFamilies || [])
+        setClientCategories(result.data.clientCategories || [])
+        setContractTypes(result.data.contractTypes || [])
+        setSeniorities(result.data.seniorities || [])
       } else {
         toast.error(result.error || 'Erreur lors du chargement')
       }
@@ -207,12 +222,111 @@ export default function OrganizationSettingsPage() {
         setDomains(result.data.domains || [])
         setSectors(result.data.sectors || [])
         setJobFamilies(result.data.jobFamilies || [])
+        setClientCategories(result.data.clientCategories || [])
+        setContractTypes(result.data.contractTypes || [])
+        setSeniorities(result.data.seniorities || [])
         toast.success('Paramètres réinitialisés')
       } else {
         toast.error(result.error || 'Erreur')
       }
     } catch (error) {
       toast.error('Erreur lors de la réinitialisation')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleAddClientCategory = async () => {
+    if (!newClientCategory.trim()) return
+    setSaving(true)
+    try {
+      const result = await addClientCategory(newClientCategory.trim())
+      if (result.success && result.data) {
+        setClientCategories(result.data)
+        setNewClientCategory('')
+        toast.success('Catégorie ajoutée')
+      } else toast.error(result.error || 'Erreur')
+    } catch {
+      toast.error("Erreur lors de l'ajout")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleRemoveClientCategory = async (category: string) => {
+    setSaving(true)
+    try {
+      const result = await removeClientCategory(category)
+      if (result.success && result.data) {
+        setClientCategories(result.data)
+        toast.success('Catégorie supprimée')
+      } else toast.error(result.error || 'Erreur')
+    } catch {
+      toast.error('Erreur lors de la suppression')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleAddContractType = async () => {
+    if (!newContractType.trim()) return
+    setSaving(true)
+    try {
+      const result = await addContractType(newContractType.trim())
+      if (result.success && result.data) {
+        setContractTypes(result.data)
+        setNewContractType('')
+        toast.success('Type de contrat ajouté')
+      } else toast.error(result.error || 'Erreur')
+    } catch {
+      toast.error("Erreur lors de l'ajout")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleRemoveContractType = async (contractType: string) => {
+    setSaving(true)
+    try {
+      const result = await removeContractType(contractType)
+      if (result.success && result.data) {
+        setContractTypes(result.data)
+        toast.success('Type supprimé')
+      } else toast.error(result.error || 'Erreur')
+    } catch {
+      toast.error('Erreur lors de la suppression')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleAddSeniority = async () => {
+    if (!newSeniority.trim()) return
+    setSaving(true)
+    try {
+      const result = await addSeniority(newSeniority.trim())
+      if (result.success && result.data) {
+        setSeniorities(result.data)
+        setNewSeniority('')
+        toast.success('Séniorité ajoutée')
+      } else toast.error(result.error || 'Erreur')
+    } catch {
+      toast.error("Erreur lors de l'ajout")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleRemoveSeniority = async (seniority: string) => {
+    setSaving(true)
+    try {
+      const result = await removeSeniority(seniority)
+      if (result.success && result.data) {
+        setSeniorities(result.data)
+        toast.success('Séniorité supprimée')
+      } else toast.error(result.error || 'Erreur')
+    } catch {
+      toast.error('Erreur lors de la suppression')
     } finally {
       setSaving(false)
     }
@@ -264,7 +378,7 @@ export default function OrganizationSettingsPage() {
 
       {/* Tabs for each list type */}
       <Tabs defaultValue="domains" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="flex flex-wrap gap-1 h-auto p-1">
           <TabsTrigger value="domains" className="flex items-center gap-2">
             <Target className="h-4 w-4" />
             Domaines
@@ -276,6 +390,18 @@ export default function OrganizationSettingsPage() {
           <TabsTrigger value="jobFamilies" className="flex items-center gap-2">
             <Briefcase className="h-4 w-4" />
             Familles de Poste
+          </TabsTrigger>
+          <TabsTrigger value="clientCategories" className="flex items-center gap-2">
+            <Building className="h-4 w-4" />
+            Catégories clients
+          </TabsTrigger>
+          <TabsTrigger value="contractTypes" className="flex items-center gap-2">
+            <Briefcase className="h-4 w-4" />
+            Types de contrat
+          </TabsTrigger>
+          <TabsTrigger value="seniorities" className="flex items-center gap-2">
+            <Target className="h-4 w-4" />
+            Séniorités
           </TabsTrigger>
         </TabsList>
 
@@ -460,6 +586,156 @@ export default function OrganizationSettingsPage() {
                 <p className="text-sm text-muted-foreground">
                   Aucune famille de poste configurée
                 </p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Catégories clients (PRD v2) */}
+        <TabsContent value="clientCategories">
+          <Card>
+            <CardHeader>
+              <CardTitle>Catégories clients</CardTitle>
+              <CardDescription>
+                Ex: Loueur, Établissement Financier, Industriel, Startup, Corporate
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Nouvelle catégorie..."
+                  value={newClientCategory}
+                  onChange={(e) => setNewClientCategory(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleAddClientCategory()
+                    }
+                  }}
+                  disabled={saving}
+                />
+                <Button onClick={handleAddClientCategory} disabled={saving || !newClientCategory.trim()}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter
+                </Button>
+              </div>
+              {clientCategories.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {clientCategories.map((category) => (
+                    <Badge key={category} variant="secondary" className="gap-1 pr-1 text-sm py-1.5">
+                      {category}
+                      <button
+                        onClick={() => handleRemoveClientCategory(category)}
+                        className="ml-1 hover:text-destructive rounded-full p-0.5 hover:bg-destructive/10 transition-colors"
+                        disabled={saving}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Aucune catégorie configurée</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Types de contrat (PRD v2) */}
+        <TabsContent value="contractTypes">
+          <Card>
+            <CardHeader>
+              <CardTitle>Types de contrat</CardTitle>
+              <CardDescription>
+                Ex: CDI, CDD, Freelance, Stage, Alternance
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Nouveau type..."
+                  value={newContractType}
+                  onChange={(e) => setNewContractType(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleAddContractType()
+                    }
+                  }}
+                  disabled={saving}
+                />
+                <Button onClick={handleAddContractType} disabled={saving || !newContractType.trim()}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter
+                </Button>
+              </div>
+              {contractTypes.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {contractTypes.map((type) => (
+                    <Badge key={type} variant="secondary" className="gap-1 pr-1 text-sm py-1.5">
+                      {type}
+                      <button
+                        onClick={() => handleRemoveContractType(type)}
+                        className="ml-1 hover:text-destructive rounded-full p-0.5 hover:bg-destructive/10 transition-colors"
+                        disabled={saving}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Aucun type configuré</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Séniorités (PRD v2) */}
+        <TabsContent value="seniorities">
+          <Card>
+            <CardHeader>
+              <CardTitle>Séniorités</CardTitle>
+              <CardDescription>
+                Ex: 1-5 ans, 5-10 ans, 10-20 ans, 20+ ans
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Nouvelle séniorité..."
+                  value={newSeniority}
+                  onChange={(e) => setNewSeniority(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleAddSeniority()
+                    }
+                  }}
+                  disabled={saving}
+                />
+                <Button onClick={handleAddSeniority} disabled={saving || !newSeniority.trim()}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter
+                </Button>
+              </div>
+              {seniorities.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {seniorities.map((s) => (
+                    <Badge key={s} variant="secondary" className="gap-1 pr-1 text-sm py-1.5">
+                      {s}
+                      <button
+                        onClick={() => handleRemoveSeniority(s)}
+                        className="ml-1 hover:text-destructive rounded-full p-0.5 hover:bg-destructive/10 transition-colors"
+                        disabled={saving}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Aucune séniorité configurée</p>
               )}
             </CardContent>
           </Card>

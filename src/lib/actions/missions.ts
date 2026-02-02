@@ -12,6 +12,7 @@ const visibilityEnum = z.enum(['INTERNAL', 'INTERNAL_CLIENT', 'INTERNAL_CANDIDAT
 // Schema - all fields with defaults are optional on input
 const missionSchema = z.object({
   clientId: z.string().min(1, 'Client requis'),
+  mainContactId: z.string().optional(),
   title: z.string().min(1, 'Titre requis'),
   location: z.string().optional(),
   contractType: z.enum(['CDI', 'CDD', 'FREELANCE', 'INTERNSHIP', 'APPRENTICESHIP', 'OTHER']).optional(),
@@ -173,15 +174,30 @@ export async function getMission(id: string) {
       id: true,
       organizationId: true,
       clientId: true,
+      mainContactId: true,
       recruiterId: true,
       title: true,
+      jobTitle: true,
+      jobFamily: true,
       status: true,
       location: true,
+      city: true,
+      country: true,
+      isRemote: true,
+      domain: true,
+      sector: true,
+      priority: true,
       contractType: true,
       seniority: true,
+      seniorityLabel: true,
       salaryMin: true,
       salaryMax: true,
+      salaryNotes: true,
+      internalNotes: true,
+      recruitmentProcess: true,
+      languages: true,
       salaryVisible: true,
+      startDate: true,
       currency: true,
       context: true,
       contextVisibility: true,
@@ -198,14 +214,28 @@ export async function getMission(id: string) {
       calendlyEmbed: true,
       scoreThreshold: true,
       shortlistDeadline: true,
+      deadline: true,
       createdAt: true,
       updatedAt: true,
       client: {
         select: {
           id: true,
           name: true,
+          companyName: true,
+          category: true,
           sector: true,
           website: true,
+        },
+      },
+      mainContact: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          name: true,
+          email: true,
+          title: true,
+          isPrimary: true,
         },
       },
       recruiter: {
@@ -372,6 +402,7 @@ export async function createMission(data: CreateMissionInput) {
     data: {
       title: validated.title,
       clientId: validated.clientId,
+      mainContactId: validated.mainContactId || null,
       organizationId,
       recruiterId,
       location: validated.location,
@@ -491,8 +522,36 @@ export async function getClientsForSelect() {
 
   const clients = await prisma.client.findMany({
     where: { organizationId },
-    select: { id: true, name: true },
-    orderBy: { name: 'asc' },
+    select: { id: true, name: true, companyName: true },
+    orderBy: [{ companyName: 'asc' }, { name: 'asc' }],
+  })
+
+  return clients
+}
+
+// Clients with contacts for mission form (mainContact select)
+export async function getClientsWithContactsForSelect() {
+  const organizationId = await getOrganizationId()
+
+  const clients = await prisma.client.findMany({
+    where: { organizationId },
+    select: {
+      id: true,
+      name: true,
+      companyName: true,
+      contacts: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          name: true,
+          email: true,
+          isPrimary: true,
+        },
+        orderBy: { isPrimary: 'desc' },
+      },
+    },
+    orderBy: [{ companyName: 'asc' }, { name: 'asc' }],
   })
 
   return clients

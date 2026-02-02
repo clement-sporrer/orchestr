@@ -21,6 +21,7 @@ datasource db {
 model Organization {
   id                    String   @id @default(cuid())
   name                  String
+  slug                  String?   @unique // PRD v2: for clean URLs e.g. orchestr.app/paul-recrutement
   logo                  String?
   contactEmail          String?
   defaultCalendlyLink   String?
@@ -46,16 +47,23 @@ model Organization {
   @@map("organizations")
 }
 
-// Organization Settings - Configurable lists for candidate management
+// Organization Settings - Configurable lists (PRD v2.0)
 model OrganizationSettings {
   id             String   @id @default(cuid())
   organizationId String   @unique
-  
-  // Configurable lists for candidate fields
-  domains        String[] @default([]) // Ex: ["Leasing", "Crédit Conso", "IT", "M&A"]
-  sectors        String[] @default([]) // Ex: ["Courtier", "Captive", "Asset Management"]
-  jobFamilies    String[] @default([]) // Ex: ["Commercial", "Manager", "Direction"]
-  
+
+  // Candidates & Missions
+  domains        String[] @default(["Leasing", "Crédit Consommation", "Informatique", "M&A", "Finance"])
+  sectors        String[] @default(["Courtier/Loueur", "Captive", "Établissement Financier", "Asset Management", "Banque"])
+  jobFamilies    String[] @default(["Commercial", "Manager Commercial", "Direction", "Support", "Technique"])
+
+  // Clients (PRD v2)
+  clientCategories String[] @default(["Loueur", "Établissement Financier", "Industriel", "Startup", "Corporate"])
+
+  // Missions (PRD v2)
+  contractTypes  String[] @default(["CDI", "CDD", "Freelance", "Stage", "Alternance"])
+  seniorities    String[] @default(["1-5 ans", "5-10 ans", "10-20 ans", "20+ ans"])
+
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -211,35 +219,45 @@ model CandidatePosition {
 model Client {
   id             String   @id @default(cuid())
   organizationId String
-  name           String
+  name           String   // Legacy; PRD v2 uses companyName (display: companyName ?? name)
+  companyName    String?  // PRD v2: normalized UPPERCASE
+  category       String?  // PRD v2: from OrganizationSettings.clientCategories
   sector         String?
   website        String?
-  notes          String?
+  notes          String?  @db.Text
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   contacts     Contact[]
   missions     Mission[]
+  documents    ClientDocument[]
 
   @@index([organizationId])
+  @@index([companyName])
   @@map("clients")
 }
 
 model Contact {
-  id        String   @id @default(cuid())
-  clientId  String
-  name      String
-  role      String?
-  email     String?
-  phone     String?
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  clientId   String
+  name       String?  // Legacy
+  firstName  String?  // PRD v2: capitalized
+  lastName   String?  // PRD v2: UPPERCASE
+  title      String?  // PRD v2 (ex "Directeur RH"); was role
+  role       String?
+  email      String?
+  phone      String?
+  notes      String?
+  isPrimary  Boolean  @default(false) // PRD v2: default contact for new missions
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  missionsAsMain  Mission[] @relation("MainContact")
 
   @@index([clientId])
+  @@index([email])
   @@map("contacts")
 }
 
@@ -251,62 +269,73 @@ model Mission {
   id                String        @id @default(cuid())
   organizationId    String
   clientId          String
+  mainContactId     String?       // PRD v2: Contact principal mission
   recruiterId       String?
   status            MissionStatus @default(ACTIVE)
-  
+
   // Job details
   title             String
+  jobTitle          String?       // PRD v2 alias (display: jobTitle ?? title)
+  jobFamily         String?       // PRD v2: from Settings
   location          String?
+  city              String?
+  country           String?
+  isRemote          Boolean       @default(false) // PRD v2
   contractType      ContractType?
   seniority         Seniority?
+  seniorityLabel    String?       // PRD v2: from Settings e.g. "5-10 ans"
   salaryMin         Int?
   salaryMax         Int?
+  salaryNotes       String?       @db.Text // PRD v2
   salaryVisible     Boolean       @default(false)
   currency          String        @default("EUR")
-  
+  domain            String?       // PRD v2: from Settings
+  sector            String?       // PRD v2: from Settings (mission-level)
+  languages         Json?         // PRD v2: [{lang, level}]
+  priority          String?       @default("MEDIUM") // PRD v2: LOW, MEDIUM, HIGH, URGENT
+  startDate         DateTime?
+  deadline          DateTime?    // PRD v2
+  shortlistDeadline DateTime?
+
   // Content sections with visibility
   context           String?
   contextVisibility Visibility    @default(INTERNAL)
-  
   responsibilities     String?
   responsibilitiesVisibility Visibility @default(ALL)
-  
   mustHave          String?
   mustHaveVisibility Visibility   @default(ALL)
-  
   niceToHave        String?
   niceToHaveVisibility Visibility @default(ALL)
-  
-  redFlags          String?  // Always internal only
-  
+  redFlags          String?
   process           String?
   processVisibility Visibility    @default(INTERNAL_CLIENT)
-  
-  // Calendly
+  internalNotes     String?       @db.Text // PRD v2
+  recruitmentProcess String?      @db.Text // PRD v2 alias
+
+  // Calendly (out of scope v2, kept for compat)
   calendlyLink      String?
   calendlyEmbed     Boolean       @default(false)
-  
-  // Scoring
   scoreThreshold    Int           @default(60)
-  
-  // Deadlines
-  shortlistDeadline DateTime?
-  
+
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
   organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   client               Client                @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  mainContact          Contact?              @relation("MainContact", fields: [mainContactId], references: [id], onDelete: SetNull)
   recruiter            User?                 @relation(fields: [recruiterId], references: [id], onDelete: SetNull)
   missionCandidates    MissionCandidate[]
   questionnaire        Questionnaire?
   shortlists           Shortlist[]
   externalAccessTokens ExternalAccessToken[]
+  documents            MissionDocument[]
 
   @@index([organizationId])
   @@index([clientId])
+  @@index([mainContactId])
   @@index([recruiterId])
   @@index([status])
+  @@index([jobTitle])
   @@map("missions")
 }
 
@@ -487,6 +516,7 @@ model Candidate {
   enrichment           CandidateEnrichment?
   positions            CandidatePosition[]
   externalAccessTokens ExternalAccessToken[]
+  documents            CandidateDocument[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -572,24 +602,30 @@ model MissionCandidate {
   id           String        @id @default(cuid())
   missionId    String
   candidateId  String
-  
+
   stage        PipelineStage @default(SOURCED)
   contactStatus ContactStatus @default(NOT_CONTACTED)
-  
-  // Scoring
+
+  // PRD v2: notes & feedback
+  internalNotes  String?      @db.Text
+  clientFeedback String?      @db.Text
+
+  // PRD v2: tracking dates (set on stage transitions)
+  contactedAt     DateTime?
+  interviewDate   DateTime?
+  sentToClientAt DateTime?
+  hiredAt        DateTime?
+  rejectedAt     DateTime?
+  rejectionReason String?     @db.Text
+
+  // Scoring (out of scope v2, kept for compat)
   score        Int?
   scoreReasons String[]      @default([])
-  
-  // Rejection
-  rejectedAt   DateTime?
-  rejectionReason String?
-  
-  // Portal access
   portalToken      String?   @unique
   portalTokenExpiry DateTime?
   portalCompleted  Boolean   @default(false)
   portalStep       Int       @default(0)
-  
+
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
@@ -600,11 +636,13 @@ model MissionCandidate {
   shortlistCandidates    ShortlistCandidate[]
   interviews             Interview[]
   externalAccessTokens   ExternalAccessToken[]
+  documents              CandidateMissionDocument[]
 
   @@unique([missionId, candidateId])
   @@index([missionId])
   @@index([candidateId])
   @@index([stage])
+  @@index([missionId, stage])
   @@index([portalToken])
   @@map("mission_candidates")
 }
@@ -628,6 +666,73 @@ enum ContactStatus {
   OPEN
   CLOSED
   LATER
+}
+
+// ============================================
+// DOCUMENTS (PRD v2.0 - Supabase Storage)
+// ============================================
+
+model ClientDocument {
+  id        String   @id @default(cuid())
+  clientId  String
+  fileName  String
+  fileUrl   String
+  fileType  String
+  fileSize  Int
+  createdAt DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@map("client_documents")
+}
+
+model MissionDocument {
+  id           String   @id @default(cuid())
+  missionId    String
+  documentType String   // PROPOSAL, CONTRACT, JOB_DESC, PRESENTATION, OTHER
+  fileName     String
+  fileUrl      String
+  fileType     String
+  fileSize     Int
+  createdAt    DateTime @default(now())
+
+  mission Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@index([missionId])
+  @@index([documentType])
+  @@map("mission_documents")
+}
+
+model CandidateDocument {
+  id          String   @id @default(cuid())
+  candidateId String
+  fileName    String
+  fileUrl     String
+  fileType    String
+  fileSize    Int
+  createdAt   DateTime @default(now())
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+  @@map("candidate_documents")
+}
+
+model CandidateMissionDocument {
+  id                  String   @id @default(cuid())
+  missionCandidateId  String
+  documentType        String   // INTERNAL_REPORT, CLIENT_REPORT, OTHER
+  fileName            String
+  fileUrl             String
+  fileType            String
+  fileSize            Int
+  createdAt           DateTime @default(now())
+
+  missionCandidate MissionCandidate @relation(fields: [missionCandidateId], references: [id], onDelete: Cascade)
+
+  @@index([missionCandidateId])
+  @@map("candidate_mission_documents")
 }
 
 // ============================================

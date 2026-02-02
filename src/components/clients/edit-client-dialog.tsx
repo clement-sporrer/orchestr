@@ -20,6 +20,8 @@ import { toast } from 'sonner'
 interface Client {
   id: string
   name: string
+  companyName?: string | null
+  category?: string | null
   sector: string | null
   website: string | null
   notes: string | null
@@ -27,12 +29,13 @@ interface Client {
 
 interface EditClientDialogProps {
   client: Client
+  clientCategories?: string[]
   children?: React.ReactNode
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }
 
-export function EditClientDialog({ client, children, open: controlledOpen, onOpenChange }: EditClientDialogProps) {
+export function EditClientDialog({ client, clientCategories = [], children, open: controlledOpen, onOpenChange }: EditClientDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   
@@ -44,8 +47,11 @@ export function EditClientDialog({ client, children, open: controlledOpen, onOpe
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
+    const name = (formData.get('name') as string)?.trim() ?? ''
     const data = {
-      name: formData.get('name') as string,
+      name,
+      companyName: name,
+      category: (formData.get('category') as string) || undefined,
       sector: formData.get('sector') as string || undefined,
       website: formData.get('website') as string || undefined,
       notes: formData.get('notes') as string || undefined,
@@ -83,11 +89,31 @@ export function EditClientDialog({ client, children, open: controlledOpen, onOpe
             <Input
               id="name"
               name="name"
-              defaultValue={client.name}
+              defaultValue={client.companyName ?? client.name}
               required
               disabled={loading}
             />
           </div>
+
+          {clientCategories.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="category">Catégorie</Label>
+              <select
+                id="category"
+                name="category"
+                defaultValue={client.category || ''}
+                disabled={loading}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="">Choisir une catégorie</option>
+                {clientCategories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="sector">Secteur d&apos;activité</Label>
