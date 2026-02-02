@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { JobBuilderForm } from '@/components/job-builder/form'
+import { JobBuilderFormLazy } from '@/components/job-builder/form-lazy'
 import { getClientsWithContactsForSelect } from '@/lib/actions/missions'
 
 interface NewMissionPageProps {
@@ -19,7 +19,7 @@ async function JobBuilderWithClients({ defaultClientId }: { defaultClientId?: st
     clients = []
   }
 
-  return <JobBuilderForm clientsWithContacts={clients} defaultClientId={defaultClientId} />
+  return <JobBuilderFormLazy clientsWithContacts={clients} defaultClientId={defaultClientId} />
 }
 
 function JobBuilderSkeleton() {

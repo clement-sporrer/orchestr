@@ -70,7 +70,7 @@ export function PipelineList({ missionId, candidates, stages }: PipelineListProp
 
   return (
     <div className="rounded-md border">
-      <Table>
+      <Table aria-label="Liste des candidats du pipeline">
         <TableHeader>
           <TableRow>
             <TableHead>Candidat</TableHead>
@@ -79,7 +79,7 @@ export function PipelineList({ missionId, candidates, stages }: PipelineListProp
             <TableHead>Statut contact</TableHead>
             <TableHead>Score</TableHead>
             <TableHead>Dernière activité</TableHead>
-            <TableHead className="w-12"></TableHead>
+            <TableHead className="w-12"><span className="sr-only">Actions</span></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

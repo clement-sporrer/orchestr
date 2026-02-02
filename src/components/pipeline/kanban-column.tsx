@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { cn } from '@/lib/utils'
 import type { PipelineStage, MissionCandidate, Candidate, Interaction } from '@/generated/prisma'
@@ -21,7 +22,7 @@ interface KanbanColumnProps {
   children: React.ReactNode
 }
 
-export function KanbanColumn({ stage, candidates, children }: KanbanColumnProps) {
+export const KanbanColumn = memo(function KanbanColumn({ stage, candidates, children }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.value,
   })
@@ -53,7 +54,7 @@ export function KanbanColumn({ stage, candidates, children }: KanbanColumnProps)
       </div>
     </div>
   )
-}
+})
 
 
 

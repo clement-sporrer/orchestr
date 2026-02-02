@@ -7,4 +7,9 @@ const nextConfig: NextConfig = {
   /* config options here */
 };
 
-export default withNextIntl(nextConfig);
+// Bundle analyzer - run with: ANALYZE=true npm run build
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
+
+export default withBundleAnalyzer(withNextIntl(nextConfig));

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -32,8 +32,8 @@ export function SkillsInput({
 }: SkillsInputProps) {
   const [inputValue, setInputValue] = useState('')
 
-  // Parse current skills
-  const skills = parseSemicolonList(value)
+  // Parse current skills (memoized to avoid re-parsing on every render)
+  const skills = useMemo(() => parseSemicolonList(value), [value])
 
   const addSkill = (skill?: string) => {
     const newSkill = (skill || inputValue).trim()

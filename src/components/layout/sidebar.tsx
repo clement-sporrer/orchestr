@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -29,17 +30,17 @@ export function Sidebar() {
   const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
 
-  // PRD v2.0: Dashboard, Clients, Missions, Candidats, Settings only
-  const navigation = [
+  // PRD v2.0: Dashboard, Clients, Missions, Candidats, Settings only (memoized)
+  const navigation = useMemo(() => [
     { name: t('dashboard'), href: '/dashboard', icon: LayoutDashboard },
     { name: t('clients'), href: '/clients', icon: Building2 },
     { name: t('missions'), href: '/missions', icon: Briefcase },
     { name: t('candidates'), href: '/candidates', icon: Users },
-  ]
+  ], [t])
 
-  const secondaryNavigation = [
+  const secondaryNavigation = useMemo(() => [
     { name: t('settings'), href: '/settings', icon: Settings },
-  ]
+  ], [t])
 
   const handleLogout = async () => {
     const supabase = createClient()

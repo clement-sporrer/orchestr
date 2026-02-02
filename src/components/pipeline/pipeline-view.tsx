@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { LayoutGrid, List, Filter, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -41,18 +42,21 @@ const stages: { value: PipelineStage; label: string; color: string }[] = [
 ]
 
 export function PipelineView({ mission }: PipelineViewProps) {
+  const router = useRouter()
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban')
   const [stageFilter, setStageFilter] = useState<PipelineStage | 'all'>('all')
 
-  const filteredCandidates = mission.missionCandidates.filter((mc) => {
-    if (stageFilter === 'all') return true
-    return mc.stage === stageFilter
-  })
+  const filteredCandidates = useMemo(() => 
+    mission.missionCandidates.filter((mc) => {
+      if (stageFilter === 'all') return true
+      return mc.stage === stageFilter
+    }), [mission.missionCandidates, stageFilter])
 
-  const stageCounts = stages.map((stage) => ({
-    ...stage,
-    count: mission.missionCandidates.filter((mc) => mc.stage === stage.value).length,
-  }))
+  const stageCounts = useMemo(() => 
+    stages.map((stage) => ({
+      ...stage,
+      count: mission.missionCandidates.filter((mc) => mc.stage === stage.value).length,
+    })), [stages, mission.missionCandidates])
 
   return (
     <div className="space-y-4">
@@ -111,7 +115,10 @@ export function PipelineView({ mission }: PipelineViewProps) {
           </Select>
         </div>
 
-        <Button size="sm">
+        <Button 
+          size="sm" 
+          onClick={() => router.push(`/missions/${mission.id}?tab=sourcing`)}
+        >
           <UserPlus className="mr-2 h-4 w-4" />
           Ajouter un candidat
         </Button>

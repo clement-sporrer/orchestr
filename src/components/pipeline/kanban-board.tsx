@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { 
   DndContext, 
   DragOverlay,
@@ -126,16 +126,20 @@ export function KanbanBoard({ missionId, candidates, stages }: KanbanBoardProps)
   }
 
   // Apply optimistic updates to candidates
-  const candidatesWithOptimistic = candidates.map(c => ({
-    ...c,
-    stage: optimisticUpdates[c.id] || c.stage,
-  }))
+  const candidatesWithOptimistic = useMemo(() => 
+    candidates.map(c => ({
+      ...c,
+      stage: optimisticUpdates[c.id] || c.stage,
+    })), [candidates, optimisticUpdates])
 
   // Group candidates by stage (with optimistic updates)
-  const candidatesByStage = stages.reduce((acc, stage) => {
-    acc[stage.value] = candidatesWithOptimistic.filter((c) => c.stage === stage.value)
-    return acc
-  }, {} as Record<PipelineStage, CandidateWithDetails[]>)
+  const candidatesByStage = useMemo(() => 
+    stages.reduce((acc, stage) => {
+      acc[stage.value] = candidatesWithOptimistic.filter((c) => c.stage === stage.value)
+      return acc
+    }, {} as Record<PipelineStage, CandidateWithDetails[]>), 
+    [stages, candidatesWithOptimistic]
+  )
 
   return (
     <DndContext

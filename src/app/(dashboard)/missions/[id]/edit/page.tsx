@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { JobBuilderForm } from '@/components/job-builder/form'
+import { JobBuilderFormLazy } from '@/components/job-builder/form-lazy'
 import { getMission, getClientsWithContactsForSelect } from '@/lib/actions/missions'
 
 interface EditMissionPageProps {
@@ -68,7 +68,7 @@ export default async function EditMissionPage({ params }: EditMissionPageProps) 
         </div>
       </div>
 
-      <JobBuilderForm
+      <JobBuilderFormLazy
         clientsWithContacts={clientsWithContacts}
         missionId={id}
         initialData={initialData}

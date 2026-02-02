@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useEffect, useTransition, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, Users, Briefcase, Building2, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -13,6 +13,7 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import { globalSearch, type SearchResult } from '@/lib/actions/search'
+import { useDebounce } from '@/lib/hooks/use-debounce'
 import { cn } from '@/lib/utils'
 
 interface GlobalSearchProps {
@@ -38,6 +39,9 @@ export function GlobalSearch({ children, className }: GlobalSearchProps) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [isPending, startTransition] = useTransition()
+  
+  // Debounce search query to avoid excessive API calls
+  const debouncedQuery = useDebounce(query, 300)
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -60,16 +64,16 @@ export function GlobalSearch({ children, className }: GlobalSearchProps) {
   }, [open])
 
   useEffect(() => {
-    if (query.length < 2) {
+    if (debouncedQuery.length < 2) {
       setResults([])
       return
     }
 
     startTransition(async () => {
-      const searchResults = await globalSearch(query)
+      const searchResults = await globalSearch(debouncedQuery)
       setResults(searchResults)
     })
-  }, [query])
+  }, [debouncedQuery])
 
   const handleSelect = (result: SearchResult) => {
     router.push(result.url)
@@ -78,14 +82,15 @@ export function GlobalSearch({ children, className }: GlobalSearchProps) {
     setResults([])
   }
 
-  // Group results by type
-  const groupedResults = results.reduce((acc, result) => {
-    if (!acc[result.type]) {
-      acc[result.type] = []
-    }
-    acc[result.type].push(result)
-    return acc
-  }, {} as Record<string, SearchResult[]>)
+  // Group results by type (memoized to avoid recalculating on every render)
+  const groupedResults = useMemo(() => 
+    results.reduce((acc, result) => {
+      if (!acc[result.type]) {
+        acc[result.type] = []
+      }
+      acc[result.type].push(result)
+      return acc
+    }, {} as Record<string, SearchResult[]>), [results])
 
   return (
     <>

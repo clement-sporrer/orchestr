@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { useLocale } from 'next-intl'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -69,7 +69,7 @@ const contactStatusColors: Record<ContactStatus, string> = {
   LATER: 'bg-orange-500/10 text-orange-600',
 }
 
-export function KanbanCard({ candidate, missionId, isDragging }: KanbanCardProps) {
+export const KanbanCard = memo(function KanbanCard({ candidate, missionId, isDragging }: KanbanCardProps) {
   const locale = useLocale()
   const [copied, setCopied] = useState(false)
   const [showInviteDialog, setShowInviteDialog] = useState(false)
@@ -294,5 +294,5 @@ export function KanbanCard({ candidate, missionId, isDragging }: KanbanCardProps
       </CardContent>
     </Card>
   )
-}
+})
 

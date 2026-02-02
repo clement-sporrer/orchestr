@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { 
   Linkedin, 
   Briefcase, 
@@ -40,11 +40,23 @@ interface Education {
 interface EnrichmentPanelProps {
   enrichment: CandidateEnrichment | null
   candidateId: string
-  onRefresh?: () => void
+  onRefresh?: () => void | Promise<void>
+  isRefreshing?: boolean
 }
 
-export function EnrichmentPanel({ enrichment, candidateId, onRefresh }: EnrichmentPanelProps) {
+export function EnrichmentPanel({ enrichment, candidateId, onRefresh, isRefreshing }: EnrichmentPanelProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>('experiences')
+  const [isLoading, setIsLoading] = useState(false)
+  
+  const handleRefresh = async () => {
+    if (!onRefresh || isLoading || isRefreshing) return
+    setIsLoading(true)
+    try {
+      await onRefresh()
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   if (!enrichment) {
     return (
@@ -67,11 +79,12 @@ export function EnrichmentPanel({ enrichment, candidateId, onRefresh }: Enrichme
     )
   }
 
-  const experiences = (enrichment.experiences as Experience[] | null) || []
-  const education = (enrichment.education as Education[] | null) || []
-  const skills = enrichment.skills || []
-  const languages = enrichment.languages || []
-  const certifications = enrichment.certifications || []
+  // Memoize parsed JSON data to avoid re-parsing on every render
+  const experiences = useMemo(() => (enrichment.experiences as Experience[] | null) || [], [enrichment.experiences])
+  const education = useMemo(() => (enrichment.education as Education[] | null) || [], [enrichment.education])
+  const skills = useMemo(() => enrichment.skills || [], [enrichment.skills])
+  const languages = useMemo(() => enrichment.languages || [], [enrichment.languages])
+  const certifications = useMemo(() => enrichment.certifications || [], [enrichment.certifications])
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section)
@@ -86,8 +99,13 @@ export function EnrichmentPanel({ enrichment, candidateId, onRefresh }: Enrichme
             Donnees LinkedIn
           </CardTitle>
           {onRefresh && (
-            <Button variant="ghost" size="sm" onClick={onRefresh}>
-              <RefreshCw className="h-4 w-4" />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleRefresh}
+              disabled={isLoading || isRefreshing}
+            >
+              <RefreshCw className={cn("h-4 w-4", (isLoading || isRefreshing) && "animate-spin")} />
             </Button>
           )}
         </div>
