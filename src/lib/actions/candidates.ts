@@ -127,10 +127,10 @@ export async function createCandidate(data: CreateCandidateInput) {
   const validated = createCandidateSchema.parse(data)
   const transformed = transformCandidateInput(validated)
 
-  const dup = await checkCandidateDuplicate(transformed.email ?? null, transformed.linkedin ?? null)
+  const dup = await checkCandidateDuplicate(transformed.email ?? null, transformed.linkedin ?? null, transformed.phone ?? null)
   if (dup.duplicate) {
     throw new Error(
-      `Un candidat existe déjà: ${dup.duplicate.firstName} ${dup.duplicate.lastName}`
+      `Un candidat existe déjà (${dup.duplicate.matchField}): ${dup.duplicate.firstName} ${dup.duplicate.lastName}`
     )
   }
 
@@ -189,14 +189,15 @@ export async function updateCandidate(id: string, data: Partial<UpdateCandidateI
   })
   if (!existing) throw new Error('Candidat non trouvé')
 
-  if (transformedData.email !== undefined || transformedData.linkedin !== undefined) {
+  if (transformedData.email !== undefined || transformedData.linkedin !== undefined || transformedData.phone !== undefined) {
     const dup = await checkCandidateDuplicate(
       transformedData.email ?? null,
-      transformedData.linkedin ?? null
+      transformedData.linkedin ?? null,
+      transformedData.phone ?? null,
     )
     if (dup.duplicate && dup.duplicate.id !== id) {
       throw new Error(
-        `Un autre candidat existe avec ce profil: ${dup.duplicate.firstName} ${dup.duplicate.lastName}`
+        `Un autre candidat existe avec ce profil (${dup.duplicate.matchField}): ${dup.duplicate.firstName} ${dup.duplicate.lastName}`
       )
     }
   }
@@ -331,7 +332,7 @@ export async function getAllTags() {
 export async function addInteraction(
   candidateId: string,
   data: {
-    type: 'MESSAGE' | 'EMAIL' | 'CALL' | 'INTERVIEW_SCHEDULED' | 'INTERVIEW_DONE' | 'NOTE'
+    type: 'MESSAGE' | 'EMAIL' | 'CALL' | 'INTERVIEW_SCHEDULED' | 'INTERVIEW_DONE' | 'NOTE' | 'STATUS_CHANGE'
     content?: string
     missionCandidateId?: string
     scheduledAt?: Date
@@ -544,39 +545,204 @@ export async function checkCandidateExists(data: {
   return { exists: false }
 }
 
-/** Check duplicate by email or LinkedIn (new field). Returns existing candidate if found. */
+// ============================================
+// DEDUPLICATION SERVICE
+// ============================================
+
+/** Normalize phone number for comparison (strip spaces, dashes, dots, country code prefix) */
+function normalizePhone(phone: string): string {
+  let normalized = phone.replace(/[\s\-.()+]/g, '')
+  // Normalize French prefix: 0033 or 33 → 0
+  if (normalized.startsWith('0033')) normalized = '0' + normalized.slice(4)
+  else if (normalized.startsWith('33') && normalized.length > 10) normalized = '0' + normalized.slice(2)
+  return normalized
+}
+
+/** Normalize LinkedIn URL for comparison */
+function normalizeLinkedIn(url: string): string {
+  return url
+    .toLowerCase()
+    .replace(/^https?:\/\/(www\.)?/, '')
+    .replace(/\/$/, '')
+    .replace(/\?.*$/, '')
+}
+
+export interface DuplicateMatch {
+  id: string
+  firstName: string
+  lastName: string
+  email: string | null
+  linkedin: string | null
+  phone: string | null
+  currentCompany: string | null
+  currentPosition: string | null
+  matchField: 'email' | 'linkedin' | 'phone'
+  confidence: 'high' | 'medium'
+}
+
+/** Check duplicate by email, LinkedIn, or phone. Returns existing candidate if found. */
 export async function checkCandidateDuplicate(
   email?: string | null,
-  linkedin?: string | null
+  linkedin?: string | null,
+  phone?: string | null,
 ): Promise<{
   success: boolean
-  duplicate: { id: string; firstName: string; lastName: string; email: string | null; linkedin: string | null; currentCompany: string | null; currentPosition: string | null } | null
+  duplicate: DuplicateMatch | null
   error?: string
 }> {
   const organizationId = await getOrganizationId()
-  if (!email && !linkedin) return { success: true, duplicate: null }
+  if (!email && !linkedin && !phone) return { success: true, duplicate: null }
 
-  const conditions: Prisma.CandidateWhereInput[] = []
-  if (email) conditions.push({ email })
-  if (linkedin) conditions.push({ linkedin })
+  const selectFields = {
+    id: true,
+    firstName: true,
+    lastName: true,
+    email: true,
+    linkedin: true,
+    phone: true,
+    currentCompany: true,
+    currentPosition: true,
+  } as const
 
-  const duplicate = await prisma.candidate.findFirst({
-    where: {
-      organizationId,
-      status: { not: 'DELETED' },
-      OR: conditions,
-    },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      linkedin: true,
-      currentCompany: true,
-      currentPosition: true,
-    },
+  // 1. Check by email (high confidence)
+  if (email) {
+    const byEmail = await prisma.candidate.findFirst({
+      where: { organizationId, status: { not: 'DELETED' }, email },
+      select: selectFields,
+    })
+    if (byEmail) {
+      return { success: true, duplicate: { ...byEmail, matchField: 'email', confidence: 'high' } }
+    }
+  }
+
+  // 2. Check by LinkedIn (high confidence)
+  if (linkedin) {
+    const normalizedUrl = normalizeLinkedIn(linkedin)
+    const byLinkedin = await prisma.candidate.findFirst({
+      where: { organizationId, status: { not: 'DELETED' }, linkedin: { contains: normalizedUrl, mode: 'insensitive' } },
+      select: selectFields,
+    })
+    if (byLinkedin) {
+      return { success: true, duplicate: { ...byLinkedin, matchField: 'linkedin', confidence: 'high' } }
+    }
+  }
+
+  // 3. Check by phone (medium confidence - formatting can differ)
+  if (phone) {
+    const normalizedPhone = normalizePhone(phone)
+    if (normalizedPhone.length >= 9) {
+      // Fetch candidates with phones and compare normalized
+      const withPhones = await prisma.candidate.findMany({
+        where: { organizationId, status: { not: 'DELETED' }, phone: { not: null } },
+        select: selectFields,
+      })
+      const byPhone = withPhones.find(c => c.phone && normalizePhone(c.phone) === normalizedPhone)
+      if (byPhone) {
+        return { success: true, duplicate: { ...byPhone, matchField: 'phone', confidence: 'medium' } }
+      }
+    }
+  }
+
+  return { success: true, duplicate: null }
+}
+
+/** Merge two candidates: keep `targetId`, absorb data from `sourceId`, then soft-delete source. */
+export async function mergeCandidates(targetId: string, sourceId: string) {
+  const organizationId = await getOrganizationId()
+
+  const [target, source] = await Promise.all([
+    prisma.candidate.findFirst({ where: { id: targetId, organizationId, status: { not: 'DELETED' } } }),
+    prisma.candidate.findFirst({ where: { id: sourceId, organizationId, status: { not: 'DELETED' } } }),
+  ])
+
+  if (!target || !source) throw new Error('Candidat non trouvé')
+  if (target.id === source.id) throw new Error('Impossible de fusionner un candidat avec lui-même')
+
+  // Build update payload: fill gaps in target from source
+  const mergePayload: Record<string, unknown> = {}
+  const fieldsToMerge = [
+    'email', 'linkedin', 'phone', 'age', 'country', 'city', 'region',
+    'seniority', 'domain', 'sector', 'currentCompany', 'currentPosition',
+    'pastCompanies', 'jobFamily', 'hardSkills', 'softSkills',
+    'compensation', 'comments', 'references', 'profileUrl', 'cvUrl', 'location',
+  ] as const
+
+  for (const field of fieldsToMerge) {
+    if (!target[field] && source[field]) {
+      mergePayload[field] = source[field]
+    }
+  }
+
+  // Merge tags (union)
+  const mergedTags = [...new Set([...target.tags, ...source.tags])]
+  mergePayload.tags = mergedTags
+
+  // Track merge
+  mergePayload.mergedFromIds = [...target.mergedFromIds, source.id]
+
+  // Update notes: append source notes if different
+  if (source.notes && source.notes !== target.notes) {
+    mergePayload.notes = target.notes
+      ? `${target.notes}\n\n--- Fusionné depuis ${source.firstName} ${source.lastName} ---\n${source.notes}`
+      : source.notes
+  }
+
+  // Transaction: update target, reassign source's relations, soft-delete source
+  await prisma.$transaction(async (tx) => {
+    // 1. Update target with merged data
+    await tx.candidate.update({
+      where: { id: targetId },
+      data: mergePayload as Prisma.CandidateUpdateInput,
+    })
+
+    // 2. Reassign mission candidates (skip duplicates)
+    const sourceMissions = await tx.missionCandidate.findMany({
+      where: { candidateId: sourceId },
+    })
+    for (const mc of sourceMissions) {
+      const exists = await tx.missionCandidate.findFirst({
+        where: { missionId: mc.missionId, candidateId: targetId },
+      })
+      if (!exists) {
+        await tx.missionCandidate.update({
+          where: { id: mc.id },
+          data: { candidateId: targetId },
+        })
+      }
+    }
+
+    // 3. Reassign interactions
+    await tx.interaction.updateMany({
+      where: { candidateId: sourceId },
+      data: { candidateId: targetId },
+    })
+
+    // 4. Reassign pool memberships (skip duplicates)
+    const sourcePools = await tx.candidatePool.findMany({
+      where: { candidateId: sourceId },
+    })
+    for (const pm of sourcePools) {
+      const exists = await tx.candidatePool.findFirst({
+        where: { poolId: pm.poolId, candidateId: targetId },
+      })
+      if (!exists) {
+        await tx.candidatePool.update({
+          where: { id: pm.id },
+          data: { candidateId: targetId },
+        })
+      }
+    }
+
+    // 5. Soft-delete source
+    await tx.candidate.update({
+      where: { id: sourceId },
+      data: { status: 'DELETED' },
+    })
   })
-  return { success: true, duplicate: duplicate ?? null }
+
+  revalidatePath('/candidates')
+  revalidatePath(`/candidates/${targetId}`)
+  return { success: true, mergedInto: targetId }
 }
 
 /** Append entry to candidate solicitation history (e.g. when added to mission). */

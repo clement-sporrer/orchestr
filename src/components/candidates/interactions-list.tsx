@@ -79,7 +79,7 @@ export function InteractionsList({ candidateId, interactions }: InteractionsList
     setLoading(true)
     try {
       await addInteraction(candidateId, {
-        type: type as 'MESSAGE' | 'EMAIL' | 'CALL' | 'INTERVIEW_SCHEDULED' | 'INTERVIEW_DONE' | 'NOTE',
+        type: type as 'MESSAGE' | 'EMAIL' | 'CALL' | 'INTERVIEW_SCHEDULED' | 'INTERVIEW_DONE' | 'NOTE' | 'STATUS_CHANGE',
         content: content.trim(),
       })
       toast.success('Interaction ajoutée')

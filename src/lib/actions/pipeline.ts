@@ -122,8 +122,6 @@ export async function getPortalUrl(missionCandidateId: string) {
 export async function addCandidateToMission(
   missionId: string, 
   candidateId: string,
-  score?: number,
-  scoreReasons?: string[]
 ) {
   const organizationId = await getOrganizationId()
 
@@ -158,8 +156,6 @@ export async function addCandidateToMission(
     data: {
       missionId,
       candidateId,
-      score,
-      scoreReasons: scoreReasons || [],
     },
   })
 
@@ -169,7 +165,7 @@ export async function addCandidateToMission(
 }
 
 // Remove candidate from mission
-export async function removeCandidateFromMission(missionCandidateId: string, reason?: string) {
+export async function removeCandidateFromMission(missionCandidateId: string) {
   const organizationId = await getOrganizationId()
 
   const mc = await prisma.missionCandidate.findFirst({
@@ -185,13 +181,8 @@ export async function removeCandidateFromMission(missionCandidateId: string, rea
     throw new Error('Candidat non trouvé')
   }
 
-  await prisma.missionCandidate.update({
+  await prisma.missionCandidate.delete({
     where: { id: missionCandidateId },
-    data: {
-      stage: 'CLOSED_REJECTED',
-      rejectedAt: new Date(),
-      rejectionReason: reason,
-    },
   })
 
   revalidatePath(`/missions/${mc.mission.id}`)

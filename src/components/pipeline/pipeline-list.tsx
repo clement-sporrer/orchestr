@@ -74,11 +74,10 @@ export function PipelineList({ missionId, candidates, stages }: PipelineListProp
         <TableHeader>
           <TableRow>
             <TableHead>Candidat</TableHead>
-            <TableHead>Poste actuel</TableHead>
+            <TableHead className="hidden md:table-cell">Poste actuel</TableHead>
             <TableHead>Étape</TableHead>
-            <TableHead>Statut contact</TableHead>
-            <TableHead>Score</TableHead>
-            <TableHead>Dernière activité</TableHead>
+            <TableHead className="hidden sm:table-cell">Statut contact</TableHead>
+            <TableHead className="hidden lg:table-cell">Dernière activité</TableHead>
             <TableHead className="w-12"><span className="sr-only">Actions</span></TableHead>
           </TableRow>
         </TableHeader>
@@ -114,7 +113,7 @@ export function PipelineList({ missionId, candidates, stages }: PipelineListProp
                     )}
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   <span className="text-sm">
                     {mc.candidate.currentPosition || '-'}
                     {mc.candidate.currentCompany && (
@@ -127,7 +126,7 @@ export function PipelineList({ missionId, candidates, stages }: PipelineListProp
                     value={mc.stage}
                     onValueChange={(v) => handleStageChange(mc.id, v as PipelineStage)}
                   >
-                    <SelectTrigger className="w-40 h-8">
+                    <SelectTrigger className="w-36 h-8">
                       <SelectValue>
                         <span className="flex items-center gap-2">
                           <span className={`w-2 h-2 rounded-full ${currentStage?.color}`} />
@@ -147,19 +146,12 @@ export function PipelineList({ missionId, candidates, stages }: PipelineListProp
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <Badge variant="secondary" className="text-xs">
                     {contactStatusLabels[mc.contactStatus]}
                   </Badge>
                 </TableCell>
-                <TableCell>
-                  {mc.score ? (
-                    <span className="font-medium">{mc.score}%</span>
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
-                  )}
-                </TableCell>
-                <TableCell>
+                <TableCell className="hidden lg:table-cell">
                   {lastInteraction ? (
                     <span className="text-sm text-muted-foreground">
                       {new Date(lastInteraction.createdAt).toLocaleDateString('fr-FR')}

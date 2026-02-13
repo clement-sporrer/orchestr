@@ -33,7 +33,7 @@ export const KanbanColumn = memo(function KanbanColumn({ stage, candidates, chil
       role="region"
       aria-label={`Colonne ${stage.label} avec ${candidates.length} candidat${candidates.length !== 1 ? 's' : ''}`}
       className={cn(
-        "flex-shrink-0 w-72 rounded-lg bg-muted/50 p-3",
+        "flex-shrink-0 w-64 sm:w-72 rounded-lg bg-muted/50 p-3 snap-center transition-colors",
         isOver && "bg-muted ring-2 ring-primary/50"
       )}
     >

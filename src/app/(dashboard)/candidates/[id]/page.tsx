@@ -41,14 +41,11 @@ interface CandidateDetailPageProps {
 const stageLabels: Record<PipelineStage, string> = {
   SOURCED: 'Sourcé',
   CONTACTED: 'Contacté',
-  RESPONSE_RECEIVED: 'Réponse',
-  INTERVIEW_SCHEDULED: 'Entretien planifié',
-  INTERVIEW_DONE: 'Entretien fait',
-  SENT_TO_CLIENT: 'Envoyé client',
-  CLIENT_INTERVIEW: 'Entretien client',
+  RESPONSE: 'Réponse',
+  INTERVIEW: 'Entretien',
+  SHORTLIST: 'Shortlist',
   OFFER: 'Offre',
-  CLOSED_HIRED: 'Embauché',
-  CLOSED_REJECTED: 'Refusé',
+  PLACED: 'Placé',
 }
 
 const missionStatusLabels: Record<MissionStatus, string> = {
@@ -230,14 +227,9 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
                           {mc.mission.client.name}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">
-                          {stageLabels[mc.stage]}
-                        </Badge>
-                        {mc.score && (
-                          <Badge variant="secondary">{mc.score}%</Badge>
-                        )}
-                      </div>
+                      <Badge variant="outline">
+                        {stageLabels[mc.stage]}
+                      </Badge>
                     </Link>
                   ))}
                 </div>

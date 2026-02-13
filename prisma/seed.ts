@@ -150,7 +150,7 @@ async function main() {
 3. Entretien technique (1h)
 4. Entretien final avec CEO`,
       processVisibility: 'INTERNAL_CLIENT',
-      scoreThreshold: 70,
+      // scoreThreshold removed in pipeline simplification
     },
   })
   console.log(`✅ Sample mission created: ${mission.title}`)
@@ -227,10 +227,8 @@ async function main() {
     create: {
       missionId: mission.id,
       candidateId: 'candidate_demo_001',
-      stage: 'INTERVIEW_SCHEDULED',
+      stage: 'INTERVIEW',
       contactStatus: 'OPEN',
-      score: 85,
-      scoreReasons: ['Expérience React solide', 'Profil senior', 'Disponible rapidement'],
     },
   })
   await prisma.missionCandidate.upsert({
@@ -241,8 +239,6 @@ async function main() {
       candidateId: 'candidate_demo_002',
       stage: 'CONTACTED',
       contactStatus: 'OPEN',
-      score: 72,
-      scoreReasons: ['Lead experience', 'Stack différente mais adaptable'],
     },
   })
   console.log('✅ Candidates added to pipeline')

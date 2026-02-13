@@ -122,7 +122,7 @@ export const KanbanCard = memo(function KanbanCard({ candidate, missionId, isDra
       style={style}
       role="button"
       tabIndex={0}
-      aria-label={`Candidat ${candidate.candidate.firstName} ${candidate.candidate.lastName}, score ${candidate.score || 'N/A'}%`}
+      aria-label={`Candidat ${candidate.candidate.firstName} ${candidate.candidate.lastName}`}
       className={cn(
         "cursor-pointer hover:border-primary/50 transition-all",
         (isDragging || isSortableDragging) && "opacity-50 shadow-lg rotate-2",
@@ -163,11 +163,6 @@ export const KanbanCard = memo(function KanbanCard({ candidate, missionId, isDra
               >
                 {contactStatusLabels[candidate.contactStatus]}
               </Badge>
-              {candidate.score && (
-                <span className="text-xs font-medium text-muted-foreground">
-                  {candidate.score}%
-                </span>
-              )}
               {hasPortalLink && (
                 <Badge variant="outline" className="text-xs bg-primary/5 text-primary border-primary/20">
                   <Link2 className="h-3 w-3 mr-1" />

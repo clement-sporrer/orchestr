@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
       // Update pipeline stage
       await prisma.missionCandidate.update({
         where: { id: interview.missionCandidateId },
-        data: { stage: 'INTERVIEW_DONE' },
+        data: { stage: 'INTERVIEW' },
       })
 
       // Get organizationId from mission
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
             organizationId: mission.mission.organizationId,
             candidateId: interview.missionCandidate.candidateId,
             missionCandidateId: interview.missionCandidateId,
-            type: 'INTERVIEW_DONE',
+            type: 'INTERVIEW_DONE' as const,
             content: transcriptFile 
               ? 'Entretien termine - Transcript Zoom disponible'
               : 'Entretien termine via Zoom',

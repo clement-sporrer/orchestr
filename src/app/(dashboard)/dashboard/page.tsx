@@ -435,12 +435,11 @@ async function ActiveMissions() {
 
   const getStageLabel = (mission: typeof missions[0]) => {
     const stages = mission.missionCandidates.map(mc => mc.stage)
+    if (stages.includes('PLACED')) return 'Placé'
     if (stages.includes('OFFER')) return 'Offre'
-    if (stages.includes('CLIENT_INTERVIEW')) return 'Entretien client'
-    if (stages.includes('SENT_TO_CLIENT')) return 'Shortlist'
-    if (stages.includes('INTERVIEW_DONE')) return 'Entretiens'
-    if (stages.includes('INTERVIEW_SCHEDULED')) return 'Entretiens'
-    if (stages.includes('RESPONSE_RECEIVED')) return 'Qualification'
+    if (stages.includes('SHORTLIST')) return 'Shortlist'
+    if (stages.includes('INTERVIEW')) return 'Entretien'
+    if (stages.includes('RESPONSE')) return 'Réponse'
     if (stages.includes('CONTACTED')) return 'Prise de contact'
     return 'Sourcing'
   }

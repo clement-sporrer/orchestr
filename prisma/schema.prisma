@@ -659,16 +659,13 @@ model MissionCandidate {
 }
 
 enum PipelineStage {
-  SOURCED
-  CONTACTED
-  RESPONSE_RECEIVED
-  INTERVIEW_SCHEDULED
-  INTERVIEW_DONE
-  SENT_TO_CLIENT
-  CLIENT_INTERVIEW
-  OFFER
-  CLOSED_HIRED
-  CLOSED_REJECTED
+  SOURCED           // sourcé — initial discovery
+  CONTACTED         // contacté — first outreach made
+  RESPONSE          // réponse — candidate replied
+  INTERVIEW         // entretien — interview phase (scheduled or done)
+  SHORTLIST         // shortlist — presented to client
+  OFFER             // offre — offer extended
+  PLACED            // placé — successfully hired
 }
 
 enum ContactStatus {

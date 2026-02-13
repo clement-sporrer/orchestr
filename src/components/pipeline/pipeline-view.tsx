@@ -29,16 +29,13 @@ interface PipelineViewProps {
 }
 
 const stages: { value: PipelineStage; label: string; color: string }[] = [
-  { value: 'SOURCED', label: 'Sourcé', color: 'bg-gray-500' },
+  { value: 'SOURCED', label: 'Sourcé', color: 'bg-slate-500' },
   { value: 'CONTACTED', label: 'Contacté', color: 'bg-blue-500' },
-  { value: 'RESPONSE_RECEIVED', label: 'Réponse', color: 'bg-indigo-500' },
-  { value: 'INTERVIEW_SCHEDULED', label: 'Entretien planifié', color: 'bg-purple-500' },
-  { value: 'INTERVIEW_DONE', label: 'Entretien fait', color: 'bg-pink-500' },
-  { value: 'SENT_TO_CLIENT', label: 'Envoyé client', color: 'bg-orange-500' },
-  { value: 'CLIENT_INTERVIEW', label: 'Entretien client', color: 'bg-amber-500' },
-  { value: 'OFFER', label: 'Offre', color: 'bg-yellow-500' },
-  { value: 'CLOSED_HIRED', label: 'Embauché', color: 'bg-green-500' },
-  { value: 'CLOSED_REJECTED', label: 'Refusé', color: 'bg-red-500' },
+  { value: 'RESPONSE', label: 'Réponse', color: 'bg-indigo-500' },
+  { value: 'INTERVIEW', label: 'Entretien', color: 'bg-purple-500' },
+  { value: 'SHORTLIST', label: 'Shortlist', color: 'bg-amber-500' },
+  { value: 'OFFER', label: 'Offre', color: 'bg-orange-500' },
+  { value: 'PLACED', label: 'Placé', color: 'bg-green-500' },
 ]
 
 export function PipelineView({ mission }: PipelineViewProps) {
@@ -52,24 +49,33 @@ export function PipelineView({ mission }: PipelineViewProps) {
       return mc.stage === stageFilter
     }), [mission.missionCandidates, stageFilter])
 
+  const totalCandidates = mission.missionCandidates.length
+
   const stageCounts = useMemo(() => 
     stages.map((stage) => ({
       ...stage,
       count: mission.missionCandidates.filter((mc) => mc.stage === stage.value).length,
-    })), [stages, mission.missionCandidates])
+    })), [mission.missionCandidates])
 
   return (
     <div className="space-y-4">
       {/* Stats Bar */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+        <Badge
+          variant={stageFilter === 'all' ? 'default' : 'outline'}
+          className="whitespace-nowrap cursor-pointer hover:bg-muted"
+          onClick={() => setStageFilter('all')}
+        >
+          Tous: {totalCandidates}
+        </Badge>
         {stageCounts.map((stage) => (
           <Badge
             key={stage.value}
-            variant="outline"
-            className="whitespace-nowrap cursor-pointer hover:bg-muted"
+            variant={stageFilter === stage.value ? 'default' : 'outline'}
+            className="whitespace-nowrap cursor-pointer hover:bg-muted transition-colors"
             onClick={() => setStageFilter(stageFilter === stage.value ? 'all' : stage.value)}
           >
-            <span className={`w-2 h-2 rounded-full mr-2 ${stage.color}`} />
+            <span className={`w-2 h-2 rounded-full mr-1.5 ${stage.color}`} />
             {stage.label}: {stage.count}
           </Badge>
         ))}

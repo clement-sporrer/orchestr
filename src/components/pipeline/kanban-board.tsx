@@ -148,7 +148,7 @@ export function KanbanBoard({ missionId, candidates, stages }: KanbanBoardProps)
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory md:snap-none">
         {stages.map((stage) => (
           <KanbanColumn
             key={stage.value}

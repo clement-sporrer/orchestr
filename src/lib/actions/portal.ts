@@ -81,7 +81,7 @@ export async function completePortal(missionCandidateId: string) {
     where: { id: missionCandidateId },
     data: {
       portalCompleted: true,
-      stage: 'RESPONSE_RECEIVED',
+      stage: 'RESPONSE',
     },
   })
 

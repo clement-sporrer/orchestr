@@ -130,15 +130,16 @@ export function ClientsListWithViews({ clients, search }: ClientsListWithViewsPr
                     )}
                   </CardHeader>
                   <CardContent>
-                    <div className="flex gap-4 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                       <span>{client._count.missions} mission{client._count.missions !== 1 ? 's' : ''}</span>
+                      {(client.activeMissionsCount ?? 0) > 0 && (
+                        <span className="text-green-600 font-medium">{client.activeMissionsCount} active{(client.activeMissionsCount ?? 0) !== 1 ? 's' : ''}</span>
+                      )}
+                      {(client.placedCount ?? 0) > 0 && (
+                        <span className="text-primary font-medium">{client.placedCount} placement{(client.placedCount ?? 0) !== 1 ? 's' : ''}</span>
+                      )}
                       <span>{client._count.contacts} contact{client._count.contacts !== 1 ? 's' : ''}</span>
                     </div>
-                    {client.notes && (
-                      <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
-                        {client.notes}
-                      </p>
-                    )}
                   </CardContent>
                 </Card>
               </Link>
@@ -158,9 +159,11 @@ export function ClientsListWithViews({ clients, search }: ClientsListWithViewsPr
                   />
                 </TableHead>
                 <TableHead>Entreprise</TableHead>
-                <TableHead>Catégorie / Secteur</TableHead>
+                <TableHead className="hidden sm:table-cell">Catégorie / Secteur</TableHead>
                 <TableHead>Missions</TableHead>
-                <TableHead>Contacts</TableHead>
+                <TableHead className="hidden md:table-cell">Actives</TableHead>
+                <TableHead className="hidden lg:table-cell">Placements</TableHead>
+                <TableHead className="hidden sm:table-cell">Contacts</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -180,11 +183,25 @@ export function ClientsListWithViews({ clients, search }: ClientsListWithViewsPr
                   <TableCell className="font-medium">
                     {client.companyName ?? client.name}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="text-muted-foreground hidden sm:table-cell">
                     {[client.category, client.sector].filter(Boolean).join(' / ') || '-'}
                   </TableCell>
                   <TableCell>{client._count.missions}</TableCell>
-                  <TableCell>{client._count.contacts}</TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {(client.activeMissionsCount ?? 0) > 0 ? (
+                      <span className="text-green-600 font-medium">{client.activeMissionsCount}</span>
+                    ) : (
+                      <span className="text-muted-foreground">0</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    {(client.placedCount ?? 0) > 0 ? (
+                      <span className="text-primary font-medium">{client.placedCount}</span>
+                    ) : (
+                      <span className="text-muted-foreground">0</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">{client._count.contacts}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

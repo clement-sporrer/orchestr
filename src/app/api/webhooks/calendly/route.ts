@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       // Interview scheduled
       await prisma.missionCandidate.update({
         where: { id: missionCandidate.id },
-        data: { stage: 'INTERVIEW_SCHEDULED' },
+        data: { stage: 'INTERVIEW' },
       })
 
       // Get organizationId from mission
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       // Update status back
       await prisma.missionCandidate.update({
         where: { id: missionCandidate.id },
-        data: { stage: 'RESPONSE_RECEIVED' },
+        data: { stage: 'RESPONSE' },
       })
     }
 

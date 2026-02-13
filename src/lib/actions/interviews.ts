@@ -106,7 +106,7 @@ export async function createInterview(data: z.infer<typeof interviewSchema>) {
   // Update pipeline stage
   await prisma.missionCandidate.update({
     where: { id: validated.missionCandidateId },
-    data: { stage: 'INTERVIEW_SCHEDULED' },
+    data: { stage: 'INTERVIEW', interviewDate: validated.scheduledAt },
   })
 
   // Get organizationId from mission
@@ -125,7 +125,7 @@ export async function createInterview(data: z.infer<typeof interviewSchema>) {
       organizationId: mission.organizationId,
       candidateId: mc.candidate.id,
       missionCandidateId: mc.id,
-      type: 'INTERVIEW_SCHEDULED',
+      type: 'INTERVIEW_SCHEDULED' as const,
       content: `Entretien ${getInterviewTypeLabel(validated.type)} planifie pour le ${validated.scheduledAt.toLocaleDateString('fr-FR')}`,
       scheduledAt: validated.scheduledAt,
     },
@@ -166,7 +166,7 @@ export async function updateInterview(
   if (data.status === 'COMPLETED' && existing.status !== 'COMPLETED') {
     await prisma.missionCandidate.update({
       where: { id: existing.missionCandidateId },
-      data: { stage: 'INTERVIEW_DONE' },
+      data: { stage: 'INTERVIEW' },
     })
 
     // Create interaction
@@ -175,7 +175,7 @@ export async function updateInterview(
         organizationId: existing.missionCandidate.mission.organizationId,
         candidateId: existing.missionCandidate.candidateId,
         missionCandidateId: existing.missionCandidateId,
-        type: 'INTERVIEW_DONE',
+        type: 'INTERVIEW_DONE' as const,
         content: `Entretien termine`,
         completedAt: new Date(),
       },

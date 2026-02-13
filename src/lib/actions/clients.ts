@@ -2,7 +2,6 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { createClient as createSupabaseClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { Prisma } from '@/generated/prisma'
 
@@ -32,7 +31,7 @@ const contactSchema = z.object({
 // Import secure auth helper
 import { getOrganizationId } from '@/lib/auth/helpers'
 
-// Type for client with _count (PRD v2: companyName, category)
+// Type for client with _count and active missions info
 export type ClientWithCount = Prisma.ClientGetPayload<{
   select: {
     id: true
@@ -51,7 +50,10 @@ export type ClientWithCount = Prisma.ClientGetPayload<{
       }
     }
   }
-}>
+}> & {
+  activeMissionsCount?: number
+  placedCount?: number
+}
 
 // Client Actions with pagination
 export async function getClients(
@@ -87,7 +89,7 @@ export async function getClients(
     } : {}),
   }
 
-  const [clients, total] = await Promise.all([
+  const [rawClients, total] = await Promise.all([
     prisma.client.findMany({
       where: whereClause,
       select: {
@@ -106,6 +108,15 @@ export async function getClients(
             contacts: true,
           },
         },
+        missions: {
+          select: {
+            status: true,
+            missionCandidates: {
+              where: { stage: 'PLACED' },
+              select: { id: true },
+            },
+          },
+        },
       },
       orderBy: [{ companyName: 'asc' }, { name: 'asc' }],
       skip,
@@ -115,6 +126,13 @@ export async function getClients(
       where: whereClause,
     }),
   ])
+
+  // Enrich with computed counts
+  const clients: ClientWithCount[] = rawClients.map(({ missions, ...client }) => ({
+    ...client,
+    activeMissionsCount: missions.filter(m => m.status === 'ACTIVE').length,
+    placedCount: missions.reduce((sum, m) => sum + m.missionCandidates.length, 0),
+  }))
 
   return {
     clients,

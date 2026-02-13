@@ -44,7 +44,7 @@ export async function createShortlist(
   // Update mission candidates stage
   await prisma.missionCandidate.updateMany({
     where: { id: { in: candidateIds } },
-    data: { stage: 'SENT_TO_CLIENT' },
+    data: { stage: 'SHORTLIST' },
   })
 
   revalidatePath(`/missions/${missionId}`)
@@ -110,12 +110,12 @@ export async function submitClientFeedback(
   if (data.decision === 'OK') {
     await prisma.missionCandidate.update({
       where: { id: shortlistCandidate.missionCandidateId },
-      data: { stage: 'CLIENT_INTERVIEW' },
+      data: { stage: 'INTERVIEW' },
     })
   } else if (data.decision === 'NO') {
     await prisma.missionCandidate.update({
       where: { id: shortlistCandidate.missionCandidateId },
-      data: { stage: 'CLOSED_REJECTED' },
+      data: { stage: 'SHORTLIST', rejectedAt: new Date(), rejectionReason: data.comment },
     })
   }
 }

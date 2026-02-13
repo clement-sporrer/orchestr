@@ -88,43 +88,52 @@ async function verifyApiKey(request: NextRequest): Promise<{ userId: string; org
   return { userId, organizationId }
 }
 
-// Find existing candidate by LinkedIn URL, email, or phone
+// Find existing candidate by LinkedIn URL, email, or phone (with normalization)
 async function findExistingCandidate(
   organizationId: string,
   profileData: LinkedInProfileData
 ): Promise<Candidate | null> {
-  // Try to find by LinkedIn URL first
+  // Try to find by LinkedIn URL first (normalized comparison)
   if (profileData.linkedinUrl) {
+    const normalizedUrl = profileData.linkedinUrl.toLowerCase().replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '').replace(/\?.*$/, '')
     const byUrl = await prisma.candidate.findFirst({
       where: {
         organizationId,
-        profileUrl: profileData.linkedinUrl,
+        status: { not: 'DELETED' },
+        OR: [
+          { profileUrl: { contains: normalizedUrl, mode: 'insensitive' } },
+          { linkedin: { contains: normalizedUrl, mode: 'insensitive' } },
+        ],
       },
     })
     if (byUrl) return byUrl
   }
   
-  // Try by email
+  // Try by email (exact match)
   if (profileData.email) {
     const byEmail = await prisma.candidate.findFirst({
       where: {
         organizationId,
+        status: { not: 'DELETED' },
         email: profileData.email,
       },
     })
     if (byEmail) return byEmail
   }
   
-  // Try by exact name match (less reliable)
-  const byName = await prisma.candidate.findFirst({
-    where: {
-      organizationId,
-      firstName: profileData.firstName,
-      lastName: profileData.lastName,
-    },
-  })
+  // Try by phone (normalized)
+  if (profileData.phone) {
+    const normalizedPhone = profileData.phone.replace(/[\s\-.()+]/g, '')
+    if (normalizedPhone.length >= 9) {
+      const withPhones = await prisma.candidate.findMany({
+        where: { organizationId, status: { not: 'DELETED' }, phone: { not: null } },
+      })
+      const byPhone = withPhones.find(c => c.phone && c.phone.replace(/[\s\-.()+]/g, '') === normalizedPhone)
+      if (byPhone) return byPhone
+    }
+  }
   
-  return byName
+  return null // No longer match by name alone - too unreliable
 }
 
 // Extract current position and company from experiences
