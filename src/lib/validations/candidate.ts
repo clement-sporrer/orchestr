@@ -213,7 +213,7 @@ export function parseSemicolonList(input: string | null | undefined): string[] {
  * Join array to semicolon-separated string
  */
 export function joinSemicolonList(items: string[]): string {
-  return items.filter((item) => item.trim().length > 0).join(';')
+  return items.filter((item) => item.trim().length > 0).join('; ')
 }
 
 /**
