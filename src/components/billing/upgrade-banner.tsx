@@ -74,7 +74,7 @@ export function UpgradeBanner({ className }: { className?: string }) {
 }
 
 export function FeatureGate({
-  feature,
+  feature: _feature,
   children,
   fallback,
 }: {

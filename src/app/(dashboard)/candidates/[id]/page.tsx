@@ -12,13 +12,11 @@ import {
   MoreHorizontal,
   Pencil,
   FileText,
-  Calendar,
   MessageSquare,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,7 +30,7 @@ import { CandidateStatusBadge } from '@/components/candidates/status-badge'
 import { AddToMissionButton } from '@/components/candidates/add-to-mission-button'
 import { InteractionsList } from '@/components/candidates/interactions-list'
 import { EnrichmentPanel } from '@/components/candidates/enrichment-panel'
-import type { CandidateStatus, PipelineStage, MissionStatus } from '@/generated/prisma'
+import type { PipelineStage } from '@/generated/prisma'
 
 interface CandidateDetailPageProps {
   params: Promise<{ id: string }>
@@ -46,14 +44,6 @@ const stageLabels: Record<PipelineStage, string> = {
   SHORTLIST: 'Shortlist',
   OFFER: 'Offre',
   PLACED: 'Placé',
-}
-
-const missionStatusLabels: Record<MissionStatus, string> = {
-  DRAFT: 'Brouillon',
-  ACTIVE: 'Active',
-  ON_HOLD: 'En pause',
-  CLOSED_FILLED: 'Pourvue',
-  CLOSED_CANCELLED: 'Annulée',
 }
 
 export default async function CandidateDetailPage({ params }: CandidateDetailPageProps) {

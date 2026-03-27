@@ -31,7 +31,7 @@ export function ExportButton({ filters, className }: ExportButtonProps) {
       toast.success('Export réussi')
     } catch (err) {
       toast.error('Erreur lors de l\'export')
-      console.error(err)
+      console.error('Export failed:', err)
     } finally {
       setLoading(false)
     }

@@ -91,7 +91,7 @@ export default function TemplatesSettingsPage() {
     try {
       const data = await getReportTemplates()
       setTemplates(data)
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors du chargement')
     } finally {
       setLoading(false)
@@ -172,7 +172,7 @@ export default function TemplatesSettingsPage() {
       }
       setShowDialog(false)
       loadTemplates()
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de l\'enregistrement')
     } finally {
       setSaving(false)
@@ -187,7 +187,7 @@ export default function TemplatesSettingsPage() {
       toast.success('Template supprime')
       setDeleteId(null)
       loadTemplates()
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de la suppression')
     }
   }

@@ -21,8 +21,19 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
       - name: Lint
         run: npm run lint
+
+      - name: Test (unit)
+        run: npm run test -- --run
+        env:
+          DATABASE_URL: "postgresql://local:local@localhost:5432/local?schema=public"
+          DIRECT_URL: "postgresql://local:local@localhost:5432/local?schema=public"
+          NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder"
 
       - name: Build
         run: npm run build

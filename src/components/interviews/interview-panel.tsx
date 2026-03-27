@@ -117,7 +117,7 @@ export function InterviewPanel({
         location: '',
       })
       onUpdate?.()
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de la creation')
     } finally {
       setCreating(false)
@@ -129,7 +129,7 @@ export function InterviewPanel({
       await updateInterviewStatus(id, status)
       toast.success('Statut mis a jour')
       onUpdate?.()
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de la mise a jour')
     }
   }
@@ -141,7 +141,7 @@ export function InterviewPanel({
       toast.success('Notes enregistrees')
       setEditingNotes(null)
       onUpdate?.()
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de l\'enregistrement')
     } finally {
       setSavingNotes(false)

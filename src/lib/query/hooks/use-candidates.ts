@@ -6,7 +6,6 @@ import {
   createCandidate,
   updateCandidate,
   deleteCandidate,
-  type CandidateWithCount 
 } from '@/lib/actions/candidates'
 import type { CandidateStatus } from '@/generated/prisma'
 

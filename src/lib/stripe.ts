@@ -11,7 +11,6 @@ export function getStripe(): Stripe {
     }
     _stripe = new Stripe(secretKey, {
       apiVersion: '2025-12-15.clover',
-      typescript: true,
     })
   }
   return _stripe
@@ -163,4 +162,3 @@ export const WEBHOOK_EVENTS = [
 ] as const
 
 export type WebhookEventType = (typeof WEBHOOK_EVENTS)[number]
-

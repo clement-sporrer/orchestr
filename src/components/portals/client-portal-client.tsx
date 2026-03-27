@@ -60,7 +60,7 @@ export function ClientPortalClient({ shortlist }: ClientPortalClientProps) {
         [shortlistCandidateId]: { ...prev[shortlistCandidateId], loading: false, submitted: true },
       }))
       toast.success('Feedback enregistré')
-    } catch (err) {
+    } catch {
       toast.error('Erreur lors de l\'envoi')
       setFeedbackStates((prev) => ({
         ...prev,

@@ -10,7 +10,7 @@ interface SuspenseBoundaryProps {
  * Optimized Suspense wrapper with error boundary support
  * Use for streaming server components with proper loading states
  */
-export function SuspenseBoundary({ children, fallback, name }: SuspenseBoundaryProps) {
+export function SuspenseBoundary({ children, fallback, name: _name }: SuspenseBoundaryProps) {
   return (
     <Suspense fallback={fallback}>
       {children}

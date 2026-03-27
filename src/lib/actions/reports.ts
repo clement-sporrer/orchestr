@@ -288,7 +288,7 @@ REGLE: Reponds de maniere concise et professionnelle. Maximum 200 mots.`
 // Generate shortlist report
 export async function generateShortlistReport(
   shortlistId: string,
-  templateId?: string
+  _templateId?: string
 ) {
   const organizationId = await getOrganizationId()
 
@@ -337,7 +337,7 @@ export async function generateShortlistReport(
 
   // Build comprehensive context
   const candidatesSummary = shortlist.candidates.map((sc, idx) => {
-    const { candidate, interviews, questionnaireResponses } = sc.missionCandidate
+    const { candidate, interviews } = sc.missionCandidate
     const interview = interviews[0]
     
     return `

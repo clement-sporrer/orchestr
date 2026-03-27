@@ -29,7 +29,6 @@ export async function GET(request: Request) {
               where: { id: existingUser.id },
               data: { authUserId: data.user.id },
             })
-            console.log(`Linked authUserId for existing user: ${existingUser.email}`)
           }
         } else {
           // New user - create organization and user
@@ -56,8 +55,9 @@ export async function GET(request: Request) {
           })
         }
       } catch (err) {
-        console.error('Error creating/linking user:', err)
-        // Continue anyway - user can complete setup later
+        // Non-fatal: user can complete account setup via onboarding
+        // Log for debugging broken signups
+        console.error('[auth/callback] Failed to create/link user in DB:', err)
       }
 
       // If user selected a plan, redirect to pricing to start checkout
@@ -76,6 +76,3 @@ export async function GET(request: Request) {
   // Return the user to an error page with instructions
   return NextResponse.redirect(`${origin}/login?error=auth_failed`)
 }
-
-
-

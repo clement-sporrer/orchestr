@@ -2,6 +2,8 @@
 
 | Document | Contenu |
 |----------|---------|
+| [CONTEXT.md](CONTEXT.md) | Contexte projet, stack, architecture |
+| [ADR.md](ADR.md) | Décisions d'architecture |
 | [architecture.md](architecture.md) | Vue système, flux, couches |
 | [database.md](database.md) | Schéma, entités, relations |
 | [api.md](api.md) | Endpoints, webhooks |
@@ -9,5 +11,3 @@
 | [security.md](security.md) | Auth, RLS, bonnes pratiques |
 | [deployment.md](deployment.md) | Vercel, Supabase |
 | [chrome-extension.md](chrome-extension.md) | Extension LinkedIn |
-| [prd-v2-status.md](prd-v2-status.md) | Statut PRD v2 |
-| [prd-v2-gap-analysis.md](prd-v2-gap-analysis.md) | Analyse écarts PRD v2 |

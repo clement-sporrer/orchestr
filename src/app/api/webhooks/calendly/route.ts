@@ -29,7 +29,6 @@ export async function POST(request: NextRequest) {
     const eventUri = payload.event?.uri
     const eventName = payload.event?.name
     const startTime = payload.event?.start_time
-    const cancelUrl = payload.event?.cancel_url
     const rescheduleUrl = payload.event?.reschedule_url
 
     if (!inviteeEmail) {

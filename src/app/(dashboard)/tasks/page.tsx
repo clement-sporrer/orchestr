@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { Plus, ListTodo, Check, Clock, AlertCircle } from 'lucide-react'
+import { Plus, ListTodo, Clock, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'

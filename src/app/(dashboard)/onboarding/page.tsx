@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import {
@@ -88,7 +87,7 @@ function OnboardingContent() {
         defaultCalendlyLink: calendlyLink || undefined,
       })
       setCurrentStep(1)
-    } catch (err) {
+    } catch {
       toast.error('Erreur lors de la mise a jour')
     } finally {
       setLoading(false)
@@ -112,7 +111,7 @@ function OnboardingContent() {
         setCreatedClientId(result.id)
         setCurrentStep(2)
       }
-    } catch (err) {
+    } catch {
       toast.error('Erreur lors de la creation du client')
     } finally {
       setLoading(false)
@@ -143,7 +142,7 @@ function OnboardingContent() {
       
       toast.success('Felicitations ! Votre espace est pret.')
       router.push('/dashboard')
-    } catch (err) {
+    } catch {
       toast.error('Erreur lors de la creation de la mission')
     } finally {
       setLoading(false)

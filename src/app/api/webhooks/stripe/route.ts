@@ -105,23 +105,15 @@ function extractSubscriptionData(subscription: Stripe.Subscription) {
       break
   }
 
-  // Access period dates via type assertion since Stripe types can vary
-  const subData = subscription as unknown as {
-    trial_end?: number | null
-    current_period_start: number
-    current_period_end: number
-    cancel_at_period_end: boolean
-  }
-
   return {
     priceId,
     plan,
     billingPeriod,
     status,
-    trialEndsAt: subData.trial_end ? new Date(subData.trial_end * 1000) : null,
-    currentPeriodStart: new Date(subData.current_period_start * 1000),
-    currentPeriodEnd: new Date(subData.current_period_end * 1000),
-    cancelAtPeriodEnd: subData.cancel_at_period_end,
+    trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+    currentPeriodStart: new Date((subscription.items.data[0]?.current_period_start ?? 0) * 1000),
+    currentPeriodEnd: new Date((subscription.items.data[0]?.current_period_end ?? 0) * 1000),
+    cancelAtPeriodEnd: subscription.cancel_at_period_end,
   }
 }
 
@@ -165,7 +157,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       currentPeriodEnd: data.currentPeriodEnd,
     },
   })
-
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
@@ -195,7 +186,6 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       cancelAtPeriodEnd: data.cancelAtPeriodEnd,
     },
   })
-
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
@@ -208,7 +198,6 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       cancelAtPeriodEnd: false,
     },
   })
-
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
@@ -220,8 +209,6 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
       status: 'PAST_DUE',
     },
   })
-
-  // TODO: Send email notification about failed payment
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {

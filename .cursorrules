@@ -1,0 +1,68 @@
+# Cursor Rules — ORCHESTR
+# Retrofitted by Claude Code — 2026-03-27
+# Based on reading the actual codebase.
+
+## What this project is
+SaaS de recrutement multi-tenant pour agences. CRM clients, missions, base candidats,
+pipeline 7 étapes, portails candidat/client, scoring IA, extension Chrome LinkedIn.
+Propriétaire : Sporrer. Usage interne uniquement.
+
+## Stack (detected)
+- Next.js 16 App Router, React 19, TypeScript strict
+- Tailwind CSS v4, shadcn/ui (Radix UI primitives)
+- Prisma v6 ORM → PostgreSQL Supabase (RLS multi-tenant)
+- Supabase Auth (JWT, SSR cookies via @supabase/ssr)
+- TanStack Query v5, Zustand, React Hook Form + Zod v4
+- Stripe (billing), OpenAI GPT-4o-mini (scoring/suggestions)
+- next-intl v4 (EN/FR)
+- Vitest (unit) + Playwright (E2E)
+- Vercel deployment (edge, iad1 region)
+
+## Architecture pattern
+- Server Actions (`src/lib/actions/`) = couche RPC principale pour toutes les mutations
+- API Routes (`src/app/api/`) = uniquement webhooks externes (Stripe, Calendly) et extension Chrome
+- Route groups : (auth), (dashboard), (marketing), (portals)
+- Multi-tenant via `organizationId` sur toutes les tables + RLS Supabase
+- React Query pour le cache client-side, Server Components pour le rendu initial
+- Prisma client singleton dans `src/lib/prisma.ts`
+
+## Code patterns in use
+- Zod schemas pour toute validation (co-localisés dans `src/lib/validations/`)
+- `'use server'` sur tous les fichiers d'actions
+- Auth check au début de chaque Server Action via Supabase session
+- Réponses d'actions : `{ success: boolean, data?: T, error?: string }`
+- `useQuery` + `useMutation` (React Query) côté client
+- shadcn/ui components dans `src/components/ui/`
+- Domaine-specific components dans `src/components/[domain]/`
+- i18n via `useTranslations()` (next-intl) — ne pas hardcoder les strings UI
+
+## Code Style
+- Toutes variables, fonctions, fichiers : English only
+- TypeScript strict — pas de `any`, pas de `as unknown`
+- Explicit error handling — no silent catches
+- No console.log en production (utiliser le logger ou supprimer)
+- Comments only where "why" isn't obvious
+- Zod pour toute validation externe (formulaires, API payloads, webhooks)
+- Constants nommées — no magic strings/numbers dans la logique métier
+
+## Architecture rules
+- Business logic dans `src/lib/actions/` — jamais dans les composants
+- Pas de Prisma direct dans les composants — toujours via Server Actions
+- Pas de Supabase DB client dans les composants — Supabase Auth uniquement côté client
+- Chaque mutation = une Server Action dédiée
+- Toujours vérifier l'auth + l'organisation au début de chaque action
+- RLS est une defense-in-depth, pas un substitut aux checks applicatifs
+
+## What to never change without asking
+- `prisma/schema.prisma` — impacts migrations prod
+- `supabase/policies.sql` — RLS multi-tenant critique
+- `src/middleware.ts` — auth routing pour toute l'app
+- `src/lib/prisma.ts` — singleton connection pooling
+- `src/lib/env.ts` — validation des env vars au démarrage
+- Structure des route groups `(auth)`, `(dashboard)`, `(portals)`
+
+## Red flags to fix progressively
+- CI GitHub Actions ne run pas les tests (ni Vitest ni Playwright)
+- Aucun test unitaire Vitest visible malgré la config présente
+- `@react-pdf/renderer` + `puppeteer` dans les deps — vérifier usage prod vs dev
+- Pas de rate limiting explicite sur les API routes publiques (portails)

@@ -6,7 +6,6 @@ import { Search, Users, Briefcase, Building2, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import {
   CommandDialog,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -127,7 +126,7 @@ export function GlobalSearch({ children, className }: GlobalSearchProps) {
           {!isPending && query.length >= 2 && results.length === 0 && (
             <div className="py-8 text-center">
               <p className="text-sm text-muted-foreground mb-1">Aucun résultat trouvé</p>
-              <p className="text-xs text-muted-foreground/70">Essayez avec d'autres mots-clés</p>
+              <p className="text-xs text-muted-foreground/70">Essayez avec d&apos;autres mots-clés</p>
             </div>
           )}
           {!isPending && query.length < 2 && (

@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -19,8 +18,6 @@ import {
 } from 'lucide-react'
 
 export default function ExtensionPublicPage() {
-  const [step, setStep] = useState(0)
-
   const features = [
     { icon: Zap, title: '1 clic', description: 'Capture instantanée' },
     { icon: Shield, title: '100% gratuit', description: 'Pas de frais cachés' },

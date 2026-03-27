@@ -17,17 +17,6 @@ interface GeneratedMessage {
   content: string
 }
 
-interface MessageFormatConfig {
-  maxChars: number
-  includeSubject: boolean
-}
-
-const MESSAGE_FORMAT_CONFIG: Record<MessageFormat, MessageFormatConfig> = {
-  linkedin_connection: { maxChars: 200, includeSubject: false },
-  linkedin_inmail: { maxChars: 1900, includeSubject: true },
-  email: { maxChars: 5000, includeSubject: true },
-}
-
 export async function generateMessage(
   type: MessageType,
   candidate: Candidate,
@@ -115,8 +104,6 @@ export async function generateApproachMessage(
   mission: Mission,
   customContext?: string
 ): Promise<GeneratedMessage> {
-  const config = MESSAGE_FORMAT_CONFIG[format]
-  
   // Build candidate context from enrichment if available
   const enrichmentContext = candidate.enrichment ? `
 ENRICHISSEMENT LINKEDIN:
@@ -244,8 +231,6 @@ export async function generatePortalInviteMessage(
   portalUrl: string,
   missionTitle?: string
 ): Promise<GeneratedMessage> {
-  const config = MESSAGE_FORMAT_CONFIG[format]
-  
   if (format === 'linkedin_connection') {
     // Short message with portal link - no AI needed, just template
     const message = `Merci ${candidateFirstName}! Découvrez l'opportunité et complétez votre profil: ${portalUrl}`

@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from 'next-intl/plugin';
+import createBundleAnalyzer from '@next/bundle-analyzer';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
@@ -8,7 +9,7 @@ const nextConfig: NextConfig = {
 };
 
 // Bundle analyzer - run with: ANALYZE=true npm run build
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
+const withBundleAnalyzer = createBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })
 

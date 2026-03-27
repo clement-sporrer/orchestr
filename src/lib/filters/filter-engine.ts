@@ -3,13 +3,16 @@
  * Applies filters to in-memory data for instant filtering
  */
 
+import { nanoid } from 'nanoid'
 import type { FilterRule, FilterGroup, FilterConfig, FilterOperator } from './filter-types'
+
+type FilterValue = FilterRule['value']
 
 /**
  * Apply a single filter rule to a value
  */
-function applyRule(value: any, rule: FilterRule): boolean {
-  const { operator, value: filterValue } = rule
+function applyRule(value: unknown, rule: FilterRule): boolean {
+  const { operator, filterValue } = { operator: rule.operator, filterValue: rule.value }
 
   // Handle empty checks first
   if (operator === 'isEmpty') {
@@ -26,7 +29,7 @@ function applyRule(value: any, rule: FilterRule): boolean {
 
   // Convert to string for text operations
   const strValue = String(value).toLowerCase()
-  const strFilterValue = filterValue ? String(filterValue).toLowerCase() : ''
+  const strFilterValue = filterValue != null ? String(filterValue).toLowerCase() : ''
 
   switch (operator) {
     case 'eq':
@@ -50,18 +53,29 @@ function applyRule(value: any, rule: FilterRule): boolean {
     case 'lte':
       return Number(value) <= Number(filterValue)
     case 'in':
-      return Array.isArray(filterValue) && filterValue.includes(value)
+      return Array.isArray(filterValue) && filterValue.includes(value as string)
     case 'notIn':
-      return Array.isArray(filterValue) && !filterValue.includes(value)
+      return Array.isArray(filterValue) && !filterValue.includes(value as string)
     default:
       return true
   }
 }
 
 /**
+ * Get nested value from object using dot notation
+ * e.g., "client.name" from { client: { name: "Acme" } }
+ */
+function getNestedValue(obj: unknown, path: string): unknown {
+  return path.split('.').reduce<unknown>((current, key) => {
+    if (typeof current !== 'object' || current === null) return undefined
+    return (current as Record<string, unknown>)[key]
+  }, obj)
+}
+
+/**
  * Apply a filter group to an item
  */
-function applyGroup(item: any, group: FilterGroup): boolean {
+function applyGroup(item: unknown, group: FilterGroup): boolean {
   if (group.rules.length === 0) return true
 
   const results = group.rules.map(rule => {
@@ -75,14 +89,6 @@ function applyGroup(item: any, group: FilterGroup): boolean {
 }
 
 /**
- * Get nested value from object using dot notation
- * e.g., "client.name" from { client: { name: "Acme" } }
- */
-function getNestedValue(obj: any, path: string): any {
-  return path.split('.').reduce((current, key) => current?.[key], obj)
-}
-
-/**
  * Apply full filter configuration to an array of items
  */
 export function applyFilters<T>(items: T[], config: FilterConfig): T[] {
@@ -90,7 +96,7 @@ export function applyFilters<T>(items: T[], config: FilterConfig): T[] {
 
   return items.filter(item => {
     const results = config.groups.map(group => applyGroup(item, group))
-    
+
     return config.globalCombinator === 'AND'
       ? results.every(r => r)
       : results.some(r => r)
@@ -128,10 +134,10 @@ export function addQuickFilter(
   config: FilterConfig,
   field: string,
   operator: FilterOperator,
-  value: any
+  value: FilterValue
 ): FilterConfig {
   const newRule: FilterRule = {
-    id: `rule-${Date.now()}`,
+    id: nanoid(),
     field,
     operator,
     value,
@@ -142,7 +148,7 @@ export function addQuickFilter(
     return {
       ...config,
       groups: [{
-        id: `group-${Date.now()}`,
+        id: nanoid(),
         combinator: 'AND',
         rules: [newRule],
       }],

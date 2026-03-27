@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { userId, email, firstName, lastName, organizationName } = body
+    const { email, firstName, lastName, organizationName } = body
 
     if (!email || !firstName || !lastName || !organizationName) {
       return NextResponse.json(
