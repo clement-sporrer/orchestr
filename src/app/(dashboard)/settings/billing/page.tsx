@@ -22,7 +22,6 @@ import {
   Clock,
   AlertTriangle,
   CheckCircle2,
-  XCircle,
   ExternalLink,
   ArrowUpRight,
 } from 'lucide-react'
@@ -64,7 +63,7 @@ export default function BillingPage() {
     setActionLoading('portal')
     try {
       await createBillingPortalSession()
-    } catch (err) {
+    } catch {
       toast.error('Erreur lors de l\'ouverture du portail de facturation')
     } finally {
       setActionLoading(null)
@@ -81,7 +80,7 @@ export default function BillingPage() {
       await cancelSubscription()
       toast.success('Abonnement annule. Vous garderez l\'acces jusqu\'a la fin de la periode.')
       loadSubscription()
-    } catch (err) {
+    } catch {
       toast.error('Erreur lors de l\'annulation')
     } finally {
       setActionLoading(null)
@@ -94,7 +93,7 @@ export default function BillingPage() {
       await reactivateSubscription()
       toast.success('Abonnement reactive !')
       loadSubscription()
-    } catch (err) {
+    } catch {
       toast.error('Erreur lors de la reactivation')
     } finally {
       setActionLoading(null)

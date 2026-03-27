@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -17,7 +16,6 @@ import {
   Briefcase,
   Building2,
   Plus,
-  Search,
   Home,
   Settings,
   FileUp,

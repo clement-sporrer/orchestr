@@ -69,11 +69,11 @@ const contactStatusColors: Record<ContactStatus, string> = {
   LATER: 'bg-orange-500/10 text-orange-600',
 }
 
-export const KanbanCard = memo(function KanbanCard({ candidate, missionId, isDragging }: KanbanCardProps) {
+export const KanbanCard = memo(function KanbanCard({ candidate, missionId: _missionId, isDragging }: KanbanCardProps) {
   const locale = useLocale()
   const [copied, setCopied] = useState(false)
   const [showInviteDialog, setShowInviteDialog] = useState(false)
-  const [isUpdating, setIsUpdating] = useState(false)
+  const [isUpdating] = useState(false)
   
   const {
     attributes,

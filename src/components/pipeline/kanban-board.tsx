@@ -42,7 +42,7 @@ interface KanbanBoardProps {
 export function KanbanBoard({ missionId, candidates, stages }: KanbanBoardProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, PipelineStage>>({})
-  const [isUpdating, setIsUpdating] = useState<string | null>(null)
+  const [, setIsUpdating] = useState<string | null>(null)
   
   const sensors = useSensors(
     useSensor(PointerSensor, {

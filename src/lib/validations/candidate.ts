@@ -290,7 +290,6 @@ export function transformCandidateInput(
   // Convert empty strings to undefined for optional fields
   Object.keys(transformed).forEach((key) => {
     if (transformed[key as keyof typeof transformed] === '') {
-      // @ts-expect-error - dynamic key assignment on typed object
       transformed[key as keyof typeof transformed] = undefined
     }
   })

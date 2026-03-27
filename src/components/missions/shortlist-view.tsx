@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Send, FileText, ExternalLink, Copy, Check } from 'lucide-react'
+import { Plus, FileText, ExternalLink, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import type { Mission, Shortlist } from '@/generated/prisma'
 

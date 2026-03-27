@@ -44,7 +44,7 @@ interface EnrichmentPanelProps {
   isRefreshing?: boolean
 }
 
-export function EnrichmentPanel({ enrichment, candidateId, onRefresh, isRefreshing }: EnrichmentPanelProps) {
+export function EnrichmentPanel({ enrichment, candidateId: _candidateId, onRefresh, isRefreshing }: EnrichmentPanelProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>('experiences')
   const [isLoading, setIsLoading] = useState(false)
   
@@ -57,6 +57,13 @@ export function EnrichmentPanel({ enrichment, candidateId, onRefresh, isRefreshi
       setIsLoading(false)
     }
   }
+
+  // Memoize parsed JSON data to avoid re-parsing on every render (must be before early return)
+  const experiences = useMemo(() => (enrichment?.experiences as Experience[] | null) || [], [enrichment?.experiences])
+  const education = useMemo(() => (enrichment?.education as Education[] | null) || [], [enrichment?.education])
+  const skills = useMemo(() => enrichment?.skills || [], [enrichment?.skills])
+  const languages = useMemo(() => enrichment?.languages || [], [enrichment?.languages])
+  const certifications = useMemo(() => enrichment?.certifications || [], [enrichment?.certifications])
 
   if (!enrichment) {
     return (
@@ -78,13 +85,6 @@ export function EnrichmentPanel({ enrichment, candidateId, onRefresh, isRefreshi
       </Card>
     )
   }
-
-  // Memoize parsed JSON data to avoid re-parsing on every render
-  const experiences = useMemo(() => (enrichment.experiences as Experience[] | null) || [], [enrichment.experiences])
-  const education = useMemo(() => (enrichment.education as Education[] | null) || [], [enrichment.education])
-  const skills = useMemo(() => enrichment.skills || [], [enrichment.skills])
-  const languages = useMemo(() => enrichment.languages || [], [enrichment.languages])
-  const certifications = useMemo(() => enrichment.certifications || [], [enrichment.certifications])
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section)

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import type { ImportDestination, ImportStatus } from '@/generated/prisma'
+import type { ImportDestination } from '@/generated/prisma'
 import { getOrganizationId } from '@/lib/auth/helpers'
 
 interface CsvRow {
@@ -28,8 +28,8 @@ interface PreviewResult {
 // Preview import without committing
 export async function previewCsvImport(
   rows: CsvRow[],
-  destination: ImportDestination,
-  destinationId?: string
+  _destination: ImportDestination,
+  _destinationId?: string
 ): Promise<{
   total: number
   new: number
@@ -45,7 +45,7 @@ export async function previewCsvImport(
   let newCount = 0
   let updateCount = 0
   let mergeCount = 0
-  let ignoreCount = 0
+  const ignoreCount = 0
   let errorCount = 0
 
   for (const row of rows) {
@@ -159,7 +159,7 @@ export async function executeCsvImport(
   const affectedCandidateIds: string[] = []
   let newCount = 0
   let updatedCount = 0
-  let mergedCount = 0
+  const mergedCount = 0
   let errorCount = 0
   const errors: { row: number; error: string }[] = []
 

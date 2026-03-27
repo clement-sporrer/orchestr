@@ -111,8 +111,8 @@ function extractSubscriptionData(subscription: Stripe.Subscription) {
     billingPeriod,
     status,
     trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
-    currentPeriodStart: new Date(subscription.current_period_start * 1000),
-    currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+    currentPeriodStart: new Date((subscription.items.data[0]?.current_period_start ?? 0) * 1000),
+    currentPeriodEnd: new Date((subscription.items.data[0]?.current_period_end ?? 0) * 1000),
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
   }
 }

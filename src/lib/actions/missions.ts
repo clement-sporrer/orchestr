@@ -2,7 +2,6 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { MissionStatus, ContractType, Seniority, Visibility, Prisma } from '@/generated/prisma'
 

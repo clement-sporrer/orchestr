@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react'
+import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
 import { FadeIn } from './fade-in'
 
 interface StaggerFadeInProps {

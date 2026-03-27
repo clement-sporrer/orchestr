@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Papa from 'papaparse'
 import { 
@@ -12,13 +12,11 @@ import {
   Check, 
   AlertCircle,
   Loader2,
-  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import {
   Select,
   SelectContent,
@@ -57,7 +55,6 @@ const FIELD_OPTIONS = [
 ]
 
 export default function ImportPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const missionId = searchParams.get('missionId')
   const poolId = searchParams.get('poolId')

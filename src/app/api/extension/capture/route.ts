@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
     
     // Parse request body
     const body: CaptureRequest = await request.json()
-    const { profileData, missionId, addToVivier = true } = body
+    const { profileData, missionId } = body
     
     // Validate required fields
     if (!profileData.firstName || !profileData.lastName) {

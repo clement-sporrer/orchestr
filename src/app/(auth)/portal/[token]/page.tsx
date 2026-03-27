@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { AuthCard } from '@/components/auth/auth-card'
 import { Button } from '@/components/ui/button'
-import { FileText, AlertCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 
 interface PortalLandingPageProps {
   params: Promise<{ token: string }>

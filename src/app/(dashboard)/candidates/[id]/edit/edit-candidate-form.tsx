@@ -41,7 +41,7 @@ import { PositionAutocomplete } from '@/components/candidates/form/position-auto
 import { PhoneInput } from '@/components/candidates/form/phone-input'
 import { SkillsInput } from '@/components/candidates/form/skills-input'
 import { toast } from 'sonner'
-import type { Candidate, CandidateSeniority, RecruitableStatus } from '@/generated/prisma'
+import type { Candidate, RecruitableStatus } from '@/generated/prisma'
 
 type OrgSettings = {
   domains: string[]

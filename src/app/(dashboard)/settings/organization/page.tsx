@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   Settings,
   Plus,
@@ -16,7 +15,6 @@ import {
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Card,
   CardContent,
@@ -46,7 +44,6 @@ import {
 } from '@/lib/actions/organization-settings'
 
 export default function OrganizationSettingsPage() {
-  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -84,7 +81,7 @@ export default function OrganizationSettingsPage() {
       } else {
         toast.error(result.error || 'Erreur lors du chargement')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors du chargement des paramètres')
     } finally {
       setLoading(false)
@@ -105,7 +102,7 @@ export default function OrganizationSettingsPage() {
       } else {
         toast.error(result.error || 'Erreur')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de l\'ajout')
     } finally {
       setSaving(false)
@@ -122,7 +119,7 @@ export default function OrganizationSettingsPage() {
       } else {
         toast.error(result.error || 'Erreur')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de la suppression')
     } finally {
       setSaving(false)
@@ -143,7 +140,7 @@ export default function OrganizationSettingsPage() {
       } else {
         toast.error(result.error || 'Erreur')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de l\'ajout')
     } finally {
       setSaving(false)
@@ -160,7 +157,7 @@ export default function OrganizationSettingsPage() {
       } else {
         toast.error(result.error || 'Erreur')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de la suppression')
     } finally {
       setSaving(false)
@@ -181,7 +178,7 @@ export default function OrganizationSettingsPage() {
       } else {
         toast.error(result.error || 'Erreur')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de l\'ajout')
     } finally {
       setSaving(false)
@@ -198,7 +195,7 @@ export default function OrganizationSettingsPage() {
       } else {
         toast.error(result.error || 'Erreur')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de la suppression')
     } finally {
       setSaving(false)
@@ -229,7 +226,7 @@ export default function OrganizationSettingsPage() {
       } else {
         toast.error(result.error || 'Erreur')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de la réinitialisation')
     } finally {
       setSaving(false)
@@ -409,7 +406,7 @@ export default function OrganizationSettingsPage() {
         <TabsContent value="domains">
           <Card>
             <CardHeader>
-              <CardTitle>Domaines d'Expertise</CardTitle>
+              <CardTitle>Domaines d&apos;Expertise</CardTitle>
               <CardDescription>
                 Ex: Leasing, Crédit Conso, IT, M&A, Corporate Finance
               </CardDescription>

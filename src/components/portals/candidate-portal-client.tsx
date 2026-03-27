@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Progress } from '@/components/ui/progress'
 import { updateCandidatePortal, completePortal } from '@/lib/actions/portal'
@@ -56,7 +55,7 @@ export function CandidatePortalClient({
     try {
       await updateCandidatePortal(missionCandidate.id, { portalStep: stepIndex })
       setCurrentStep(step)
-    } catch (err) {
+    } catch {
       toast.error('Erreur lors de la sauvegarde')
     } finally {
       setLoading(false)
@@ -72,7 +71,7 @@ export function CandidatePortalClient({
         candidateData: profileData,
       })
       setCurrentStep('job')
-    } catch (err) {
+    } catch {
       toast.error('Erreur lors de la sauvegarde')
     } finally {
       setLoading(false)
@@ -101,7 +100,7 @@ export function CandidatePortalClient({
       await completePortal(missionCandidate.id)
       setCurrentStep('confirmation')
       toast.success('Merci! Votre profil a été enregistré.')
-    } catch (err) {
+    } catch {
       toast.error('Erreur lors de la finalisation')
     } finally {
       setLoading(false)
@@ -109,7 +108,7 @@ export function CandidatePortalClient({
   }
 
   // Filter steps based on what's available
-  const availableSteps = STEPS.filter((step) => {
+  const _availableSteps = STEPS.filter((step) => {
     if (step === 'calendly' && !mission.calendlyLink) return false
     if (step === 'questionnaire' && (!questionnaire || questionnaire.questions.length === 0)) return false
     return true

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
-import { Plus, X, Sparkles } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
 import { parseSemicolonList, joinSemicolonList } from '@/lib/validations/candidate'
 
 interface SkillsInputProps {
