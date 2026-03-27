@@ -21,18 +21,9 @@ const globalForPrisma = globalThis as unknown as {
  * - &connection_limit=1 (recommended for serverless)
  */
 const prismaClientSingleton = () => {
-  // Validate DATABASE_URL at runtime (fail fast)
   const dbUrl = process.env.DATABASE_URL
-  if (!dbUrl) {
-    const errorMsg = '[Prisma] DATABASE_URL is not set. Database connection will fail.'
-    console.error(errorMsg)
-    // In production, throw immediately - don't try to create client
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error(errorMsg)
-    }
-  }
 
-  // Log connection string recommendations (without leaking secrets)
+  // Log connection string recommendations in development (without leaking secrets)
   if (dbUrl && process.env.NODE_ENV === 'development') {
     const hasPooling = dbUrl.includes('pgbouncer=true')
     const hasLimit = dbUrl.includes('connection_limit=')
@@ -43,11 +34,13 @@ const prismaClientSingleton = () => {
     }
   }
 
+  // Pass datasourceUrl only if defined — if absent, Prisma falls back to DATABASE_URL
+  // env var at query time and throws a clear error then (not at import/build time).
   return new PrismaClient({
-    log: process.env.NODE_ENV === 'development' 
-      ? ['error', 'warn'] 
+    log: process.env.NODE_ENV === 'development'
+      ? ['error', 'warn']
       : ['error'],
-    datasourceUrl: dbUrl,
+    ...(dbUrl ? { datasourceUrl: dbUrl } : {}),
   })
 }
 
