@@ -54,8 +54,10 @@ export async function GET(request: Request) {
             },
           })
         }
-      } catch {
-        // Continue anyway - user can complete setup later
+      } catch (err) {
+        // Non-fatal: user can complete account setup via onboarding
+        // Log for debugging broken signups
+        console.error('[auth/callback] Failed to create/link user in DB:', err)
       }
 
       // If user selected a plan, redirect to pricing to start checkout

@@ -23,4 +23,4 @@ Out of scope: third-party services (Supabase, Stripe, Vercel infrastructure).
 - Multi-tenant isolation enforced via Supabase RLS on every table
 - Input validation via Zod on all API boundaries
 - Stripe webhook signature verification on every webhook
-- CodeQL static analysis runs weekly via GitHub Actions
+- ESLint with TypeScript strict rules enforced on every PR
