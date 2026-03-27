@@ -29,7 +29,6 @@ export async function GET(request: Request) {
               where: { id: existingUser.id },
               data: { authUserId: data.user.id },
             })
-            console.log(`Linked authUserId for existing user: ${existingUser.email}`)
           }
         } else {
           // New user - create organization and user
@@ -55,8 +54,7 @@ export async function GET(request: Request) {
             },
           })
         }
-      } catch (err) {
-        console.error('Error creating/linking user:', err)
+      } catch {
         // Continue anyway - user can complete setup later
       }
 
@@ -76,6 +74,3 @@ export async function GET(request: Request) {
   // Return the user to an error page with instructions
   return NextResponse.redirect(`${origin}/login?error=auth_failed`)
 }
-
-
-
