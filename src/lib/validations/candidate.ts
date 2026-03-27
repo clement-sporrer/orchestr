@@ -277,6 +277,16 @@ export function transformCandidateInput(
     transformed.currentPosition = formatPositionTitle(transformed.currentPosition)
   }
 
+  // Clean LinkedIn URL (strip tracking params)
+  if (transformed.linkedin && transformed.linkedin.startsWith('http')) {
+    try {
+      const url = new URL(transformed.linkedin)
+      transformed.linkedin = `${url.origin}${url.pathname}`
+    } catch {
+      // leave as-is if URL is invalid
+    }
+  }
+
   // Convert empty strings to undefined for optional fields
   Object.keys(transformed).forEach((key) => {
     if (transformed[key as keyof typeof transformed] === '') {
