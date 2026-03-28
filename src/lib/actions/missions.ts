@@ -592,7 +592,6 @@ export async function getClientsWithContactsForSelect() {
           id: true,
           firstName: true,
           lastName: true,
-          name: true,
           email: true,
           title: true,
           isPrimary: true,
