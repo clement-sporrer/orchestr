@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { generateToken, getTokenExpiry, hashToken } from '@/lib/utils/tokens'
-import type { PipelineStage, ContactStatus, RelationshipLevel } from '@/generated/prisma'
+import type { PipelineStage, ContactStatus, RelationshipLevel, Prisma } from '@/generated/prisma'
 import { getOrganizationId } from '@/lib/auth/helpers'
 
 // Ordered list for RelationshipLevel comparison (lowest → highest)
@@ -42,13 +42,19 @@ export function shouldUpgradeRelationship(
  * Internal: apply a stage transition + sync RelationshipLevel.
  * No auth check — caller must verify ownership before calling.
  * No interaction created — caller creates the relevant interaction.
+ *
+ * @param tx — optional transaction client. When provided, runs inside the caller's transaction.
+ *              When absent, creates its own transaction.
  */
 export async function applyStageTransition(
   missionCandidateId: string,
   candidateId: string,
-  stage: PipelineStage
+  stage: PipelineStage,
+  tx?: Prisma.TransactionClient
 ): Promise<void> {
-  const candidate = await prisma.candidate.findUnique({
+  const db = tx ?? prisma
+
+  const candidate = await db.candidate.findUnique({
     where: { id: candidateId },
     select: { relationshipLevel: true },
   })
@@ -60,18 +66,33 @@ export async function applyStageTransition(
   const targetRelationship = getTargetRelationshipLevel(stage)
   const shouldSync = shouldUpgradeRelationship(candidate.relationshipLevel, targetRelationship)
 
-  await prisma.$transaction([
-    prisma.missionCandidate.update({
+  if (tx) {
+    // Inside an external transaction — run writes directly (no nested transaction)
+    await db.missionCandidate.update({
       where: { id: missionCandidateId },
       data: { stage },
-    }),
-    ...(shouldSync
-      ? [prisma.candidate.update({
-          where: { id: candidateId },
-          data: { relationshipLevel: targetRelationship },
-        })]
-      : []),
-  ])
+    })
+    if (shouldSync) {
+      await db.candidate.update({
+        where: { id: candidateId },
+        data: { relationshipLevel: targetRelationship },
+      })
+    }
+  } else {
+    // Standalone — wrap in own transaction
+    await prisma.$transaction([
+      prisma.missionCandidate.update({
+        where: { id: missionCandidateId },
+        data: { stage },
+      }),
+      ...(shouldSync
+        ? [prisma.candidate.update({
+            where: { id: candidateId },
+            data: { relationshipLevel: targetRelationship },
+          })]
+        : []),
+    ])
+  }
 }
 
 // Update candidate stage
