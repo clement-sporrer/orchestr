@@ -25,7 +25,6 @@ const candidateSelect: Prisma.CandidateSelect = {
   phone: true,
   currentPosition: true,
   currentCompany: true,
-  location: true,
   tags: true,
   status: true,
   relationshipLevel: true,
@@ -154,17 +153,15 @@ export async function createCandidate(data: CreateCandidateInput) {
       sector: transformed.sector ?? null,
       currentCompany: transformed.currentCompany ?? null,
       currentPosition: transformed.currentPosition ?? null,
-      pastCompanies: transformed.pastCompanies ?? null,
+      pastCompanies: transformed.pastCompanies ?? [],
       jobFamily: transformed.jobFamily ?? null,
-      hardSkills: transformed.hardSkills ?? null,
-      softSkills: transformed.softSkills ?? null,
+      hardSkills: transformed.hardSkills ?? [],
+      softSkills: transformed.softSkills ?? [],
       compensation: transformed.compensation ?? null,
       comments: transformed.comments ?? null,
       references: transformed.references ?? null,
       recruitable: transformed.recruitable ?? 'UNKNOWN',
       files: transformed.files ?? [],
-      cvUrl: transformed.cvUrl ?? null,
-      location: transformed.location ?? null,
       tags: transformed.tags ?? [],
       status: transformed.status ?? 'ACTIVE',
     },
@@ -660,7 +657,7 @@ export async function mergeCandidates(targetId: string, sourceId: string) {
     'email', 'linkedin', 'phone', 'age', 'country', 'city', 'region',
     'seniority', 'domain', 'sector', 'currentCompany', 'currentPosition',
     'pastCompanies', 'jobFamily', 'hardSkills', 'softSkills',
-    'compensation', 'comments', 'references', 'cvUrl', 'location',
+    'compensation', 'comments', 'references',
   ] as const
 
   for (const field of fieldsToMerge) {
@@ -741,36 +738,6 @@ export async function mergeCandidates(targetId: string, sourceId: string) {
   return { success: true, mergedInto: targetId }
 }
 
-/** Append entry to candidate solicitation history (e.g. when added to mission). */
-export async function addSolicitationHistoryEntry(
-  candidateId: string,
-  action: string,
-  missionId?: string,
-  missionName?: string
-) {
-  const organizationId = await getOrganizationId()
-  const candidate = await prisma.candidate.findFirst({
-    where: { id: candidateId, organizationId },
-    select: { solicitationHistory: true },
-  })
-  if (!candidate) throw new Error('Candidat non trouvé')
-
-  const history = (candidate.solicitationHistory as { date: string; action: string; missionId?: string; missionName?: string }[]) ?? []
-  const newEntry = {
-    date: new Date().toISOString(),
-    action,
-    ...(missionId && { missionId }),
-    ...(missionName && { missionName }),
-  }
-  await prisma.candidate.update({
-    where: { id: candidateId },
-    data: {
-      solicitationHistory: [...history, newEntry] as unknown as Prisma.InputJsonValue,
-    },
-  })
-  revalidatePath(`/candidates/${candidateId}`)
-}
-
 // Create candidate with enrichment data
 export async function createCandidateWithEnrichment(data: {
   // Basic info
@@ -778,7 +745,6 @@ export async function createCandidateWithEnrichment(data: {
   lastName: string
   email?: string
   phone?: string
-  location?: string
   currentPosition?: string
   currentCompany?: string
   linkedin?: string
@@ -831,7 +797,6 @@ export async function createCandidateWithEnrichment(data: {
       lastName: data.lastName,
       email: data.email || null,
       phone: data.phone || null,
-      location: data.location || null,
       currentPosition: data.currentPosition || null,
       currentCompany: data.currentCompany || null,
       linkedin: data.linkedin || null,
