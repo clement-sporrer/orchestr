@@ -107,19 +107,6 @@ export async function submitClientFeedback(
     throw new Error('Candidat non trouvé dans cette shortlist')
   }
 
-  await prisma.clientFeedback.upsert({
-    where: { shortlistCandidateId },
-    create: {
-      shortlistCandidateId,
-      decision: data.decision,
-      comment: data.comment,
-    },
-    update: {
-      decision: data.decision,
-      comment: data.comment,
-    },
-  })
-
   const mission = await prisma.mission.findUnique({
     where: { id: shortlist.missionId },
     select: { organizationId: true },
@@ -129,24 +116,38 @@ export async function submitClientFeedback(
     throw new Error('Mission non trouvée')
   }
 
-  await prisma.interaction.create({
-    data: {
-      organizationId: mission.organizationId,
-      candidateId: shortlistCandidate.missionCandidate.candidateId,
-      missionCandidateId: shortlistCandidate.missionCandidateId,
-      type: 'CLIENT_FEEDBACK',
-      content: `Feedback client: ${data.decision}${data.comment ? ` - ${data.comment}` : ''}`,
-    },
-  })
+  await prisma.$transaction(async (tx) => {
+    await tx.clientFeedback.upsert({
+      where: { shortlistCandidateId },
+      create: {
+        shortlistCandidateId,
+        decision: data.decision,
+        comment: data.comment,
+      },
+      update: {
+        decision: data.decision,
+        comment: data.comment,
+      },
+    })
 
-  if (data.decision === 'OK') {
-    await applyStageTransition(
-      shortlistCandidate.missionCandidateId,
-      shortlistCandidate.missionCandidate.candidateId,
-      'INTERVIEW'
-    )
-  } else if (data.decision === 'NO') {
-    await prisma.$transaction(async (tx) => {
+    await tx.interaction.create({
+      data: {
+        organizationId: mission.organizationId,
+        candidateId: shortlistCandidate.missionCandidate.candidateId,
+        missionCandidateId: shortlistCandidate.missionCandidateId,
+        type: 'CLIENT_FEEDBACK',
+        content: `Feedback client: ${data.decision}${data.comment ? ` - ${data.comment}` : ''}`,
+      },
+    })
+
+    if (data.decision === 'OK') {
+      await applyStageTransition(
+        shortlistCandidate.missionCandidateId,
+        shortlistCandidate.missionCandidate.candidateId,
+        'INTERVIEW',
+        tx
+      )
+    } else if (data.decision === 'NO') {
       await applyStageTransition(
         shortlistCandidate.missionCandidateId,
         shortlistCandidate.missionCandidate.candidateId,
@@ -157,8 +158,8 @@ export async function submitClientFeedback(
         where: { id: shortlistCandidate.missionCandidateId },
         data: { rejectedAt: new Date(), rejectionReason: data.comment },
       })
-    })
-  }
+    }
+  })
 }
 
 // Get shortlist
