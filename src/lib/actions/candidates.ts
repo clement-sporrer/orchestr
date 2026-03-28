@@ -166,7 +166,6 @@ export async function createCandidate(data: CreateCandidateInput) {
       profileUrl: transformed.profileUrl ?? null,
       cvUrl: transformed.cvUrl ?? null,
       location: transformed.location ?? null,
-      notes: transformed.notes ?? null,
       tags: transformed.tags ?? [],
       status: transformed.status ?? 'ACTIVE',
     },
@@ -468,13 +467,13 @@ export async function enrichFromProfileText(profileText: string, linkedInUrl?: s
 export async function generateTagsForCandidate(candidateData: {
   currentPosition?: string
   currentCompany?: string
-  notes?: string
+  comments?: string
 }): Promise<{ tags: string[]; seniority?: Seniority; sector?: string }> {
   try {
     const result = await generateProfileTags({
       currentPosition: candidateData.currentPosition,
       currentCompany: candidateData.currentCompany,
-      summary: candidateData.notes,
+      summary: candidateData.comments,
     })
     
     return {
@@ -680,11 +679,11 @@ export async function mergeCandidates(targetId: string, sourceId: string) {
   // Track merge
   mergePayload.mergedFromIds = [...target.mergedFromIds, source.id]
 
-  // Update notes: append source notes if different
-  if (source.notes && source.notes !== target.notes) {
-    mergePayload.notes = target.notes
-      ? `${target.notes}\n\n--- Fusionné depuis ${source.firstName} ${source.lastName} ---\n${source.notes}`
-      : source.notes
+  // Update comments: append source comments if different
+  if (source.comments && source.comments !== target.comments) {
+    mergePayload.comments = target.comments
+      ? `${target.comments}\n\n--- Fusionné depuis ${source.firstName} ${source.lastName} ---\n${source.comments}`
+      : source.comments
   }
 
   // Transaction: update target, reassign source's relations, soft-delete source
@@ -787,7 +786,6 @@ export async function createCandidateWithEnrichment(data: {
   currentCompany?: string
   profileUrl?: string
   tags?: string[]
-  notes?: string
   estimatedSeniority?: Seniority
   estimatedSector?: string
   // Enrichment data
@@ -843,7 +841,6 @@ export async function createCandidateWithEnrichment(data: {
       profileUrl: data.profileUrl || null,
       linkedin: data.profileUrl || null,
       tags: data.tags || [],
-      notes: data.notes || null,
       estimatedSeniority: data.estimatedSeniority || null,
       estimatedSector: data.estimatedSector || null,
       status: 'ACTIVE',

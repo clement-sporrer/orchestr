@@ -499,8 +499,7 @@ model Candidate {
   // Tags and status
   tags           String[]        @default([])
   status         CandidateStatus @default(ACTIVE)
-  notes          String?         // Legacy notes (use comments field)
-  
+
   // Consent
   consentGiven     Boolean       @default(false)
   consentDate      DateTime?

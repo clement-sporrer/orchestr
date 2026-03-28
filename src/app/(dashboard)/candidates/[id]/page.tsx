@@ -175,14 +175,14 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
             </CardContent>
           </Card>
 
-          {/* Notes */}
-          {candidate.notes && (
+          {/* Comments */}
+          {candidate.comments && (
             <Card>
               <CardHeader>
                 <CardTitle>Notes</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="whitespace-pre-wrap">{candidate.notes}</p>
+                <p className="whitespace-pre-wrap">{candidate.comments}</p>
               </CardContent>
             </Card>
           )}

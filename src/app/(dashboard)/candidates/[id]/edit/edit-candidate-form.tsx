@@ -78,7 +78,6 @@ type CandidateForEdit = Pick<
   | 'profileUrl'
   | 'cvUrl'
   | 'location'
-  | 'notes'
   | 'tags'
   | 'status'
 >
@@ -116,7 +115,6 @@ function buildInitialFormData(c: CandidateForEdit): Partial<UpdateCandidateInput
     profileUrl: c.profileUrl ?? '',
     cvUrl: c.cvUrl ?? '',
     location: c.location ?? '',
-    notes: c.notes ?? '',
     tags: c.tags ?? [],
     status: c.status ?? 'ACTIVE',
   }
@@ -210,7 +208,6 @@ export function EditCandidateForm({ candidate }: EditCandidateFormProps) {
         profileUrl: formData.profileUrl?.trim() || undefined,
         cvUrl: formData.cvUrl?.trim() || undefined,
         location: formData.location?.trim() || undefined,
-        notes: formData.notes?.trim() || undefined,
         tags: formData.tags ?? [],
         status: formData.status ?? 'ACTIVE',
       }
@@ -578,17 +575,6 @@ export function EditCandidateForm({ candidate }: EditCandidateFormProps) {
                   onChange={(e) => updateField('references', e.target.value)}
                   disabled={loading}
                   placeholder="Références ou personnes à contacter..."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  rows={2}
-                  value={formData.notes ?? ''}
-                  onChange={(e) => updateField('notes', e.target.value)}
-                  disabled={loading}
-                  placeholder="Notes générales..."
                 />
               </div>
             </section>
