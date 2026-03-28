@@ -18,3 +18,10 @@ describe('shouldUpgradeRelationship', () => {
   it('does not change when same level', () => expect(shouldUpgradeRelationship('ENGAGED', 'ENGAGED')).toBe(false))
   it('does not downgrade SHORTLISTED → CONTACTED', () => expect(shouldUpgradeRelationship('SHORTLISTED', 'CONTACTED')).toBe(false))
 })
+
+describe('applyStageTransition export', () => {
+  it('is exported from pipeline.ts', async () => {
+    const mod = await import('./pipeline')
+    expect(typeof mod.applyStageTransition).toBe('function')
+  })
+})
