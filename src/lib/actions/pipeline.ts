@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { generateToken, getTokenExpiry } from '@/lib/utils/tokens'
+import { generateToken, getTokenExpiry, hashToken } from '@/lib/utils/tokens'
 import type { PipelineStage, ContactStatus } from '@/generated/prisma'
 import { getOrganizationId } from '@/lib/auth/helpers'
 
@@ -72,22 +72,22 @@ export async function updateContactStatus(missionCandidateId: string, status: Co
   // AUTO-GENERATE PORTAL LINK ON POSITIVE RESPONSE
   let portalUrl: string | null = null
   if (status === 'OPEN' && !mc.portalToken) {
-    const token = generateToken()
+    const rawToken = generateToken()
+    const tokenHash = hashToken(rawToken)
     const expiry = getTokenExpiry('candidate')
-    
+
     await prisma.missionCandidate.update({
       where: { id: missionCandidateId },
       data: {
-        portalToken: token,
+        portalToken: tokenHash,
         portalTokenExpiry: expiry,
         portalStep: 0,
         portalCompleted: false,
       },
     })
-    
-    portalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/candidate/${token}`
-    
-    // Create interaction with the portal link ready to copy
+
+    portalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/candidate/${rawToken}`
+
     await prisma.interaction.create({
       data: {
         organizationId: mc.mission.organizationId,
@@ -105,17 +105,10 @@ export async function updateContactStatus(missionCandidateId: string, status: Co
 }
 
 // Get portal URL for a mission candidate
-export async function getPortalUrl(missionCandidateId: string) {
-  const mc = await prisma.missionCandidate.findUnique({
-    where: { id: missionCandidateId },
-    select: { portalToken: true },
-  })
-  
-  if (!mc?.portalToken) {
-    return null
-  }
-  
-  return `${process.env.NEXT_PUBLIC_APP_URL}/candidate/${mc.portalToken}`
+// NOTE: After token hashing, the raw token is only available at generation time.
+// This function always returns null — the URL must be captured at generation time.
+export async function getPortalUrl(_missionCandidateId: string): Promise<null> {
+  return null
 }
 
 // Add candidate to mission
