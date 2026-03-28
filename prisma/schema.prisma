@@ -41,7 +41,6 @@ model Organization {
   reportTemplates      ReportTemplate[]
   taxonomyPoles        TaxonomyPole[]
   taxonomyPositions    TaxonomyPosition[]
-  externalAccessTokens ExternalAccessToken[]
   settings             OrganizationSettings?
 
   @@map("organizations")
@@ -327,7 +326,6 @@ model Mission {
   missionCandidates    MissionCandidate[]
   questionnaire        Questionnaire?
   shortlists           Shortlist[]
-  externalAccessTokens ExternalAccessToken[]
   documents            MissionDocument[]
 
   @@index([organizationId])
@@ -519,7 +517,6 @@ model Candidate {
   poolMemberships      CandidatePool[]
   enrichment           CandidateEnrichment?
   positions            CandidatePosition[]
-  externalAccessTokens ExternalAccessToken[]
   documents            CandidateDocument[]
 
   // Note: partial unique index (email IS NOT NULL) is managed via raw migration
@@ -645,7 +642,6 @@ model MissionCandidate {
   questionnaireResponses QuestionnaireResponse[]
   shortlistCandidates    ShortlistCandidate[]
   interviews             Interview[]
-  externalAccessTokens   ExternalAccessToken[]
   documents              CandidateMissionDocument[]
   tasks                  Task[]
 
@@ -1141,46 +1137,6 @@ enum FeedbackDecision {
   OK
   TO_DISCUSS
   NO
-}
-
-// ============================================
-// EXTERNAL ACCESS TOKENS
-// Secure tokens for candidate and client portals
-// Only tokenHash is stored (SHA-256), never the raw token
-// ============================================
-
-enum ExternalTokenType {
-  CANDIDATE_PORTAL  // Token for candidate to access their application portal
-  CLIENT_PORTAL     // Token for client to access mission/shortlist portal
-}
-
-model ExternalAccessToken {
-  id                 String            @id @default(uuid()) @db.Uuid
-  organizationId     String
-  tokenType          ExternalTokenType
-  tokenHash          String            @unique  // SHA-256 hash of the token
-  expiresAt          DateTime
-  revokedAt          DateTime?
-  
-  // References (nullable based on token type)
-  missionId          String?           // For CLIENT_PORTAL tokens
-  missionCandidateId String?           // For CANDIDATE_PORTAL tokens
-  candidateId        String?           // Optional direct candidate reference
-  
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-
-  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  mission          Mission?          @relation(fields: [missionId], references: [id], onDelete: Cascade)
-  missionCandidate MissionCandidate? @relation(fields: [missionCandidateId], references: [id], onDelete: Cascade)
-  candidate        Candidate?        @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-
-  @@index([organizationId])
-  @@index([expiresAt])
-  @@index([missionId])
-  @@index([missionCandidateId])
-  @@index([candidateId])
-  @@map("external_access_tokens")
 }
 
 // ============================================

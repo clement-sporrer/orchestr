@@ -157,12 +157,6 @@ CREATE TRIGGER set_updated_at_taxonomy_positions
   BEFORE UPDATE ON public.taxonomy_positions
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
--- External Access Tokens
-DROP TRIGGER IF EXISTS set_updated_at_external_access_tokens ON public.external_access_tokens;
-CREATE TRIGGER set_updated_at_external_access_tokens
-  BEFORE UPDATE ON public.external_access_tokens
-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
 -- Organization Settings
 DROP TRIGGER IF EXISTS set_updated_at_organization_settings ON public.organization_settings;
 CREATE TRIGGER set_updated_at_organization_settings
@@ -205,7 +199,6 @@ ALTER TABLE public.linkedin_cache ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.taxonomy_poles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.taxonomy_positions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.candidate_positions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.external_access_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.organization_settings ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
@@ -1151,28 +1144,6 @@ CREATE POLICY "candidate_positions_delete" ON public.candidate_positions
       AND c."organizationId" = current_org_id()
     )
   );
-
--- ============================================
--- RLS POLICIES: EXTERNAL ACCESS TOKENS
--- Internal users only (same org policy)
--- No public read policy - tokens are validated server-side only
--- ============================================
-
-DROP POLICY IF EXISTS "external_access_tokens_select" ON public.external_access_tokens;
-CREATE POLICY "external_access_tokens_select" ON public.external_access_tokens
-  FOR SELECT USING ("organizationId" = current_org_id());
-
-DROP POLICY IF EXISTS "external_access_tokens_insert" ON public.external_access_tokens;
-CREATE POLICY "external_access_tokens_insert" ON public.external_access_tokens
-  FOR INSERT WITH CHECK ("organizationId" = current_org_id());
-
-DROP POLICY IF EXISTS "external_access_tokens_update" ON public.external_access_tokens;
-CREATE POLICY "external_access_tokens_update" ON public.external_access_tokens
-  FOR UPDATE USING ("organizationId" = current_org_id());
-
-DROP POLICY IF EXISTS "external_access_tokens_delete" ON public.external_access_tokens;
-CREATE POLICY "external_access_tokens_delete" ON public.external_access_tokens
-  FOR DELETE USING ("organizationId" = current_org_id());
 
 -- ============================================
 -- RLS POLICIES: ORGANIZATION SETTINGS
