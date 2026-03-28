@@ -201,6 +201,12 @@ ALTER TABLE public.taxonomy_positions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.candidate_positions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.organization_settings ENABLE ROW LEVEL SECURITY;
 
+-- Document tables (added in PRD v2 schema but missing from original policies)
+ALTER TABLE public.client_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.mission_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.candidate_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.candidate_mission_documents ENABLE ROW LEVEL SECURITY;
+
 -- ============================================
 -- RLS POLICIES: ORGANIZATIONS
 -- Users can only access their own organization
@@ -1165,6 +1171,190 @@ CREATE POLICY "organization_settings_update" ON public.organization_settings
 DROP POLICY IF EXISTS "organization_settings_delete" ON public.organization_settings;
 CREATE POLICY "organization_settings_delete" ON public.organization_settings
   FOR DELETE USING ("organizationId" = current_org_id());
+
+-- ============================================
+-- RLS POLICIES: CLIENT DOCUMENTS
+-- Access through client -> organization relationship
+-- ============================================
+
+DROP POLICY IF EXISTS "client_documents_select" ON public.client_documents;
+CREATE POLICY "client_documents_select" ON public.client_documents
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.clients c
+      WHERE c.id = client_documents."clientId"
+      AND c."organizationId" = current_org_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "client_documents_insert" ON public.client_documents;
+CREATE POLICY "client_documents_insert" ON public.client_documents
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.clients c
+      WHERE c.id = client_documents."clientId"
+      AND c."organizationId" = current_org_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "client_documents_update" ON public.client_documents;
+CREATE POLICY "client_documents_update" ON public.client_documents
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM public.clients c
+      WHERE c.id = client_documents."clientId"
+      AND c."organizationId" = current_org_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "client_documents_delete" ON public.client_documents;
+CREATE POLICY "client_documents_delete" ON public.client_documents
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM public.clients c
+      WHERE c.id = client_documents."clientId"
+      AND c."organizationId" = current_org_id()
+    )
+  );
+
+-- ============================================
+-- RLS POLICIES: MISSION DOCUMENTS
+-- Access through mission -> organization relationship
+-- ============================================
+
+DROP POLICY IF EXISTS "mission_documents_select" ON public.mission_documents;
+CREATE POLICY "mission_documents_select" ON public.mission_documents
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.missions m
+      WHERE m.id = mission_documents."missionId"
+      AND m."organizationId" = current_org_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "mission_documents_insert" ON public.mission_documents;
+CREATE POLICY "mission_documents_insert" ON public.mission_documents
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.missions m
+      WHERE m.id = mission_documents."missionId"
+      AND m."organizationId" = current_org_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "mission_documents_update" ON public.mission_documents;
+CREATE POLICY "mission_documents_update" ON public.mission_documents
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM public.missions m
+      WHERE m.id = mission_documents."missionId"
+      AND m."organizationId" = current_org_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "mission_documents_delete" ON public.mission_documents;
+CREATE POLICY "mission_documents_delete" ON public.mission_documents
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM public.missions m
+      WHERE m.id = mission_documents."missionId"
+      AND m."organizationId" = current_org_id()
+    )
+  );
+
+-- ============================================
+-- RLS POLICIES: CANDIDATE DOCUMENTS
+-- Access through candidate -> organization relationship
+-- ============================================
+
+DROP POLICY IF EXISTS "candidate_documents_select" ON public.candidate_documents;
+CREATE POLICY "candidate_documents_select" ON public.candidate_documents
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.candidates c
+      WHERE c.id = candidate_documents."candidateId"
+      AND c."organizationId" = current_org_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "candidate_documents_insert" ON public.candidate_documents;
+CREATE POLICY "candidate_documents_insert" ON public.candidate_documents
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.candidates c
+      WHERE c.id = candidate_documents."candidateId"
+      AND c."organizationId" = current_org_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "candidate_documents_update" ON public.candidate_documents;
+CREATE POLICY "candidate_documents_update" ON public.candidate_documents
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM public.candidates c
+      WHERE c.id = candidate_documents."candidateId"
+      AND c."organizationId" = current_org_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "candidate_documents_delete" ON public.candidate_documents;
+CREATE POLICY "candidate_documents_delete" ON public.candidate_documents
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM public.candidates c
+      WHERE c.id = candidate_documents."candidateId"
+      AND c."organizationId" = current_org_id()
+    )
+  );
+
+-- ============================================
+-- RLS POLICIES: CANDIDATE MISSION DOCUMENTS
+-- Access through mission_candidate -> mission -> organization relationship
+-- ============================================
+
+DROP POLICY IF EXISTS "candidate_mission_documents_select" ON public.candidate_mission_documents;
+CREATE POLICY "candidate_mission_documents_select" ON public.candidate_mission_documents
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.mission_candidates mc
+      JOIN public.missions m ON m.id = mc."missionId"
+      WHERE mc.id = candidate_mission_documents."missionCandidateId"
+      AND m."organizationId" = current_org_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "candidate_mission_documents_insert" ON public.candidate_mission_documents;
+CREATE POLICY "candidate_mission_documents_insert" ON public.candidate_mission_documents
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.mission_candidates mc
+      JOIN public.missions m ON m.id = mc."missionId"
+      WHERE mc.id = candidate_mission_documents."missionCandidateId"
+      AND m."organizationId" = current_org_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "candidate_mission_documents_update" ON public.candidate_mission_documents;
+CREATE POLICY "candidate_mission_documents_update" ON public.candidate_mission_documents
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM public.mission_candidates mc
+      JOIN public.missions m ON m.id = mc."missionId"
+      WHERE mc.id = candidate_mission_documents."missionCandidateId"
+      AND m."organizationId" = current_org_id()
+    )
+  );
+
+DROP POLICY IF EXISTS "candidate_mission_documents_delete" ON public.candidate_mission_documents;
+CREATE POLICY "candidate_mission_documents_delete" ON public.candidate_mission_documents
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM public.mission_candidates mc
+      JOIN public.missions m ON m.id = mc."missionId"
+      WHERE mc.id = candidate_mission_documents."missionCandidateId"
+      AND m."organizationId" = current_org_id()
+    )
+  );
 
 -- ============================================
 -- END OF RLS POLICIES
