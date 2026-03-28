@@ -48,25 +48,30 @@ export async function applyStageTransition(
   candidateId: string,
   stage: PipelineStage
 ): Promise<void> {
-  await prisma.missionCandidate.update({
-    where: { id: missionCandidateId },
-    data: { stage },
-  })
-
   const candidate = await prisma.candidate.findUnique({
     where: { id: candidateId },
     select: { relationshipLevel: true },
   })
 
-  if (!candidate) return
+  if (!candidate) {
+    throw new Error(`applyStageTransition: candidate ${candidateId} not found`)
+  }
 
   const targetRelationship = getTargetRelationshipLevel(stage)
-  if (shouldUpgradeRelationship(candidate.relationshipLevel, targetRelationship)) {
-    await prisma.candidate.update({
-      where: { id: candidateId },
-      data: { relationshipLevel: targetRelationship },
-    })
-  }
+  const shouldSync = shouldUpgradeRelationship(candidate.relationshipLevel, targetRelationship)
+
+  await prisma.$transaction([
+    prisma.missionCandidate.update({
+      where: { id: missionCandidateId },
+      data: { stage },
+    }),
+    ...(shouldSync
+      ? [prisma.candidate.update({
+          where: { id: candidateId },
+          data: { relationshipLevel: targetRelationship },
+        })]
+      : []),
+  ])
 }
 
 // Update candidate stage
