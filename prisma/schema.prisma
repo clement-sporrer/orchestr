@@ -522,7 +522,9 @@ model Candidate {
   externalAccessTokens ExternalAccessToken[]
   documents            CandidateDocument[]
 
-  @@unique([organizationId, email])
+  // Note: partial unique index (email IS NOT NULL) is managed via raw migration
+  // prisma/migrations/20260328000000_fix_candidate_email_null_unique/migration.sql
+  @@index([organizationId, email])
   @@index([organizationId])
   @@index([email])
   @@index([phone])
