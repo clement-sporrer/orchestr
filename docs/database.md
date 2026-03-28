@@ -146,7 +146,7 @@ A unique person within an organization's talent database. Full profile has 28 fi
 **Additional:** `compensation`, `comments`, `references`, `recruitable` (YES | NO | UNKNOWN)  
 **Files:** `files` (string[] – Supabase Storage paths)  
 **System:** `solicitationHistory` (JSON), `createdAt`, `updatedAt`  
-**Legacy (kept for compatibility):** `profileUrl`, `cvUrl`, `location`, `estimatedSeniority`, `estimatedSector`, `notes`, `tags`, `status`, `relationshipLevel`, consent and merge fields.
+**Legacy (kept for compatibility):** `cvUrl`, `location` (deferred to Phase 5). `profileUrl`, `estimatedSeniority`, `estimatedSector`, `notes` removed in Phase 4.
 
 ```prisma
 model Candidate {
@@ -179,16 +179,13 @@ model Candidate {
   solicitationHistory Json?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  // Legacy + relations
-  profileUrl     String?
+  // Still legacy (Phase 5)
   cvUrl          String?
   location       String?
-  estimatedSeniority Seniority?
-  estimatedSector    String?
+  // Relations + system
   relationshipLevel  RelationshipLevel @default(SOURCED)
   tags           String[] @default([])
   status         CandidateStatus @default(ACTIVE)
-  notes          String?
   // ... consent, mergedFromIds, relations
 }
 ```

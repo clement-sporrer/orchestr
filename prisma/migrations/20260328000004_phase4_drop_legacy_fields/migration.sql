@@ -22,10 +22,15 @@ UPDATE "candidates"
   WHERE "estimatedSector" IS NOT NULL AND ("sector" IS NULL OR "sector" = '');
 
 -- contacts: backfill firstName/lastName from name where missing
+-- CASE handles single-word names (POSITION returns 0 when no space found)
 UPDATE "contacts"
   SET
     "firstName" = SPLIT_PART("name", ' ', 1),
-    "lastName" = SUBSTRING("name" FROM POSITION(' ' IN "name") + 1)
+    "lastName" = CASE
+      WHEN POSITION(' ' IN "name") > 0
+      THEN SUBSTRING("name" FROM POSITION(' ' IN "name") + 1)
+      ELSE "name"
+    END
   WHERE "name" IS NOT NULL
     AND ("firstName" IS NULL OR "lastName" IS NULL);
 
