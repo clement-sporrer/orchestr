@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { generateToken, getTokenExpiry, isTokenExpired } from './tokens'
+import { generateToken, getTokenExpiry, isTokenExpired, hashToken } from './tokens'
 
 describe('generateToken', () => {
   it('returns a string', () => {
@@ -51,6 +51,28 @@ describe('getTokenExpiry', () => {
     const candidate = getTokenExpiry('candidate')
     const client = getTokenExpiry('client')
     expect(client.getTime()).toBeGreaterThan(candidate.getTime())
+  })
+})
+
+describe('hashToken', () => {
+  it('returns a 64-character hex string', () => {
+    const hash = hashToken('some-token')
+    expect(hash).toHaveLength(64)
+    expect(/^[a-f0-9]{64}$/.test(hash)).toBe(true)
+  })
+
+  it('is deterministic — same input yields same hash', () => {
+    const token = 'abc123'
+    expect(hashToken(token)).toBe(hashToken(token))
+  })
+
+  it('different inputs produce different hashes', () => {
+    expect(hashToken('token-a')).not.toBe(hashToken('token-b'))
+  })
+
+  it('does not equal the input', () => {
+    const token = 'abc123'
+    expect(hashToken(token)).not.toBe(token)
   })
 })
 
