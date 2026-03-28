@@ -37,11 +37,8 @@ const missionSchema = z.object({
   
   process: z.string().optional(),
   processVisibility: visibilityEnum.optional(),
-  
-  calendlyLink: z.string().optional(),
-  calendlyEmbed: z.boolean().optional(),
-  
-  scoreThreshold: z.number().min(0).max(100).optional(),
+
+  internalNotes: z.string().optional(),
   shortlistDeadline: z.date().optional(),
 })
 
@@ -65,7 +62,7 @@ export type MissionWithCount = Prisma.MissionGetPayload<{
     client: {
       select: {
         id: true
-        name: true
+        companyName: true
       }
     }
     recruiter: {
@@ -113,7 +110,7 @@ export async function getMissions(filters?: {
     ...(filters?.search ? {
       OR: [
         { title: { contains: filters.search, mode: searchMode } },
-        { client: { name: { contains: filters.search, mode: searchMode } } },
+        { client: { companyName: { contains: filters.search, mode: searchMode } } },
       ] satisfies Prisma.MissionWhereInput[],
     } : {}),
   }
@@ -131,7 +128,7 @@ export async function getMissions(filters?: {
         createdAt: true,
         updatedAt: true,
         client: {
-          select: { id: true, name: true },
+          select: { id: true, companyName: true },
         },
         recruiter: {
           select: { id: true, name: true },
@@ -170,7 +167,7 @@ export type MissionHeaderPayload = Prisma.MissionGetPayload<{
     location: true
     city: true
     country: true
-    client: { select: { id: true; name: true; companyName: true } }
+    client: { select: { id: true; companyName: true } }
     mainContact: {
       select: { id: true; firstName: true; lastName: true; email: true }
     }
@@ -193,7 +190,7 @@ export async function getMissionHeader(id: string): Promise<MissionHeaderPayload
       city: true,
       country: true,
       client: {
-        select: { id: true, name: true, companyName: true },
+        select: { id: true, companyName: true },
       },
       mainContact: {
         select: { id: true, firstName: true, lastName: true, email: true },
@@ -226,7 +223,6 @@ export async function getMission(id: string) {
       mainContactId: true,
       recruiterId: true,
       title: true,
-      jobTitle: true,
       jobFamily: true,
       status: true,
       location: true,
@@ -238,12 +234,10 @@ export async function getMission(id: string) {
       priority: true,
       contractType: true,
       seniority: true,
-      seniorityLabel: true,
       salaryMin: true,
       salaryMax: true,
       salaryNotes: true,
       internalNotes: true,
-      recruitmentProcess: true,
       languages: true,
       salaryVisible: true,
       startDate: true,
@@ -259,9 +253,6 @@ export async function getMission(id: string) {
       redFlags: true,
       process: true,
       processVisibility: true,
-      calendlyLink: true,
-      calendlyEmbed: true,
-      scoreThreshold: true,
       shortlistDeadline: true,
       deadline: true,
       createdAt: true,
@@ -269,7 +260,6 @@ export async function getMission(id: string) {
       client: {
         select: {
           id: true,
-          name: true,
           companyName: true,
           category: true,
           sector: true,
@@ -293,30 +283,10 @@ export async function getMission(id: string) {
           email: true,
         },
       },
-      questionnaire: {
-        select: {
-          id: true,
-          name: true,
-          questions: {
-            select: {
-              id: true,
-              text: true,
-              type: true,
-              options: true,
-              required: true,
-              shareableWithClient: true,
-              order: true,
-            },
-            orderBy: { order: 'asc' },
-          },
-        },
-      },
       missionCandidates: {
         select: {
           id: true,
           stage: true,
-          score: true,
-          scoreReasons: true,
           contactStatus: true,
           portalToken: true,
           portalTokenExpiry: true,
@@ -332,7 +302,8 @@ export async function getMission(id: string) {
               phone: true,
               currentPosition: true,
               currentCompany: true,
-              location: true,
+              city: true,
+              country: true,
               tags: true,
               relationshipLevel: true,
             },
@@ -374,58 +345,6 @@ export async function getMission(id: string) {
 
   return mission
 }
-
-// Default questionnaire questions
-const DEFAULT_QUESTIONNAIRE_QUESTIONS = [
-  { 
-    text: 'Quelle est votre disponibilite pour demarrer un nouveau poste?', 
-    type: 'SINGLE_CHOICE' as const, 
-    options: ['Immediate', '1 mois', '2-3 mois', 'Plus de 3 mois'], 
-    required: true,
-    shareableWithClient: true,
-    order: 0,
-  },
-  { 
-    text: 'Quelles sont vos pretentions salariales (brut annuel)?', 
-    type: 'TEXT' as const, 
-    options: [],
-    required: true,
-    shareableWithClient: true,
-    order: 1,
-  },
-  { 
-    text: 'Etes-vous ouvert a la mobilite geographique?', 
-    type: 'SINGLE_CHOICE' as const, 
-    options: ['Oui, partout en France', 'Oui, region uniquement', 'Non, poste local uniquement', 'Teletravail uniquement'], 
-    required: true,
-    shareableWithClient: true,
-    order: 2,
-  },
-  { 
-    text: 'Avez-vous d\'autres processus de recrutement en cours?', 
-    type: 'SINGLE_CHOICE' as const, 
-    options: ['Non', 'Oui, en phase initiale', 'Oui, en phase avancee', 'Oui, avec offre en cours'], 
-    required: true,
-    shareableWithClient: false,
-    order: 3,
-  },
-  { 
-    text: 'Qu\'est-ce qui vous motive dans cette opportunite?', 
-    type: 'TEXT' as const, 
-    options: [],
-    required: true,
-    shareableWithClient: true,
-    order: 4,
-  },
-  { 
-    text: 'Y a-t-il des elements qui pourraient etre bloquants pour vous?', 
-    type: 'TEXT' as const, 
-    options: [],
-    required: false,
-    shareableWithClient: false,
-    order: 5,
-  },
-]
 
 // Create mission
 export async function createMission(data: CreateMissionInput) {
@@ -471,19 +390,8 @@ export async function createMission(data: CreateMissionInput) {
       redFlags: validated.redFlags,
       process: validated.process,
       processVisibility: (validated.processVisibility ?? 'INTERNAL_CLIENT') as Visibility,
-      calendlyLink: validated.calendlyLink,
-      calendlyEmbed: validated.calendlyEmbed ?? false,
-      scoreThreshold: validated.scoreThreshold ?? 60,
+      internalNotes: validated.internalNotes,
       shortlistDeadline: validated.shortlistDeadline,
-      // Create default questionnaire
-      questionnaire: {
-        create: {
-          name: 'Questionnaire standard',
-          questions: {
-            create: DEFAULT_QUESTIONNAIRE_QUESTIONS,
-          },
-        },
-      },
     },
   })
 
@@ -570,8 +478,8 @@ export async function getClientsForSelect() {
 
   const clients = await prisma.client.findMany({
     where: { organizationId },
-    select: { id: true, name: true, companyName: true },
-    orderBy: [{ companyName: 'asc' }, { name: 'asc' }],
+    select: { id: true, companyName: true },
+    orderBy: [{ companyName: 'asc' }],
   })
 
   return clients
@@ -585,7 +493,6 @@ export async function getClientsWithContactsForSelect() {
     where: { organizationId },
     select: {
       id: true,
-      name: true,
       companyName: true,
       contacts: {
         select: {
@@ -599,7 +506,7 @@ export async function getClientsWithContactsForSelect() {
         orderBy: { isPrimary: 'desc' },
       },
     },
-    orderBy: [{ companyName: 'asc' }, { name: 'asc' }],
+    orderBy: [{ companyName: 'asc' }],
   })
 
   return clients
