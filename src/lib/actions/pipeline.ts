@@ -3,8 +3,40 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { generateToken, getTokenExpiry, hashToken } from '@/lib/utils/tokens'
-import type { PipelineStage, ContactStatus } from '@/generated/prisma'
+import type { PipelineStage, ContactStatus, RelationshipLevel } from '@/generated/prisma'
 import { getOrganizationId } from '@/lib/auth/helpers'
+
+// Ordered list for RelationshipLevel comparison (lowest → highest)
+const RELATIONSHIP_ORDER: RelationshipLevel[] = [
+  'SOURCED',
+  'CONTACTED',
+  'ENGAGED',
+  'QUALIFIED',
+  'SHORTLISTED',
+  'PLACED',
+]
+
+// Maps a PipelineStage to the equivalent RelationshipLevel
+export function getTargetRelationshipLevel(stage: PipelineStage): RelationshipLevel {
+  const map: Record<PipelineStage, RelationshipLevel> = {
+    SOURCED: 'SOURCED',
+    CONTACTED: 'CONTACTED',
+    RESPONSE: 'CONTACTED',
+    INTERVIEW: 'ENGAGED',
+    SHORTLIST: 'SHORTLISTED',
+    OFFER: 'SHORTLISTED',
+    PLACED: 'PLACED',
+  }
+  return map[stage]
+}
+
+// Returns true only if target is strictly higher than current
+export function shouldUpgradeRelationship(
+  current: RelationshipLevel,
+  target: RelationshipLevel
+): boolean {
+  return RELATIONSHIP_ORDER.indexOf(target) > RELATIONSHIP_ORDER.indexOf(current)
+}
 
 // Update candidate stage
 export async function updateCandidateStage(missionCandidateId: string, stage: PipelineStage) {
@@ -17,6 +49,9 @@ export async function updateCandidateStage(missionCandidateId: string, stage: Pi
       mission: {
         select: { organizationId: true, id: true },
       },
+      candidate: {
+        select: { id: true, relationshipLevel: true },
+      },
     },
   })
 
@@ -28,6 +63,15 @@ export async function updateCandidateStage(missionCandidateId: string, stage: Pi
     where: { id: missionCandidateId },
     data: { stage },
   })
+
+  // Sync RelationshipLevel — only upgrade, never downgrade
+  const targetRelationship = getTargetRelationshipLevel(stage)
+  if (shouldUpgradeRelationship(mc.candidate.relationshipLevel, targetRelationship)) {
+    await prisma.candidate.update({
+      where: { id: mc.candidateId },
+      data: { relationshipLevel: targetRelationship },
+    })
+  }
 
   // Create status change interaction
   await prisma.interaction.create({
