@@ -171,16 +171,19 @@ export async function executeCsvImport(
     emails.length
       ? prisma.candidate.findMany({
           where: { organizationId, email: { in: emails } },
+          select: { id: true, firstName: true, lastName: true, email: true, phone: true, profileUrl: true, location: true, currentPosition: true, currentCompany: true, tags: true },
         })
       : [],
     phones.length
       ? prisma.candidate.findMany({
           where: { organizationId, phone: { in: phones } },
+          select: { id: true, firstName: true, lastName: true, email: true, phone: true, profileUrl: true, location: true, currentPosition: true, currentCompany: true, tags: true },
         })
       : [],
     profileUrls.length
       ? prisma.candidate.findMany({
           where: { organizationId, profileUrl: { in: profileUrls } },
+          select: { id: true, firstName: true, lastName: true, email: true, phone: true, profileUrl: true, location: true, currentPosition: true, currentCompany: true, tags: true },
         })
       : [],
   ])
