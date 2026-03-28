@@ -49,7 +49,7 @@ const FIELD_OPTIONS = [
   { value: 'location', label: 'Localisation' },
   { value: 'currentPosition', label: 'Poste actuel' },
   { value: 'currentCompany', label: 'Entreprise' },
-  { value: 'profileUrl', label: 'URL profil' },
+  { value: 'linkedin', label: 'URL LinkedIn' },
   { value: 'tags', label: 'Tags (séparés par virgule)' },
   { value: 'ignore', label: 'Ignorer' },
 ]
@@ -111,7 +111,7 @@ export default function ImportPage() {
           } else if (lowerHeader.includes('company') || lowerHeader.includes('entreprise') || lowerHeader.includes('société')) {
             autoMapping[header] = 'currentCompany'
           } else if (lowerHeader.includes('linkedin') || lowerHeader.includes('profile') || lowerHeader.includes('url')) {
-            autoMapping[header] = 'profileUrl'
+            autoMapping[header] = 'linkedin'
           } else if (lowerHeader.includes('tag')) {
             autoMapping[header] = 'tags'
           } else {

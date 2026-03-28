@@ -28,8 +28,8 @@ interface Contact {
   id: string
   firstName: string | null
   lastName: string | null
-  name: string | null
   email: string | null
+  title: string | null
   isPrimary: boolean
 }
 
@@ -293,9 +293,7 @@ export function JobBuilderForm({
                         </SelectTrigger>
                         <SelectContent>
                           {contacts.map((contact) => {
-                            const label = (contact.firstName && contact.lastName)
-                              ? `${contact.firstName} ${contact.lastName}`
-                              : contact.name ?? contact.email ?? contact.id
+                            const label = [contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.id
                             return (
                               <SelectItem key={contact.id} value={contact.id}>
                                 {label}

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import type { CandidateStatus, Seniority, Prisma } from '@/generated/prisma'
+import type { CandidateStatus, Prisma } from '@/generated/prisma'
 import { parseLinkedInUrl, generateProfileTags, enrichProfileFromText, type EnrichedProfileData } from '@/lib/ai/structuring'
 import { getOrganizationId, getCurrentUserId } from '@/lib/auth/helpers'
 import {
@@ -163,10 +163,8 @@ export async function createCandidate(data: CreateCandidateInput) {
       references: transformed.references ?? null,
       recruitable: transformed.recruitable ?? 'UNKNOWN',
       files: transformed.files ?? [],
-      profileUrl: transformed.profileUrl ?? null,
       cvUrl: transformed.cvUrl ?? null,
       location: transformed.location ?? null,
-      notes: transformed.notes ?? null,
       tags: transformed.tags ?? [],
       status: transformed.status ?? 'ACTIVE',
     },
@@ -412,7 +410,7 @@ export async function enrichFromLinkedInUrl(linkedInUrl: string): Promise<Linked
     data: {
       firstName: urlInfo.firstName,
       lastName: urlInfo.lastName || '',
-      profileUrl: cleanUrl,
+      linkedin: cleanUrl,
       tags: [],
     },
     source: 'url_parsing',
@@ -446,10 +444,9 @@ export async function enrichFromProfileText(profileText: string, linkedInUrl?: s
       success: true,
       data: {
         ...enrichedData,
-        profileUrl: linkedInUrl || '',
+        linkedin: linkedInUrl || '',
         tags: tagResult.tags,
-        estimatedSeniority: tagResult.estimatedSeniority || enrichedData.estimatedSeniority,
-        estimatedSector: tagResult.estimatedSector || enrichedData.estimatedSector,
+        sector: tagResult.sector || enrichedData.sector || undefined,
         suggestedNotes: tagResult.suggestedNotes || enrichedData.suggestedNotes,
       },
       source: 'ai_enrichment',
@@ -468,19 +465,18 @@ export async function enrichFromProfileText(profileText: string, linkedInUrl?: s
 export async function generateTagsForCandidate(candidateData: {
   currentPosition?: string
   currentCompany?: string
-  notes?: string
-}): Promise<{ tags: string[]; seniority?: Seniority; sector?: string }> {
+  comments?: string
+}): Promise<{ tags: string[]; sector?: string }> {
   try {
     const result = await generateProfileTags({
       currentPosition: candidateData.currentPosition,
       currentCompany: candidateData.currentCompany,
-      summary: candidateData.notes,
+      summary: candidateData.comments,
     })
-    
+
     return {
       tags: result.tags,
-      seniority: result.estimatedSeniority,
-      sector: result.estimatedSector,
+      sector: result.sector,
     }
   } catch {
     return { tags: [] }
@@ -490,18 +486,18 @@ export async function generateTagsForCandidate(candidateData: {
 // Check if candidate already exists (for deduplication)
 export async function checkCandidateExists(data: {
   email?: string
-  profileUrl?: string
+  linkedin?: string
   firstName?: string
   lastName?: string
 }): Promise<{ exists: boolean; candidate?: { id: string; firstName: string; lastName: string } }> {
   const organizationId = await getOrganizationId()
 
   // Check by LinkedIn URL first (most reliable)
-  if (data.profileUrl) {
+  if (data.linkedin) {
     const byUrl = await prisma.candidate.findFirst({
       where: {
         organizationId,
-        profileUrl: data.profileUrl,
+        linkedin: data.linkedin,
         status: { not: 'DELETED' },
       },
       select: { id: true, firstName: true, lastName: true },
@@ -664,7 +660,7 @@ export async function mergeCandidates(targetId: string, sourceId: string) {
     'email', 'linkedin', 'phone', 'age', 'country', 'city', 'region',
     'seniority', 'domain', 'sector', 'currentCompany', 'currentPosition',
     'pastCompanies', 'jobFamily', 'hardSkills', 'softSkills',
-    'compensation', 'comments', 'references', 'profileUrl', 'cvUrl', 'location',
+    'compensation', 'comments', 'references', 'cvUrl', 'location',
   ] as const
 
   for (const field of fieldsToMerge) {
@@ -680,11 +676,11 @@ export async function mergeCandidates(targetId: string, sourceId: string) {
   // Track merge
   mergePayload.mergedFromIds = [...target.mergedFromIds, source.id]
 
-  // Update notes: append source notes if different
-  if (source.notes && source.notes !== target.notes) {
-    mergePayload.notes = target.notes
-      ? `${target.notes}\n\n--- Fusionné depuis ${source.firstName} ${source.lastName} ---\n${source.notes}`
-      : source.notes
+  // Update comments: append source comments if different
+  if (source.comments && source.comments !== target.comments) {
+    mergePayload.comments = target.comments
+      ? `${target.comments}\n\n--- Fusionné depuis ${source.firstName} ${source.lastName} ---\n${source.comments}`
+      : source.comments
   }
 
   // Transaction: update target, reassign source's relations, soft-delete source
@@ -785,11 +781,9 @@ export async function createCandidateWithEnrichment(data: {
   location?: string
   currentPosition?: string
   currentCompany?: string
-  profileUrl?: string
+  linkedin?: string
   tags?: string[]
-  notes?: string
-  estimatedSeniority?: Seniority
-  estimatedSector?: string
+  sector?: string
   // Enrichment data
   linkedinHeadline?: string
   linkedinSummary?: string
@@ -812,10 +806,10 @@ export async function createCandidateWithEnrichment(data: {
   const organizationId = await getOrganizationId()
 
   // Check for duplicates
-  if (data.email || data.profileUrl) {
+  if (data.email || data.linkedin) {
     const existing = await checkCandidateExists({
       email: data.email,
-      profileUrl: data.profileUrl,
+      linkedin: data.linkedin,
       firstName: data.firstName,
       lastName: data.lastName,
     })
@@ -840,17 +834,14 @@ export async function createCandidateWithEnrichment(data: {
       location: data.location || null,
       currentPosition: data.currentPosition || null,
       currentCompany: data.currentCompany || null,
-      profileUrl: data.profileUrl || null,
-      linkedin: data.profileUrl || null,
+      linkedin: data.linkedin || null,
       tags: data.tags || [],
-      notes: data.notes || null,
-      estimatedSeniority: data.estimatedSeniority || null,
-      estimatedSector: data.estimatedSector || null,
+      sector: data.sector || null,
       status: 'ACTIVE',
       ...(hasEnrichmentData ? {
         enrichment: {
           create: {
-            linkedinUrl: data.profileUrl || null,
+            linkedinUrl: data.linkedin || null,
             linkedinHeadline: data.linkedinHeadline || null,
             linkedinSummary: data.linkedinSummary || null,
             experiences: data.experiences as object || null,

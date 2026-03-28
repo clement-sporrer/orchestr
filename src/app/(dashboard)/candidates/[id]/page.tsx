@@ -159,30 +159,30 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
                   </div>
                 )}
               </div>
-              {candidate.profileUrl && (
+              {candidate.linkedin && (
                 <div className="flex items-center gap-2">
                   <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                  <a 
-                    href={candidate.profileUrl} 
-                    target="_blank" 
+                  <a
+                    href={candidate.linkedin}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:underline"
                   >
-                    {candidate.profileUrl}
+                    {candidate.linkedin}
                   </a>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Notes */}
-          {candidate.notes && (
+          {/* Comments */}
+          {candidate.comments && (
             <Card>
               <CardHeader>
                 <CardTitle>Notes</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="whitespace-pre-wrap">{candidate.notes}</p>
+                <p className="whitespace-pre-wrap">{candidate.comments}</p>
               </CardContent>
             </Card>
           )}

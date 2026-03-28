@@ -595,6 +595,7 @@ export async function getClientsWithContactsForSelect() {
           lastName: true,
           name: true,
           email: true,
+          title: true,
           isPrimary: true,
         },
         orderBy: { isPrimary: 'desc' },

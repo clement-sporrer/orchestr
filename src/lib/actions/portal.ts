@@ -34,7 +34,7 @@ export async function updateCandidatePortal(
       lastName?: string
       email?: string
       phone?: string
-      profileUrl?: string
+      linkedin?: string
     }
   }
 ): Promise<void> {
@@ -65,7 +65,7 @@ export async function updateCandidatePortal(
       data: {
         ...data.candidateData,
         email: data.candidateData.email || null,
-        profileUrl: data.candidateData.profileUrl || null,
+        linkedin: data.candidateData.linkedin || null,
       },
     })
   }

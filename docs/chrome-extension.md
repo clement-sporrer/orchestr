@@ -192,7 +192,7 @@ X-User-Email: user@example.com
     "lastName": "Doe",
     "headline": "Senior Software Engineer at TechCorp",
     "location": "Paris, France",
-    "profileUrl": "https://www.linkedin.com/in/johndoe",
+    "linkedin": "https://www.linkedin.com/in/johndoe",
     "experiences": [
       {
         "company": "TechCorp",

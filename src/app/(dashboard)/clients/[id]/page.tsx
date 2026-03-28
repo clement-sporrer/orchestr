@@ -210,9 +210,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
               ) : (
                 <div className="space-y-4">
                   {client.contacts.map((contact) => {
-                    const displayName = (contact.firstName && contact.lastName)
-                      ? `${contact.firstName} ${contact.lastName}`
-                      : contact.name ?? '—'
+                    const displayName = [contact.firstName, contact.lastName].filter(Boolean).join(' ') || '—'
                     return (
                     <div key={contact.id} className="space-y-1">
                       <div className="flex items-center justify-between">
@@ -228,8 +226,8 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                           </Button>
                         </ContactDialog>
                       </div>
-                      {(contact.title ?? contact.role) && (
-                        <p className="text-sm text-muted-foreground">{contact.title ?? contact.role}</p>
+                      {contact.title && (
+                        <p className="text-sm text-muted-foreground">{contact.title}</p>
                       )}
                       {contact.email && (
                         <a 

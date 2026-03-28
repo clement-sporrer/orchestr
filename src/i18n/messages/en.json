@@ -441,7 +441,7 @@
       "location": "Location",
       "currentPosition": "Current position",
       "currentCompany": "Current company",
-      "profileUrl": "LinkedIn profile",
+      "linkedin": "LinkedIn profile",
       "tags": "Tags"
     }
   },

@@ -15,13 +15,10 @@ const clientSchema = z.object({
   notes: z.string().optional(),
 })
 
-// PRD v2: firstName (capitalized), lastName (MAJ), title, email required, isPrimary. Legacy: name.
 const contactSchema = z.object({
-  name: z.string().optional(),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   title: z.string().optional(),
-  role: z.string().optional(),
   email: z.string().min(1, "L'email est requis").email("Format email invalide"),
   phone: z.string().optional(),
   notes: z.string().optional(),
@@ -155,7 +152,11 @@ export async function getClient(id: string) {
     },
     include: {
       contacts: {
-        orderBy: { name: 'asc' },
+        orderBy: [
+          { lastName: { sort: 'asc', nulls: 'last' } },
+          { firstName: { sort: 'asc', nulls: 'last' } },
+          { email: 'asc' },
+        ],
       },
       missions: {
         orderBy: { createdAt: 'desc' },
@@ -261,15 +262,6 @@ export async function createContact(clientId: string, data: z.infer<typeof conta
     throw new Error('Client non trouvé')
   }
 
-  const firstName = validated.firstName?.trim()
-  const lastName = validated.lastName?.trim()
-  const legacyName = validated.name?.trim()
-  const name = (firstName && lastName)
-    ? `${firstName} ${lastName}`
-    : (legacyName ?? '')
-  const displayFirstName = firstName ?? legacyName?.split(/\s+/)[0] ?? ''
-  const displayLastName = lastName ?? legacyName?.split(/\s+/).slice(1).join(' ') ?? legacyName ?? ''
-
   if (validated.isPrimary) {
     await prisma.contact.updateMany({
       where: { clientId },
@@ -279,11 +271,9 @@ export async function createContact(clientId: string, data: z.infer<typeof conta
 
   const contact = await prisma.contact.create({
     data: {
-      name: name || null,
-      firstName: displayFirstName || null,
-      lastName: displayLastName || null,
-      title: validated.title || validated.role || null,
-      role: validated.role || null,
+      firstName: validated.firstName?.trim() || null,
+      lastName: validated.lastName?.trim() || null,
+      title: validated.title || null,
       email: validated.email,
       phone: validated.phone || null,
       notes: validated.notes || null,
@@ -310,15 +300,6 @@ export async function updateContact(id: string, data: z.infer<typeof contactSche
     throw new Error('Contact non trouvé')
   }
 
-  const firstName = validated.firstName?.trim()
-  const lastName = validated.lastName?.trim()
-  const legacyName = validated.name?.trim()
-  const name = (firstName && lastName)
-    ? `${firstName} ${lastName}`
-    : (legacyName ?? undefined)
-  const displayFirstName = firstName ?? legacyName?.split(/\s+/)[0] ?? undefined
-  const displayLastName = lastName ?? ((legacyName?.split(/\s+/).slice(1).join(' ') || legacyName) ?? undefined)
-
   if (validated.isPrimary === true) {
     await prisma.contact.updateMany({
       where: { clientId: contact.clientId },
@@ -329,11 +310,9 @@ export async function updateContact(id: string, data: z.infer<typeof contactSche
   const updated = await prisma.contact.update({
     where: { id },
     data: {
-      name: name ?? undefined,
-      firstName: displayFirstName ?? undefined,
-      lastName: displayLastName ?? undefined,
-      title: validated.title || validated.role || undefined,
-      role: validated.role ?? undefined,
+      firstName: validated.firstName?.trim() ?? undefined,
+      lastName: validated.lastName?.trim() ?? undefined,
+      title: validated.title ?? undefined,
       email: validated.email,
       phone: validated.phone || null,
       notes: validated.notes ?? undefined,

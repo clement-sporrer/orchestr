@@ -30,9 +30,9 @@ createCandidate(data: {
   location?: string
   currentPosition?: string
   currentCompany?: string
-  profileUrl?: string
+  linkedin?: string
   tags?: string[]
-  notes?: string
+  comments?: string
 }) => Promise<Candidate>
 
 // Update candidate
@@ -225,7 +225,7 @@ X-User-Email: user@example.com
     "lastName": "Doe",
     "headline": "Senior Software Engineer",
     "location": "Paris, France",
-    "profileUrl": "https://linkedin.com/in/johndoe",
+    "linkedin": "https://linkedin.com/in/johndoe",
     "experiences": [...],
     "education": [...],
     "skills": ["JavaScript", "TypeScript", "React"]

@@ -48,7 +48,7 @@ export interface CsvPreviewRow {
   mergeWith?: {
     id: string
     name: string
-    matchField: 'email' | 'phone' | 'profileUrl'
+    matchField: 'email' | 'phone' | 'linkedin'
   }
   error?: string
 }
@@ -61,7 +61,7 @@ export interface CsvColumnMapping {
   location?: string
   currentPosition?: string
   currentCompany?: string
-  profileUrl?: string
+  linkedin?: string
   tags?: string
 }
 

@@ -100,10 +100,7 @@ async function findExistingCandidate(
       where: {
         organizationId,
         status: { not: 'DELETED' },
-        OR: [
-          { profileUrl: { contains: normalizedUrl, mode: 'insensitive' } },
-          { linkedin: { contains: normalizedUrl, mode: 'insensitive' } },
-        ],
+        linkedin: { contains: normalizedUrl, mode: 'insensitive' },
       },
     })
     if (byUrl) return byUrl
@@ -209,7 +206,7 @@ export async function POST(request: NextRequest) {
         where: { id: existingCandidate.id },
         data: {
           // Only update if new data is better
-          profileUrl: profileData.linkedinUrl || existingCandidate.profileUrl,
+          linkedin: profileData.linkedinUrl || existingCandidate.linkedin,
           email: profileData.email || existingCandidate.email,
           phone: profileData.phone || existingCandidate.phone,
           location: profileData.location || existingCandidate.location,
@@ -259,7 +256,7 @@ export async function POST(request: NextRequest) {
           email: profileData.email,
           phone: profileData.phone,
           location: profileData.location,
-          profileUrl: profileData.linkedinUrl,
+          linkedin: profileData.linkedinUrl,
           currentPosition,
           currentCompany,
           status: 'ACTIVE',

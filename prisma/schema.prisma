@@ -240,11 +240,9 @@ model Client {
 model Contact {
   id         String   @id @default(cuid())
   clientId   String
-  name       String?  // Legacy
-  firstName  String?  // PRD v2: capitalized
-  lastName   String?  // PRD v2: UPPERCASE
-  title      String?  // PRD v2 (ex "Directeur RH"); was role
-  role       String?
+  firstName  String?
+  lastName   String?
+  title      String?
   email      String?
   phone      String?
   notes      String?
@@ -489,11 +487,8 @@ model Candidate {
   updatedAt      DateTime        @updatedAt
   
   // ========== LEGACY FIELDS (kept for backward compatibility) ==========
-  profileUrl       String?         // LinkedIn or other (legacy, use linkedin field)
   cvUrl            String?         // Legacy CV URL (use files array)
   location         String?         // Legacy location (use country/city/region)
-  estimatedSeniority Seniority?    // Legacy seniority (use seniority field)
-  estimatedSector    String?       // Legacy sector (use sector field)
   
   // Relationship level (global, not mission-specific)
   relationshipLevel RelationshipLevel @default(SOURCED)
@@ -501,8 +496,7 @@ model Candidate {
   // Tags and status
   tags           String[]        @default([])
   status         CandidateStatus @default(ACTIVE)
-  notes          String?         // Legacy notes (use comments field)
-  
+
   // Consent
   consentGiven     Boolean       @default(false)
   consentDate      DateTime?
@@ -526,7 +520,6 @@ model Candidate {
   @@index([email])
   @@index([phone])
   @@index([linkedin])
-  @@index([profileUrl])
   @@index([status])
   @@index([relationshipLevel])
   @@index([lastName, firstName])

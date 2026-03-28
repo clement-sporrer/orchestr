@@ -45,7 +45,7 @@ export function CandidatePortalClient({
     lastName: candidate.lastName,
     email: candidate.email || '',
     phone: candidate.phone || '',
-    profileUrl: candidate.profileUrl || '',
+    linkedin: candidate.linkedin || '',
   })
 
   const currentStepIndex = STEPS.indexOf(currentStep)
@@ -237,13 +237,13 @@ export function CandidatePortalClient({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="profileUrl">LinkedIn (optionnel)</Label>
+                  <Label htmlFor="linkedin">LinkedIn (optionnel)</Label>
                   <Input
-                    id="profileUrl"
+                    id="linkedin"
                     type="url"
                     placeholder="https://linkedin.com/in/..."
-                    value={profileData.profileUrl}
-                    onChange={(e) => setProfileData({ ...profileData, profileUrl: e.target.value })}
+                    value={profileData.linkedin}
+                    onChange={(e) => setProfileData({ ...profileData, linkedin: e.target.value })}
                   />
                 </div>
                 <Button type="submit" disabled={loading} className="w-full">

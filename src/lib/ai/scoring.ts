@@ -26,8 +26,8 @@ CANDIDAT:
 - Poste actuel: ${candidate.currentPosition || 'Non renseigné'}
 - Entreprise: ${candidate.currentCompany || 'Non renseignée'}
 - Localisation: ${candidate.location || 'Non renseignée'}
-- Séniorité estimée: ${candidate.estimatedSeniority || 'Non renseignée'}
-- Secteur estimé: ${candidate.estimatedSector || 'Non renseigné'}
+- Séniorité: ${candidate.seniority ? ({'LESS_THAN_1': '< 1 an', 'ONE_TO_3': '1-3 ans', 'THREE_TO_5': '3-5 ans', 'FIVE_TO_10': '5-10 ans', 'TEN_TO_15': '10-15 ans', 'MORE_THAN_15': '15+ ans'} as Record<string, string>)[candidate.seniority] ?? candidate.seniority : 'Non renseignée'}
+- Secteur: ${candidate.sector || 'Non renseigné'}
 
 MISSION:
 - Titre: ${mission.title}
