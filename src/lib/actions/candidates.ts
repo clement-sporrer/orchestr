@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import type { CandidateStatus, Seniority, Prisma } from '@/generated/prisma'
+import type { CandidateStatus, Prisma } from '@/generated/prisma'
 import { parseLinkedInUrl, generateProfileTags, enrichProfileFromText, type EnrichedProfileData } from '@/lib/ai/structuring'
 import { getOrganizationId, getCurrentUserId } from '@/lib/auth/helpers'
 import {
@@ -446,8 +446,7 @@ export async function enrichFromProfileText(profileText: string, linkedInUrl?: s
         ...enrichedData,
         linkedin: linkedInUrl || '',
         tags: tagResult.tags,
-        estimatedSeniority: tagResult.estimatedSeniority || enrichedData.estimatedSeniority,
-        estimatedSector: tagResult.estimatedSector || enrichedData.estimatedSector,
+        sector: tagResult.sector || enrichedData.sector || undefined,
         suggestedNotes: tagResult.suggestedNotes || enrichedData.suggestedNotes,
       },
       source: 'ai_enrichment',
@@ -467,18 +466,17 @@ export async function generateTagsForCandidate(candidateData: {
   currentPosition?: string
   currentCompany?: string
   comments?: string
-}): Promise<{ tags: string[]; seniority?: Seniority; sector?: string }> {
+}): Promise<{ tags: string[]; sector?: string }> {
   try {
     const result = await generateProfileTags({
       currentPosition: candidateData.currentPosition,
       currentCompany: candidateData.currentCompany,
       summary: candidateData.comments,
     })
-    
+
     return {
       tags: result.tags,
-      seniority: result.estimatedSeniority,
-      sector: result.estimatedSector,
+      sector: result.sector,
     }
   } catch {
     return { tags: [] }
@@ -785,8 +783,7 @@ export async function createCandidateWithEnrichment(data: {
   currentCompany?: string
   linkedin?: string
   tags?: string[]
-  estimatedSeniority?: Seniority
-  estimatedSector?: string
+  sector?: string
   // Enrichment data
   linkedinHeadline?: string
   linkedinSummary?: string
@@ -839,8 +836,7 @@ export async function createCandidateWithEnrichment(data: {
       currentCompany: data.currentCompany || null,
       linkedin: data.linkedin || null,
       tags: data.tags || [],
-      estimatedSeniority: data.estimatedSeniority || null,
-      estimatedSector: data.estimatedSector || null,
+      sector: data.sector || null,
       status: 'ACTIVE',
       ...(hasEnrichmentData ? {
         enrichment: {

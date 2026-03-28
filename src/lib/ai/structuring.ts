@@ -14,8 +14,7 @@ interface StructuredProfile {
   currentPosition?: string
   currentCompany?: string
   location?: string
-  estimatedSeniority?: 'JUNIOR' | 'MID' | 'SENIOR' | 'LEAD' | 'EXECUTIVE'
-  estimatedSector?: string
+  sector?: string
   skills?: string[]
 }
 
@@ -28,10 +27,9 @@ export interface EnrichedProfileData {
   currentPosition?: string
   currentCompany?: string
   linkedin: string
-  estimatedSeniority?: 'JUNIOR' | 'MID' | 'SENIOR' | 'LEAD' | 'EXECUTIVE'
-  estimatedSector?: string
+  sector?: string
   tags: string[]
-  notes?: string
+  comments?: string
   suggestedNotes?: string
   // Enrichment data
   linkedinHeadline?: string
@@ -66,8 +64,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (sans markdown):
   "currentPosition": "<poste actuel>",
   "currentCompany": "<entreprise actuelle>",
   "location": "<ville, pays>",
-  "estimatedSeniority": "<JUNIOR|MID|SENIOR|LEAD|EXECUTIVE>",
-  "estimatedSector": "<secteur d'activité>",
+  "sector": "<secteur d'activité>",
   "skills": ["<compétence1>", "<compétence2>", ...]
 }
 
@@ -129,8 +126,7 @@ export async function generateProfileTags(profileData: {
   education?: Array<{ school: string; degree?: string; field?: string }>
 }): Promise<{
   tags: string[]
-  estimatedSeniority?: 'JUNIOR' | 'MID' | 'SENIOR' | 'LEAD' | 'EXECUTIVE'
-  estimatedSector?: string
+  sector?: string
   suggestedNotes?: string
 }> {
   const contextParts: string[] = []
@@ -175,8 +171,7 @@ ${contextParts.join('\n')}
 Réponds UNIQUEMENT avec un objet JSON valide (sans markdown ni backticks):
 {
   "tags": ["<tag1>", "<tag2>", ...],
-  "estimatedSeniority": "<JUNIOR|MID|SENIOR|LEAD|EXECUTIVE>",
-  "estimatedSector": "<secteur d'activité principal>",
+  "sector": "<secteur d'activité principal>",
   "suggestedNotes": "<2-3 phrases résumant les points forts du profil>"
 }
 
@@ -211,8 +206,7 @@ RÈGLES POUR LA SÉNIORITÉ:
     
     return {
       tags: Array.isArray(result.tags) ? result.tags.slice(0, 8) : [],
-      estimatedSeniority: result.estimatedSeniority,
-      estimatedSector: result.estimatedSector,
+      sector: result.sector,
       suggestedNotes: result.suggestedNotes,
     }
   } catch (error) {
@@ -242,8 +236,7 @@ Réponds UNIQUEMENT avec un objet JSON valide (sans markdown ni backticks):
   "location": "<ville, pays>",
   "currentPosition": "<poste actuel>",
   "currentCompany": "<entreprise actuelle>",
-  "estimatedSeniority": "<JUNIOR|MID|SENIOR|LEAD|EXECUTIVE>",
-  "estimatedSector": "<secteur d'activité>",
+  "sector": "<secteur d'activité>",
   "tags": ["<tag pertinent 1>", "<tag pertinent 2>", ...],
   "suggestedNotes": "<résumé du profil en 2-3 phrases>",
   "skills": ["<compétence1>", "<compétence2>", ...]

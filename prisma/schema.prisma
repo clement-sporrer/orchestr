@@ -489,8 +489,6 @@ model Candidate {
   // ========== LEGACY FIELDS (kept for backward compatibility) ==========
   cvUrl            String?         // Legacy CV URL (use files array)
   location         String?         // Legacy location (use country/city/region)
-  estimatedSeniority Seniority?    // Legacy seniority (use seniority field)
-  estimatedSector    String?       // Legacy sector (use sector field)
   
   // Relationship level (global, not mission-specific)
   relationshipLevel RelationshipLevel @default(SOURCED)
