@@ -240,11 +240,9 @@ model Client {
 model Contact {
   id         String   @id @default(cuid())
   clientId   String
-  name       String?  // Legacy
-  firstName  String?  // PRD v2: capitalized
-  lastName   String?  // PRD v2: UPPERCASE
-  title      String?  // PRD v2 (ex "Directeur RH"); was role
-  role       String?
+  firstName  String?
+  lastName   String?
+  title      String?
   email      String?
   phone      String?
   notes      String?

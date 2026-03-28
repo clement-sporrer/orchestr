@@ -19,11 +19,9 @@ import { toast } from 'sonner'
 
 interface Contact {
   id: string
-  name: string | null
   firstName: string | null
   lastName: string | null
   title: string | null
-  role: string | null
   email: string | null
   phone: string | null
   notes: string | null
@@ -51,7 +49,6 @@ export function ContactDialog({ clientId, contact, children }: ContactDialogProp
     const data = {
       firstName: (formData.get('firstName') as string)?.trim() || undefined,
       lastName: (formData.get('lastName') as string)?.trim() || undefined,
-      name: (formData.get('name') as string)?.trim() || undefined,
       title: (formData.get('title') as string) || undefined,
       email: (formData.get('email') as string)?.trim() ?? '',
       phone: (formData.get('phone') as string) || undefined,
@@ -114,7 +111,7 @@ export function ContactDialog({ clientId, contact, children }: ContactDialogProp
                 id="firstName"
                 name="firstName"
                 placeholder="Jean"
-                defaultValue={contact?.firstName ?? contact?.name?.split(/\s+/)[0]}
+                defaultValue={contact?.firstName ?? ''}
                 required
                 disabled={loading}
               />
@@ -125,7 +122,7 @@ export function ContactDialog({ clientId, contact, children }: ContactDialogProp
                 id="lastName"
                 name="lastName"
                 placeholder="DUPONT"
-                defaultValue={contact?.lastName ?? contact?.name?.split(/\s+/).slice(1).join(' ')}
+                defaultValue={contact?.lastName ?? ''}
                 required
                 disabled={loading}
               />
@@ -138,7 +135,7 @@ export function ContactDialog({ clientId, contact, children }: ContactDialogProp
               id="title"
               name="title"
               placeholder="Ex: Directeur RH, Hiring Manager..."
-              defaultValue={contact?.title ?? contact?.role ?? ''}
+              defaultValue={contact?.title ?? ''}
               disabled={loading}
             />
           </div>
