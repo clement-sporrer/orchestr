@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { generateToken, getTokenExpiry, hashToken } from '@/lib/utils/tokens'
 import type { FeedbackDecision } from '@/generated/prisma'
 import { getOrganizationId } from '@/lib/auth/helpers'
+import { applyStageTransition } from '@/lib/actions/pipeline'
 
 // Create shortlist
 export async function createShortlist(
@@ -44,11 +45,19 @@ export async function createShortlist(
     },
   })
 
-  // Update mission candidates stage
-  await prisma.missionCandidate.updateMany({
+  // Fetch missionCandidates to get candidateIds, then sync RelationshipLevel for each
+  // NOTE: Shortlist is already persisted at this point. If applyStageTransition throws
+  // mid-loop, the shortlist exists but some candidates may not have their stage updated.
+  // Full atomicity would require restructuring applyStageTransition to accept an external
+  // transaction — deferred to Phase 3.
+  const mcsToUpdate = await prisma.missionCandidate.findMany({
     where: { id: { in: candidateIds } },
-    data: { stage: 'SHORTLIST' },
+    select: { id: true, candidateId: true },
   })
+
+  for (const mc of mcsToUpdate) {
+    await applyStageTransition(mc.id, mc.candidateId, 'SHORTLIST')
+  }
 
   revalidatePath(`/missions/${missionId}`)
   return { ...shortlist, rawAccessToken: rawToken }
@@ -126,14 +135,21 @@ export async function submitClientFeedback(
   })
 
   if (data.decision === 'OK') {
-    await prisma.missionCandidate.update({
-      where: { id: shortlistCandidate.missionCandidateId },
-      data: { stage: 'INTERVIEW' },
-    })
+    await applyStageTransition(
+      shortlistCandidate.missionCandidateId,
+      shortlistCandidate.missionCandidate.candidateId,
+      'INTERVIEW'
+    )
   } else if (data.decision === 'NO') {
+    await applyStageTransition(
+      shortlistCandidate.missionCandidateId,
+      shortlistCandidate.missionCandidate.candidateId,
+      'SHORTLIST'
+    )
+    // Add rejection metadata separately (applyStageTransition only handles stage + relationship)
     await prisma.missionCandidate.update({
       where: { id: shortlistCandidate.missionCandidateId },
-      data: { stage: 'SHORTLIST', rejectedAt: new Date(), rejectionReason: data.comment },
+      data: { rejectedAt: new Date(), rejectionReason: data.comment },
     })
   }
 }

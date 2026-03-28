@@ -38,19 +38,51 @@ export function shouldUpgradeRelationship(
   return RELATIONSHIP_ORDER.indexOf(target) > RELATIONSHIP_ORDER.indexOf(current)
 }
 
+/**
+ * Internal: apply a stage transition + sync RelationshipLevel.
+ * No auth check — caller must verify ownership before calling.
+ * No interaction created — caller creates the relevant interaction.
+ */
+export async function applyStageTransition(
+  missionCandidateId: string,
+  candidateId: string,
+  stage: PipelineStage
+): Promise<void> {
+  const candidate = await prisma.candidate.findUnique({
+    where: { id: candidateId },
+    select: { relationshipLevel: true },
+  })
+
+  if (!candidate) {
+    throw new Error(`applyStageTransition: candidate ${candidateId} not found`)
+  }
+
+  const targetRelationship = getTargetRelationshipLevel(stage)
+  const shouldSync = shouldUpgradeRelationship(candidate.relationshipLevel, targetRelationship)
+
+  await prisma.$transaction([
+    prisma.missionCandidate.update({
+      where: { id: missionCandidateId },
+      data: { stage },
+    }),
+    ...(shouldSync
+      ? [prisma.candidate.update({
+          where: { id: candidateId },
+          data: { relationshipLevel: targetRelationship },
+        })]
+      : []),
+  ])
+}
+
 // Update candidate stage
 export async function updateCandidateStage(missionCandidateId: string, stage: PipelineStage) {
   const organizationId = await getOrganizationId()
 
-  // Verify ownership through mission
   const mc = await prisma.missionCandidate.findFirst({
     where: { id: missionCandidateId },
     include: {
       mission: {
         select: { organizationId: true, id: true },
-      },
-      candidate: {
-        select: { id: true, relationshipLevel: true },
       },
     },
   })
@@ -59,21 +91,8 @@ export async function updateCandidateStage(missionCandidateId: string, stage: Pi
     throw new Error('Candidat non trouvé')
   }
 
-  await prisma.missionCandidate.update({
-    where: { id: missionCandidateId },
-    data: { stage },
-  })
+  await applyStageTransition(missionCandidateId, mc.candidateId, stage)
 
-  // Sync RelationshipLevel — only upgrade, never downgrade
-  const targetRelationship = getTargetRelationshipLevel(stage)
-  if (shouldUpgradeRelationship(mc.candidate.relationshipLevel, targetRelationship)) {
-    await prisma.candidate.update({
-      where: { id: mc.candidateId },
-      data: { relationshipLevel: targetRelationship },
-    })
-  }
-
-  // Create status change interaction
   await prisma.interaction.create({
     data: {
       organizationId: mc.mission.organizationId,
