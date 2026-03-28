@@ -101,8 +101,9 @@ async function main() {
     create: {
       id: 'contact_demo_001',
       clientId: client.id,
-      name: 'Marie Dupont',
-      role: 'DRH',
+      firstName: 'Marie',
+      lastName: 'Dupont',
+      title: 'DRH',
       email: 'marie.dupont@techcorp.demo',
       phone: '+33 6 12 34 56 78',
     },
