@@ -15,8 +15,7 @@ import { DeleteClientDialog } from './delete-client-dialog'
 
 interface Client {
   id: string
-  name: string
-  companyName?: string | null
+  companyName: string
   category?: string | null
   sector: string | null
   website: string | null
@@ -31,7 +30,7 @@ interface ClientActionsProps {
 export function ClientActions({ client, clientCategories = [] }: ClientActionsProps) {
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const displayName = client.companyName ?? client.name
+  const displayName = client.companyName
 
   return (
     <>
