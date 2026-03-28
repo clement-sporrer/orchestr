@@ -93,26 +93,29 @@ export async function completePortal(portalToken: string) {
   }
 
   // Only advance stage to RESPONSE if candidate is not already further in the pipeline.
-  // applyStageTransition handles RelationshipLevel sync internally.
+  // All writes are in one transaction for atomicity.
   const stagesBeforeResponse: string[] = ['SOURCED', 'CONTACTED']
-  if (stagesBeforeResponse.includes(mc.stage)) {
-    await applyStageTransition(mc.id, mc.candidateId, 'RESPONSE')
-  }
 
-  await prisma.$transaction([
-    prisma.missionCandidate.update({
+  await prisma.$transaction(async (tx) => {
+    if (stagesBeforeResponse.includes(mc.stage)) {
+      await applyStageTransition(mc.id, mc.candidateId, 'RESPONSE', tx)
+    }
+
+    await tx.missionCandidate.update({
       where: { id: mc.id },
       data: { portalCompleted: true },
-    }),
-    prisma.candidate.update({
+    })
+
+    await tx.candidate.update({
       where: { id: mc.candidateId },
       data: {
         consentGiven: true,
         consentDate: new Date(),
         consentText: 'Consentement donné via portail candidat',
       },
-    }),
-    prisma.interaction.create({
+    })
+
+    await tx.interaction.create({
       data: {
         organizationId: mc.mission.organizationId,
         candidateId: mc.candidateId,
@@ -120,8 +123,8 @@ export async function completePortal(portalToken: string) {
         type: 'PORTAL_COMPLETED',
         content: 'Le candidat a complété le portail',
       },
-    }),
-  ])
+    })
+  })
 
   revalidatePath(`/missions/${mc.missionId}`)
 }

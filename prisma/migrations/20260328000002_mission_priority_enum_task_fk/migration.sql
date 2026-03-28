@@ -35,3 +35,6 @@ ALTER TABLE "missions"
 
 ALTER TABLE "missions"
   ALTER COLUMN "priority" SET NOT NULL;
+
+-- Step 4: Add index on tasks.missionCandidateId (declared in schema @@index)
+CREATE INDEX IF NOT EXISTS "tasks_missionCandidateId_idx" ON "tasks" ("missionCandidateId");

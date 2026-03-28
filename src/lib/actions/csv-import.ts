@@ -77,7 +77,6 @@ export async function previewCsvImport(
   let newCount = 0
   let updateCount = 0
   let mergeCount = 0
-  const ignoreCount = 0
   let errorCount = 0
 
   for (const row of rows) {
@@ -131,7 +130,7 @@ export async function previewCsvImport(
     new: newCount,
     updated: updateCount,
     merged: mergeCount,
-    ignored: ignoreCount,
+    ignored: 0,
     errors: errorCount,
     previews,
   }
@@ -196,7 +195,7 @@ export async function executeCsvImport(
   const affectedCandidateIds: string[] = []
   let newCount = 0
   let updatedCount = 0
-  const mergedCount = 0
+  let mergedCount = 0
   let errorCount = 0
   const errors: { row: number; error: string }[] = []
 
@@ -236,7 +235,11 @@ export async function executeCsvImport(
           },
         })
         affectedCandidateIds.push(existingCandidate.id)
-        updatedCount++
+        if (!existingByEmail && (existingByPhone || existingByUrl)) {
+          mergedCount++
+        } else {
+          updatedCount++
+        }
       } else {
         // Create new
         const candidate = await prisma.candidate.create({
