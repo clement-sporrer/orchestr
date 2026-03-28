@@ -13,7 +13,7 @@ interface CsvRow {
   location?: string
   currentPosition?: string
   currentCompany?: string
-  profileUrl?: string
+  linkedin?: string
   tags?: string
 }
 
@@ -45,7 +45,7 @@ export async function previewCsvImport(
   // Collect unique values upfront, run 3 queries total (instead of 3 per row)
   const emails = [...new Set(rows.map(r => r.email).filter(Boolean) as string[])]
   const phones = [...new Set(rows.map(r => r.phone).filter(Boolean) as string[])]
-  const profileUrls = [...new Set(rows.map(r => r.profileUrl).filter(Boolean) as string[])]
+  const linkedinUrls = [...new Set(rows.map(r => r.linkedin).filter(Boolean) as string[])]
 
   const [byEmailList, byPhoneList, byUrlList] = await Promise.all([
     emails.length
@@ -60,17 +60,17 @@ export async function previewCsvImport(
           select: { id: true, firstName: true, lastName: true, phone: true },
         })
       : [],
-    profileUrls.length
+    linkedinUrls.length
       ? prisma.candidate.findMany({
-          where: { organizationId, profileUrl: { in: profileUrls } },
-          select: { id: true, firstName: true, lastName: true, profileUrl: true },
+          where: { organizationId, linkedin: { in: linkedinUrls } },
+          select: { id: true, firstName: true, lastName: true, linkedin: true },
         })
       : [],
   ])
 
   const emailMap = new Map(byEmailList.map(c => [c.email!, c]))
   const phoneMap = new Map(byPhoneList.map(c => [c.phone!, c]))
-  const urlMap = new Map(byUrlList.map(c => [c.profileUrl!, c]))
+  const urlMap = new Map(byUrlList.map(c => [c.linkedin!, c]))
   // --- End batch ---
 
   const previews: PreviewResult[] = []
@@ -92,7 +92,7 @@ export async function previewCsvImport(
 
     const existingByEmail = row.email ? (emailMap.get(row.email) ?? null) : null
     const existingByPhone = row.phone ? (phoneMap.get(row.phone) ?? null) : null
-    const existingByUrl = row.profileUrl ? (urlMap.get(row.profileUrl) ?? null) : null
+    const existingByUrl = row.linkedin ? (urlMap.get(row.linkedin) ?? null) : null
 
     if (existingByEmail) {
       previews.push({
@@ -112,7 +112,7 @@ export async function previewCsvImport(
         mergeWith: {
           id: existing.id,
           name: `${existing.firstName} ${existing.lastName}`,
-          matchField: existingByPhone ? 'phone' : 'profileUrl',
+          matchField: existingByPhone ? 'phone' : 'linkedin',
         },
       })
       mergeCount++
@@ -164,32 +164,32 @@ export async function executeCsvImport(
   // Collect unique values upfront, run 3 queries total (instead of 3 per row)
   const emails = [...new Set(rows.map(r => r.email).filter(Boolean) as string[])]
   const phones = [...new Set(rows.map(r => r.phone).filter(Boolean) as string[])]
-  const profileUrls = [...new Set(rows.map(r => r.profileUrl).filter(Boolean) as string[])]
+  const linkedinUrls = [...new Set(rows.map(r => r.linkedin).filter(Boolean) as string[])]
 
   const [byEmailList, byPhoneList, byUrlList] = await Promise.all([
     emails.length
       ? prisma.candidate.findMany({
           where: { organizationId, email: { in: emails } },
-          select: { id: true, firstName: true, lastName: true, email: true, phone: true, profileUrl: true, location: true, currentPosition: true, currentCompany: true, tags: true },
+          select: { id: true, firstName: true, lastName: true, email: true, phone: true, linkedin: true, location: true, currentPosition: true, currentCompany: true, tags: true },
         })
       : [],
     phones.length
       ? prisma.candidate.findMany({
           where: { organizationId, phone: { in: phones } },
-          select: { id: true, firstName: true, lastName: true, email: true, phone: true, profileUrl: true, location: true, currentPosition: true, currentCompany: true, tags: true },
+          select: { id: true, firstName: true, lastName: true, email: true, phone: true, linkedin: true, location: true, currentPosition: true, currentCompany: true, tags: true },
         })
       : [],
-    profileUrls.length
+    linkedinUrls.length
       ? prisma.candidate.findMany({
-          where: { organizationId, profileUrl: { in: profileUrls } },
-          select: { id: true, firstName: true, lastName: true, email: true, phone: true, profileUrl: true, location: true, currentPosition: true, currentCompany: true, tags: true },
+          where: { organizationId, linkedin: { in: linkedinUrls } },
+          select: { id: true, firstName: true, lastName: true, email: true, phone: true, linkedin: true, location: true, currentPosition: true, currentCompany: true, tags: true },
         })
       : [],
   ])
 
   const emailMap = new Map(byEmailList.map(c => [c.email!, c]))
   const phoneMap = new Map(byPhoneList.map(c => [c.phone!, c]))
-  const urlMap = new Map(byUrlList.map(c => [c.profileUrl!, c]))
+  const urlMap = new Map(byUrlList.map(c => [c.linkedin!, c]))
   // --- End batch ---
 
   const affectedCandidateIds: string[] = []
@@ -212,7 +212,7 @@ export async function executeCsvImport(
       // Check for existing using pre-loaded maps
       const existingByEmail = row.email ? (emailMap.get(row.email) ?? null) : null
       const existingByPhone = row.phone ? (phoneMap.get(row.phone) ?? null) : null
-      const existingByUrl = row.profileUrl ? (urlMap.get(row.profileUrl) ?? null) : null
+      const existingByUrl = row.linkedin ? (urlMap.get(row.linkedin) ?? null) : null
       const existingCandidate = existingByEmail ?? existingByPhone ?? existingByUrl ?? null
 
       const tags = row.tags 
@@ -230,7 +230,7 @@ export async function executeCsvImport(
             location: existingCandidate.location || row.location || null,
             currentPosition: existingCandidate.currentPosition || row.currentPosition || null,
             currentCompany: existingCandidate.currentCompany || row.currentCompany || null,
-            profileUrl: existingCandidate.profileUrl || row.profileUrl || null,
+            linkedin: existingCandidate.linkedin || row.linkedin || null,
             tags: [...new Set([...existingCandidate.tags, ...tags])],
           },
         })
@@ -252,7 +252,7 @@ export async function executeCsvImport(
             location: row.location || null,
             currentPosition: row.currentPosition || null,
             currentCompany: row.currentCompany || null,
-            profileUrl: row.profileUrl || null,
+            linkedin: row.linkedin || null,
             tags,
           },
         })

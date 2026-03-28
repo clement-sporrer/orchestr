@@ -122,7 +122,6 @@ const baseCandidateSchema = z.object({
   files: z.array(z.string()).default([]),
 
   // Legacy fields (backward compatibility)
-  profileUrl: z.string().url().optional().or(z.literal('')),
   cvUrl: z.string().optional().or(z.literal('')),
   location: z.string().optional().or(z.literal('')),
   tags: z.array(z.string()).default([]),

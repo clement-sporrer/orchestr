@@ -106,8 +106,8 @@ export function PipelineList({ missionId: _missionId, candidates, stages }: Pipe
                         <Phone className="h-3 w-3" />
                       </a>
                     )}
-                    {mc.candidate.profileUrl && (
-                      <a href={mc.candidate.profileUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                    {mc.candidate.linkedin && (
+                      <a href={mc.candidate.linkedin} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     )}

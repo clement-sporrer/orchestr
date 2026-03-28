@@ -75,7 +75,6 @@ type CandidateForEdit = Pick<
   | 'comments'
   | 'references'
   | 'recruitable'
-  | 'profileUrl'
   | 'cvUrl'
   | 'location'
   | 'tags'
@@ -112,7 +111,6 @@ function buildInitialFormData(c: CandidateForEdit): Partial<UpdateCandidateInput
     comments: c.comments ?? '',
     references: c.references ?? '',
     recruitable: (c.recruitable as RecruitableStatus) ?? 'UNKNOWN',
-    profileUrl: c.profileUrl ?? '',
     cvUrl: c.cvUrl ?? '',
     location: c.location ?? '',
     tags: c.tags ?? [],
@@ -205,7 +203,6 @@ export function EditCandidateForm({ candidate }: EditCandidateFormProps) {
         comments: formData.comments?.trim() || undefined,
         references: formData.references?.trim() || undefined,
         recruitable: formData.recruitable ?? 'UNKNOWN',
-        profileUrl: formData.profileUrl?.trim() || undefined,
         cvUrl: formData.cvUrl?.trim() || undefined,
         location: formData.location?.trim() || undefined,
         tags: formData.tags ?? [],

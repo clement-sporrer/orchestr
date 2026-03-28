@@ -487,7 +487,6 @@ model Candidate {
   updatedAt      DateTime        @updatedAt
   
   // ========== LEGACY FIELDS (kept for backward compatibility) ==========
-  profileUrl       String?         // LinkedIn or other (legacy, use linkedin field)
   cvUrl            String?         // Legacy CV URL (use files array)
   location         String?         // Legacy location (use country/city/region)
   estimatedSeniority Seniority?    // Legacy seniority (use seniority field)
@@ -523,7 +522,6 @@ model Candidate {
   @@index([email])
   @@index([phone])
   @@index([linkedin])
-  @@index([profileUrl])
   @@index([status])
   @@index([relationshipLevel])
   @@index([lastName, firstName])

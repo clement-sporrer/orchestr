@@ -27,7 +27,7 @@ export interface EnrichedProfileData {
   location?: string
   currentPosition?: string
   currentCompany?: string
-  profileUrl: string
+  linkedin: string
   estimatedSeniority?: 'JUNIOR' | 'MID' | 'SENIOR' | 'LEAD' | 'EXECUTIVE'
   estimatedSector?: string
   tags: string[]

@@ -163,7 +163,6 @@ export async function createCandidate(data: CreateCandidateInput) {
       references: transformed.references ?? null,
       recruitable: transformed.recruitable ?? 'UNKNOWN',
       files: transformed.files ?? [],
-      profileUrl: transformed.profileUrl ?? null,
       cvUrl: transformed.cvUrl ?? null,
       location: transformed.location ?? null,
       tags: transformed.tags ?? [],
@@ -411,7 +410,7 @@ export async function enrichFromLinkedInUrl(linkedInUrl: string): Promise<Linked
     data: {
       firstName: urlInfo.firstName,
       lastName: urlInfo.lastName || '',
-      profileUrl: cleanUrl,
+      linkedin: cleanUrl,
       tags: [],
     },
     source: 'url_parsing',
@@ -445,7 +444,7 @@ export async function enrichFromProfileText(profileText: string, linkedInUrl?: s
       success: true,
       data: {
         ...enrichedData,
-        profileUrl: linkedInUrl || '',
+        linkedin: linkedInUrl || '',
         tags: tagResult.tags,
         estimatedSeniority: tagResult.estimatedSeniority || enrichedData.estimatedSeniority,
         estimatedSector: tagResult.estimatedSector || enrichedData.estimatedSector,
@@ -489,18 +488,18 @@ export async function generateTagsForCandidate(candidateData: {
 // Check if candidate already exists (for deduplication)
 export async function checkCandidateExists(data: {
   email?: string
-  profileUrl?: string
+  linkedin?: string
   firstName?: string
   lastName?: string
 }): Promise<{ exists: boolean; candidate?: { id: string; firstName: string; lastName: string } }> {
   const organizationId = await getOrganizationId()
 
   // Check by LinkedIn URL first (most reliable)
-  if (data.profileUrl) {
+  if (data.linkedin) {
     const byUrl = await prisma.candidate.findFirst({
       where: {
         organizationId,
-        profileUrl: data.profileUrl,
+        linkedin: data.linkedin,
         status: { not: 'DELETED' },
       },
       select: { id: true, firstName: true, lastName: true },
@@ -663,7 +662,7 @@ export async function mergeCandidates(targetId: string, sourceId: string) {
     'email', 'linkedin', 'phone', 'age', 'country', 'city', 'region',
     'seniority', 'domain', 'sector', 'currentCompany', 'currentPosition',
     'pastCompanies', 'jobFamily', 'hardSkills', 'softSkills',
-    'compensation', 'comments', 'references', 'profileUrl', 'cvUrl', 'location',
+    'compensation', 'comments', 'references', 'cvUrl', 'location',
   ] as const
 
   for (const field of fieldsToMerge) {
@@ -784,7 +783,7 @@ export async function createCandidateWithEnrichment(data: {
   location?: string
   currentPosition?: string
   currentCompany?: string
-  profileUrl?: string
+  linkedin?: string
   tags?: string[]
   estimatedSeniority?: Seniority
   estimatedSector?: string
@@ -810,10 +809,10 @@ export async function createCandidateWithEnrichment(data: {
   const organizationId = await getOrganizationId()
 
   // Check for duplicates
-  if (data.email || data.profileUrl) {
+  if (data.email || data.linkedin) {
     const existing = await checkCandidateExists({
       email: data.email,
-      profileUrl: data.profileUrl,
+      linkedin: data.linkedin,
       firstName: data.firstName,
       lastName: data.lastName,
     })
@@ -838,8 +837,7 @@ export async function createCandidateWithEnrichment(data: {
       location: data.location || null,
       currentPosition: data.currentPosition || null,
       currentCompany: data.currentCompany || null,
-      profileUrl: data.profileUrl || null,
-      linkedin: data.profileUrl || null,
+      linkedin: data.linkedin || null,
       tags: data.tags || [],
       estimatedSeniority: data.estimatedSeniority || null,
       estimatedSector: data.estimatedSector || null,
@@ -847,7 +845,7 @@ export async function createCandidateWithEnrichment(data: {
       ...(hasEnrichmentData ? {
         enrichment: {
           create: {
-            linkedinUrl: data.profileUrl || null,
+            linkedinUrl: data.linkedin || null,
             linkedinHeadline: data.linkedinHeadline || null,
             linkedinSummary: data.linkedinSummary || null,
             experiences: data.experiences as object || null,
