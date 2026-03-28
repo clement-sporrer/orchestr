@@ -31,9 +31,13 @@ export async function createShortlist(
 
   // Fetch missionCandidates before the transaction to get candidateIds for stage sync
   const mcsToUpdate = await prisma.missionCandidate.findMany({
-    where: { id: { in: candidateIds } },
+    where: { id: { in: candidateIds }, missionId },
     select: { id: true, candidateId: true },
   })
+
+  if (mcsToUpdate.length === 0 && candidateIds.length > 0) {
+    throw new Error('Aucun candidat valide trouvé pour cette mission')
+  }
 
   // Single transaction: shortlist creation + all stage transitions are atomic
   const shortlist = await prisma.$transaction(async (tx) => {
@@ -142,15 +146,17 @@ export async function submitClientFeedback(
       'INTERVIEW'
     )
   } else if (data.decision === 'NO') {
-    await applyStageTransition(
-      shortlistCandidate.missionCandidateId,
-      shortlistCandidate.missionCandidate.candidateId,
-      'SHORTLIST'
-    )
-    // Add rejection metadata separately (applyStageTransition only handles stage + relationship)
-    await prisma.missionCandidate.update({
-      where: { id: shortlistCandidate.missionCandidateId },
-      data: { rejectedAt: new Date(), rejectionReason: data.comment },
+    await prisma.$transaction(async (tx) => {
+      await applyStageTransition(
+        shortlistCandidate.missionCandidateId,
+        shortlistCandidate.missionCandidate.candidateId,
+        'SHORTLIST',
+        tx
+      )
+      await tx.missionCandidate.update({
+        where: { id: shortlistCandidate.missionCandidateId },
+        data: { rejectedAt: new Date(), rejectionReason: data.comment },
+      })
     })
   }
 }
