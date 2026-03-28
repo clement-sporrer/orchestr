@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getTargetRelationshipLevel, shouldUpgradeRelationship } from './pipeline'
+import { getTargetRelationshipLevel, shouldUpgradeRelationship } from '@/lib/utils/stage-transition'
 
 describe('getTargetRelationshipLevel', () => {
   it('maps SOURCED → SOURCED', () => expect(getTargetRelationshipLevel('SOURCED')).toBe('SOURCED'))
