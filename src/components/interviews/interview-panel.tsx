@@ -39,13 +39,6 @@ import {
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import { 
-  createInterview, 
-  updateInterviewStatus, 
-  saveInterviewNotes,
-  interviewTypeLabels,
-  interviewStatusLabels,
-} from '@/lib/actions/interviews'
 import type { Interview, InterviewType, InterviewStatus } from '@/generated/prisma'
 
 interface InterviewPanelProps {

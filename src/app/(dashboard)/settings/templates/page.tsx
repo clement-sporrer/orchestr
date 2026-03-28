@@ -45,13 +45,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
-import {
-  getReportTemplates,
-  createReportTemplate,
-  updateReportTemplate,
-  deleteReportTemplate,
-  DEFAULT_INDIVIDUAL_TEMPLATE,
-} from '@/lib/actions/reports'
 import type { ReportTemplate, ReportType } from '@/generated/prisma'
 
 interface Section {

@@ -32,7 +32,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { previewCsvImport, executeCsvImport } from '@/lib/actions/csv-import'
 import { toast } from 'sonner'
 
 type Step = 'upload' | 'mapping' | 'preview' | 'complete'
