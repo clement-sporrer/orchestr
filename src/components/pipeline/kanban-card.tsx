@@ -90,10 +90,11 @@ export const KanbanCard = memo(function KanbanCard({ candidate, missionId: _miss
   }
 
   const lastInteraction = candidate.interactions[0]
-  const hasPortalLink = candidate.contactStatus === 'OPEN' && candidate.portalToken
-  const portalUrl = hasPortalLink 
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/candidate/${candidate.portalToken}`
-    : null
+  // portalToken stores a SHA-256 hash — cannot reconstruct the URL from it.
+  // The raw URL was stored in the PORTAL_INVITED interaction at generation time.
+  const portalInviteInteraction = candidate.interactions.find(i => i.type === 'PORTAL_INVITED')
+  const hasPortalLink = candidate.contactStatus === 'OPEN' && !!portalInviteInteraction?.content
+  const portalUrl = portalInviteInteraction?.content ?? null
 
   const copyPortalLink = async () => {
     if (!portalUrl) return

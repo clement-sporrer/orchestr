@@ -19,7 +19,11 @@ export function MissionShortlistView({ mission }: MissionShortlistViewProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   const copyLink = async (shortlist: Shortlist) => {
-    const link = `${window.location.origin}/client/${shortlist.accessToken}`
+    const link = shortlist.clientPortalUrl ?? ''
+    if (!link) {
+      toast.error('URL non disponible')
+      return
+    }
     await navigator.clipboard.writeText(link)
     setCopiedId(shortlist.id)
     toast.success('Lien copié')
@@ -84,9 +88,9 @@ export function MissionShortlistView({ mission }: MissionShortlistViewProps) {
                         </>
                       )}
                     </Button>
-                    <Button variant="outline" size="sm" asChild>
-                      <a 
-                        href={`/client/${shortlist.accessToken}`}
+                    <Button variant="outline" size="sm" asChild disabled={!shortlist.clientPortalUrl}>
+                      <a
+                        href={shortlist.clientPortalUrl ?? '#'}
                         target="_blank"
                         rel="noopener noreferrer"
                       >

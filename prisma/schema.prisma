@@ -522,7 +522,9 @@ model Candidate {
   externalAccessTokens ExternalAccessToken[]
   documents            CandidateDocument[]
 
-  @@unique([organizationId, email])
+  // Note: partial unique index (email IS NOT NULL) is managed via raw migration
+  // prisma/migrations/20260328000000_fix_candidate_email_null_unique/migration.sql
+  @@index([organizationId, email])
   @@index([organizationId])
   @@index([email])
   @@index([phone])
@@ -651,7 +653,6 @@ model MissionCandidate {
   @@index([candidateId])
   @@index([stage])
   @@index([missionId, stage])
-  @@index([portalToken])
   // Composite indexes for pipeline queries (performance optimization)
   @@index([candidateId, stage, updatedAt(sort: Desc)])
   @@index([missionId, stage, updatedAt(sort: Desc)])
@@ -1078,9 +1079,11 @@ model Shortlist {
   missionId   String
   name        String
   
-  // Access token for client portal
+  // Access token for client portal (stores SHA-256 hash — raw token never persisted)
   accessToken       String   @unique
   accessTokenExpiry DateTime?
+  // Full client portal URL stored at creation time (raw token is discarded after hashing)
+  clientPortalUrl   String?
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -1089,7 +1092,6 @@ model Shortlist {
   candidates ShortlistCandidate[]
 
   @@index([missionId])
-  @@index([accessToken])
   @@map("shortlists")
 }
 

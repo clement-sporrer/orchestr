@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 import type { Mission, Candidate, MissionCandidate, Questionnaire, QuestionnaireQuestion } from '@/generated/prisma'
 
 interface CandidatePortalClientProps {
+  token: string  // Raw portal token — passed to server actions for re-auth
   missionCandidate: MissionCandidate
   candidate: Candidate
   mission: Mission
@@ -25,6 +26,7 @@ type Step = 'welcome' | 'profile' | 'job' | 'calendly' | 'questionnaire' | 'conf
 const STEPS: Step[] = ['welcome', 'profile', 'job', 'calendly', 'questionnaire', 'confirmation']
 
 export function CandidatePortalClient({
+  token,
   missionCandidate,
   candidate,
   mission,
@@ -53,7 +55,7 @@ export function CandidatePortalClient({
     const stepIndex = STEPS.indexOf(step)
     setLoading(true)
     try {
-      await updateCandidatePortal(missionCandidate.id, { portalStep: stepIndex })
+      await updateCandidatePortal(token, { portalStep: stepIndex })
       setCurrentStep(step)
     } catch {
       toast.error('Erreur lors de la sauvegarde')
@@ -66,7 +68,7 @@ export function CandidatePortalClient({
     e.preventDefault()
     setLoading(true)
     try {
-      await updateCandidatePortal(missionCandidate.id, {
+      await updateCandidatePortal(token, {
         portalStep: STEPS.indexOf('job'),
         candidateData: profileData,
       })
@@ -97,7 +99,7 @@ export function CandidatePortalClient({
     
     setLoading(true)
     try {
-      await completePortal(missionCandidate.id)
+      await completePortal(token)
       setCurrentStep('confirmation')
       toast.success('Merci! Votre profil a été enregistré.')
     } catch {

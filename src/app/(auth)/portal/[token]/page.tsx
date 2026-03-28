@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
+import { hashToken } from '@/lib/utils/tokens'
 import { AuthCard } from '@/components/auth/auth-card'
 import { Button } from '@/components/ui/button'
 import { AlertCircle } from 'lucide-react'
@@ -11,11 +12,12 @@ interface PortalLandingPageProps {
 
 export default async function PortalLandingPage({ params }: PortalLandingPageProps) {
   const { token } = await params
-  
+  const tokenHash = hashToken(token)
+
   // Check if it's a candidate portal token
   const missionCandidate = await prisma.missionCandidate.findFirst({
     where: {
-      portalToken: token,
+      portalToken: tokenHash,
       OR: [
         { portalTokenExpiry: null },
         { portalTokenExpiry: { gte: new Date() } },
@@ -39,7 +41,7 @@ export default async function PortalLandingPage({ params }: PortalLandingPagePro
   // Check if it's a client shortlist token
   const shortlist = await prisma.shortlist.findFirst({
     where: {
-      accessToken: token,
+      accessToken: tokenHash,
       OR: [
         { accessTokenExpiry: null },
         { accessTokenExpiry: { gte: new Date() } },

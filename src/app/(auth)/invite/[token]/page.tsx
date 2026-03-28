@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
+import { hashToken } from '@/lib/utils/tokens'
 import { AuthCard } from '@/components/auth/auth-card'
 import { Button } from '@/components/ui/button'
 import { UserPlus, AlertCircle } from 'lucide-react'
@@ -10,18 +11,17 @@ interface InvitePageProps {
 
 export default async function InvitePage({ params }: InvitePageProps) {
   const { token } = await params
-  
-  // Validate token (check if it exists and is not expired)
-  // This is a simplified check - in production you'd verify more thoroughly
+  const tokenHash = hashToken(token)
+
   let isValid = false
   let inviteType: 'candidate' | 'recruiter' = 'candidate'
   let missionTitle = ''
-  
+
   try {
     // Check if it's a candidate portal token
     const missionCandidate = await prisma.missionCandidate.findFirst({
       where: {
-        portalToken: token,
+        portalToken: tokenHash,
         OR: [
           { portalTokenExpiry: null },
           { portalTokenExpiry: { gte: new Date() } },
@@ -38,8 +38,8 @@ export default async function InvitePage({ params }: InvitePageProps) {
       inviteType = 'candidate'
       missionTitle = missionCandidate.mission.title
     }
-  } catch {
-    // Token validation failed
+  } catch (err) {
+    console.error('[invite] Token validation failed:', err)
   }
 
   if (!isValid) {

@@ -2,9 +2,41 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { generateToken, getTokenExpiry } from '@/lib/utils/tokens'
-import type { PipelineStage, ContactStatus } from '@/generated/prisma'
+import { generateToken, getTokenExpiry, hashToken } from '@/lib/utils/tokens'
+import type { PipelineStage, ContactStatus, RelationshipLevel } from '@/generated/prisma'
 import { getOrganizationId } from '@/lib/auth/helpers'
+
+// Ordered list for RelationshipLevel comparison (lowest → highest)
+const RELATIONSHIP_ORDER: RelationshipLevel[] = [
+  'SOURCED',
+  'CONTACTED',
+  'ENGAGED',
+  'QUALIFIED',
+  'SHORTLISTED',
+  'PLACED',
+]
+
+// Maps a PipelineStage to the equivalent RelationshipLevel
+export function getTargetRelationshipLevel(stage: PipelineStage): RelationshipLevel {
+  const map: Record<PipelineStage, RelationshipLevel> = {
+    SOURCED: 'SOURCED',
+    CONTACTED: 'CONTACTED',
+    RESPONSE: 'CONTACTED',
+    INTERVIEW: 'ENGAGED',
+    SHORTLIST: 'SHORTLISTED',
+    OFFER: 'SHORTLISTED',
+    PLACED: 'PLACED',
+  }
+  return map[stage]
+}
+
+// Returns true only if target is strictly higher than current
+export function shouldUpgradeRelationship(
+  current: RelationshipLevel,
+  target: RelationshipLevel
+): boolean {
+  return RELATIONSHIP_ORDER.indexOf(target) > RELATIONSHIP_ORDER.indexOf(current)
+}
 
 // Update candidate stage
 export async function updateCandidateStage(missionCandidateId: string, stage: PipelineStage) {
@@ -17,6 +49,9 @@ export async function updateCandidateStage(missionCandidateId: string, stage: Pi
       mission: {
         select: { organizationId: true, id: true },
       },
+      candidate: {
+        select: { id: true, relationshipLevel: true },
+      },
     },
   })
 
@@ -28,6 +63,15 @@ export async function updateCandidateStage(missionCandidateId: string, stage: Pi
     where: { id: missionCandidateId },
     data: { stage },
   })
+
+  // Sync RelationshipLevel — only upgrade, never downgrade
+  const targetRelationship = getTargetRelationshipLevel(stage)
+  if (shouldUpgradeRelationship(mc.candidate.relationshipLevel, targetRelationship)) {
+    await prisma.candidate.update({
+      where: { id: mc.candidateId },
+      data: { relationshipLevel: targetRelationship },
+    })
+  }
 
   // Create status change interaction
   await prisma.interaction.create({
@@ -72,22 +116,22 @@ export async function updateContactStatus(missionCandidateId: string, status: Co
   // AUTO-GENERATE PORTAL LINK ON POSITIVE RESPONSE
   let portalUrl: string | null = null
   if (status === 'OPEN' && !mc.portalToken) {
-    const token = generateToken()
+    const rawToken = generateToken()
+    const tokenHash = hashToken(rawToken)
     const expiry = getTokenExpiry('candidate')
-    
+
     await prisma.missionCandidate.update({
       where: { id: missionCandidateId },
       data: {
-        portalToken: token,
+        portalToken: tokenHash,
         portalTokenExpiry: expiry,
         portalStep: 0,
         portalCompleted: false,
       },
     })
-    
-    portalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/candidate/${token}`
-    
-    // Create interaction with the portal link ready to copy
+
+    portalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/candidate/${rawToken}`
+
     await prisma.interaction.create({
       data: {
         organizationId: mc.mission.organizationId,
@@ -105,17 +149,10 @@ export async function updateContactStatus(missionCandidateId: string, status: Co
 }
 
 // Get portal URL for a mission candidate
-export async function getPortalUrl(missionCandidateId: string) {
-  const mc = await prisma.missionCandidate.findUnique({
-    where: { id: missionCandidateId },
-    select: { portalToken: true },
-  })
-  
-  if (!mc?.portalToken) {
-    return null
-  }
-  
-  return `${process.env.NEXT_PUBLIC_APP_URL}/candidate/${mc.portalToken}`
+// NOTE: After token hashing, the raw token is only available at generation time.
+// This function always returns null — the URL must be captured at generation time.
+export async function getPortalUrl(_missionCandidateId: string): Promise<null> {
+  return null
 }
 
 // Add candidate to mission

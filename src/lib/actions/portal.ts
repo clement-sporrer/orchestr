@@ -2,29 +2,30 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { generateToken, getTokenExpiry } from '@/lib/utils/tokens'
+import { generateToken, getTokenExpiry, hashToken } from '@/lib/utils/tokens'
 
-// Generate portal token for candidate
-export async function generatePortalToken(missionCandidateId: string) {
-  const token = generateToken()
+// Generate portal token for candidate — stores hash, returns raw token for URL
+export async function generatePortalToken(missionCandidateId: string): Promise<string> {
+  const rawToken = generateToken()
+  const tokenHash = hashToken(rawToken)
   const expiry = getTokenExpiry('candidate')
 
   await prisma.missionCandidate.update({
     where: { id: missionCandidateId },
     data: {
-      portalToken: token,
+      portalToken: tokenHash,
       portalTokenExpiry: expiry,
       portalStep: 0,
       portalCompleted: false,
     },
   })
 
-  return token
+  return rawToken  // Return raw — caller builds the URL
 }
 
-// Update candidate portal progress
+// Update candidate portal progress — authenticated by portal token
 export async function updateCandidatePortal(
-  missionCandidateId: string,
+  portalToken: string,
   data: {
     portalStep?: number
     candidateData?: {
@@ -36,23 +37,27 @@ export async function updateCandidatePortal(
     }
   }
 ) {
-  const mc = await prisma.missionCandidate.findUnique({
-    where: { id: missionCandidateId },
+  const tokenHash = hashToken(portalToken)
+
+  const mc = await prisma.missionCandidate.findFirst({
+    where: { portalToken: tokenHash },
   })
 
   if (!mc) {
-    throw new Error('Non trouvé')
+    throw new Error('Token invalide')
   }
 
-  // Update mission candidate
+  if (mc.portalTokenExpiry && mc.portalTokenExpiry < new Date()) {
+    throw new Error('Lien expiré')
+  }
+
   if (data.portalStep !== undefined) {
     await prisma.missionCandidate.update({
-      where: { id: missionCandidateId },
+      where: { id: mc.id },
       data: { portalStep: data.portalStep },
     })
   }
 
-  // Update candidate data
   if (data.candidateData) {
     await prisma.candidate.update({
       where: { id: mc.candidateId },
@@ -65,27 +70,39 @@ export async function updateCandidatePortal(
   }
 }
 
-// Complete portal
-export async function completePortal(missionCandidateId: string) {
-  const mc = await prisma.missionCandidate.findUnique({
-    where: { id: missionCandidateId },
+// Complete portal — authenticated by portal token
+export async function completePortal(portalToken: string) {
+  const tokenHash = hashToken(portalToken)
+
+  const mc = await prisma.missionCandidate.findFirst({
+    where: { portalToken: tokenHash },
     include: { mission: true },
   })
 
   if (!mc) {
-    throw new Error('Non trouvé')
+    throw new Error('Token invalide')
   }
 
-  // Update mission candidate
+  if (mc.portalTokenExpiry && mc.portalTokenExpiry < new Date()) {
+    throw new Error('Lien expiré')
+  }
+
+  if (mc.portalCompleted) {
+    return  // Idempotent — already completed, nothing to do
+  }
+
+  // Only advance stage to RESPONSE if candidate is not already further in the pipeline
+  const stagesBeforeResponse: string[] = ['SOURCED', 'CONTACTED']
+  const updateData: { portalCompleted: boolean; stage?: 'RESPONSE' } = { portalCompleted: true }
+  if (stagesBeforeResponse.includes(mc.stage)) {
+    updateData.stage = 'RESPONSE'
+  }
+
   await prisma.missionCandidate.update({
-    where: { id: missionCandidateId },
-    data: {
-      portalCompleted: true,
-      stage: 'RESPONSE',
-    },
+    where: { id: mc.id },
+    data: updateData,
   })
 
-  // Update candidate consent
   await prisma.candidate.update({
     where: { id: mc.candidateId },
     data: {
@@ -95,22 +112,11 @@ export async function completePortal(missionCandidateId: string) {
     },
   })
 
-  // Get organizationId from mission
-  const mission = await prisma.mission.findUnique({
-    where: { id: mc.missionId },
-    select: { organizationId: true },
-  })
-
-  if (!mission) {
-    throw new Error('Mission non trouvée')
-  }
-
-  // Create interaction
   await prisma.interaction.create({
     data: {
-      organizationId: mission.organizationId,
+      organizationId: mc.mission.organizationId,
       candidateId: mc.candidateId,
-      missionCandidateId,
+      missionCandidateId: mc.id,
       type: 'PORTAL_COMPLETED',
       content: 'Le candidat a complété le portail',
     },
@@ -118,6 +124,3 @@ export async function completePortal(missionCandidateId: string) {
 
   revalidatePath(`/missions/${mc.missionId}`)
 }
-
-
-

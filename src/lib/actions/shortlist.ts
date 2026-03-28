@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { generateToken, getTokenExpiry } from '@/lib/utils/tokens'
+import { generateToken, getTokenExpiry, hashToken } from '@/lib/utils/tokens'
 import type { FeedbackDecision } from '@/generated/prisma'
 import { getOrganizationId } from '@/lib/auth/helpers'
 
@@ -23,15 +23,18 @@ export async function createShortlist(
     throw new Error('Mission non trouvée')
   }
 
-  const token = generateToken()
+  const rawToken = generateToken()
+  const tokenHash = hashToken(rawToken)
   const expiry = getTokenExpiry('client')
+  const clientPortalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/client/${rawToken}`
 
   const shortlist = await prisma.shortlist.create({
     data: {
       missionId,
       name,
-      accessToken: token,
+      accessToken: tokenHash,
       accessTokenExpiry: expiry,
+      clientPortalUrl,
       candidates: {
         create: candidateIds.map((mcId, index) => ({
           missionCandidateId: mcId,
@@ -48,30 +51,48 @@ export async function createShortlist(
   })
 
   revalidatePath(`/missions/${missionId}`)
-  return shortlist
+  return { ...shortlist, rawAccessToken: rawToken }
 }
 
-// Submit client feedback
+// Submit client feedback — authenticated by shortlist access token
 export async function submitClientFeedback(
+  accessToken: string,
   shortlistCandidateId: string,
   data: {
     decision: FeedbackDecision
     comment?: string
   }
 ) {
-  const shortlistCandidate = await prisma.shortlistCandidate.findUnique({
-    where: { id: shortlistCandidateId },
+  const tokenHash = hashToken(accessToken)
+
+  // Verify token → find shortlist
+  const shortlist = await prisma.shortlist.findFirst({
+    where: { accessToken: tokenHash },
+  })
+
+  if (!shortlist) {
+    throw new Error('Token invalide')
+  }
+
+  if (shortlist.accessTokenExpiry && shortlist.accessTokenExpiry < new Date()) {
+    throw new Error('Lien expiré')
+  }
+
+  // Verify shortlistCandidate belongs to this shortlist
+  const shortlistCandidate = await prisma.shortlistCandidate.findFirst({
+    where: {
+      id: shortlistCandidateId,
+      shortlistId: shortlist.id,
+    },
     include: {
-      shortlist: true,
       missionCandidate: true,
     },
   })
 
   if (!shortlistCandidate) {
-    throw new Error('Non trouvé')
+    throw new Error('Candidat non trouvé dans cette shortlist')
   }
 
-  // Upsert feedback
   await prisma.clientFeedback.upsert({
     where: { shortlistCandidateId },
     create: {
@@ -85,9 +106,8 @@ export async function submitClientFeedback(
     },
   })
 
-  // Get organizationId from mission
   const mission = await prisma.mission.findUnique({
-    where: { id: shortlistCandidate.shortlist.missionId },
+    where: { id: shortlist.missionId },
     select: { organizationId: true },
   })
 
@@ -95,7 +115,6 @@ export async function submitClientFeedback(
     throw new Error('Mission non trouvée')
   }
 
-  // Create interaction
   await prisma.interaction.create({
     data: {
       organizationId: mission.organizationId,
@@ -106,7 +125,6 @@ export async function submitClientFeedback(
     },
   })
 
-  // Update pipeline stage based on feedback
   if (data.decision === 'OK') {
     await prisma.missionCandidate.update({
       where: { id: shortlistCandidate.missionCandidateId },

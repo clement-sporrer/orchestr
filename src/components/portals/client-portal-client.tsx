@@ -21,10 +21,11 @@ interface ShortlistWithDetails extends Shortlist {
 }
 
 interface ClientPortalClientProps {
+  token: string  // Raw access token — passed to submitClientFeedback for re-auth
   shortlist: ShortlistWithDetails
 }
 
-export function ClientPortalClient({ shortlist }: ClientPortalClientProps) {
+export function ClientPortalClient({ token, shortlist }: ClientPortalClientProps) {
   const [feedbackStates, setFeedbackStates] = useState<Record<string, {
     decision?: FeedbackDecision
     comment: string
@@ -51,7 +52,7 @@ export function ClientPortalClient({ shortlist }: ClientPortalClientProps) {
     }))
 
     try {
-      await submitClientFeedback(shortlistCandidateId, {
+      await submitClientFeedback(token, shortlistCandidateId, {
         decision,
         comment: state.comment,
       })
