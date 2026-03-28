@@ -161,6 +161,35 @@ export async function executeCsvImport(
     },
   })
 
+  // --- Batch duplicate detection ---
+  // Collect unique values upfront, run 3 queries total (instead of 3 per row)
+  const emails = [...new Set(rows.map(r => r.email).filter(Boolean) as string[])]
+  const phones = [...new Set(rows.map(r => r.phone).filter(Boolean) as string[])]
+  const profileUrls = [...new Set(rows.map(r => r.profileUrl).filter(Boolean) as string[])]
+
+  const [byEmailList, byPhoneList, byUrlList] = await Promise.all([
+    emails.length
+      ? prisma.candidate.findMany({
+          where: { organizationId, email: { in: emails } },
+        })
+      : [],
+    phones.length
+      ? prisma.candidate.findMany({
+          where: { organizationId, phone: { in: phones } },
+        })
+      : [],
+    profileUrls.length
+      ? prisma.candidate.findMany({
+          where: { organizationId, profileUrl: { in: profileUrls } },
+        })
+      : [],
+  ])
+
+  const emailMap = new Map(byEmailList.map(c => [c.email!, c]))
+  const phoneMap = new Map(byPhoneList.map(c => [c.phone!, c]))
+  const urlMap = new Map(byUrlList.map(c => [c.profileUrl!, c]))
+  // --- End batch ---
+
   const affectedCandidateIds: string[] = []
   let newCount = 0
   let updatedCount = 0
@@ -178,26 +207,11 @@ export async function executeCsvImport(
         continue
       }
 
-      // Check for existing
-      let existingCandidate = null
-      
-      if (row.email) {
-        existingCandidate = await prisma.candidate.findFirst({
-          where: { organizationId, email: row.email },
-        })
-      }
-      
-      if (!existingCandidate && row.phone) {
-        existingCandidate = await prisma.candidate.findFirst({
-          where: { organizationId, phone: row.phone },
-        })
-      }
-      
-      if (!existingCandidate && row.profileUrl) {
-        existingCandidate = await prisma.candidate.findFirst({
-          where: { organizationId, profileUrl: row.profileUrl },
-        })
-      }
+      // Check for existing using pre-loaded maps
+      const existingByEmail = row.email ? (emailMap.get(row.email) ?? null) : null
+      const existingByPhone = row.phone ? (phoneMap.get(row.phone) ?? null) : null
+      const existingByUrl = row.profileUrl ? (urlMap.get(row.profileUrl) ?? null) : null
+      const existingCandidate = existingByEmail ?? existingByPhone ?? existingByUrl ?? null
 
       const tags = row.tags 
         ? row.tags.split(',').map((t) => t.trim()).filter(Boolean)
