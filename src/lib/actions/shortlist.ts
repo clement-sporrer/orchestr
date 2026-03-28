@@ -46,6 +46,10 @@ export async function createShortlist(
   })
 
   // Fetch missionCandidates to get candidateIds, then sync RelationshipLevel for each
+  // NOTE: Shortlist is already persisted at this point. If applyStageTransition throws
+  // mid-loop, the shortlist exists but some candidates may not have their stage updated.
+  // Full atomicity would require restructuring applyStageTransition to accept an external
+  // transaction — deferred to Phase 3.
   const mcsToUpdate = await prisma.missionCandidate.findMany({
     where: { id: { in: candidateIds } },
     select: { id: true, candidateId: true },
