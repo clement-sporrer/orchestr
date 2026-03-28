@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import { isTokenExpired } from '@/lib/utils/tokens'
+import { isTokenExpired, hashToken } from '@/lib/utils/tokens'
 import { ClientPortalClient } from '@/components/portals/client-portal-client'
 
 interface ClientPortalPageProps {
@@ -9,10 +9,11 @@ interface ClientPortalPageProps {
 
 export default async function ClientPortalPage({ params }: ClientPortalPageProps) {
   const { token } = await params
+  const tokenHash = hashToken(token)
 
-  // Find shortlist by token
+  // Find shortlist by hashed token
   const shortlist = await prisma.shortlist.findFirst({
-    where: { accessToken: token },
+    where: { accessToken: tokenHash },
     include: {
       mission: {
         include: {
@@ -51,7 +52,7 @@ export default async function ClientPortalPage({ params }: ClientPortalPageProps
     )
   }
 
-  return <ClientPortalClient shortlist={shortlist} />
+  return <ClientPortalClient token={token} shortlist={shortlist} />
 }
 
 

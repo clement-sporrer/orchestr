@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import { isTokenExpired } from '@/lib/utils/tokens'
+import { isTokenExpired, hashToken } from '@/lib/utils/tokens'
 import { CandidatePortalClient } from '@/components/portals/candidate-portal-client'
 
 interface CandidatePortalPageProps {
@@ -9,10 +9,11 @@ interface CandidatePortalPageProps {
 
 export default async function CandidatePortalPage({ params }: CandidatePortalPageProps) {
   const { token } = await params
+  const tokenHash = hashToken(token)
 
-  // Find mission candidate by token
+  // Find mission candidate by hashed token
   const missionCandidate = await prisma.missionCandidate.findFirst({
-    where: { portalToken: token },
+    where: { portalToken: tokenHash },
     include: {
       candidate: true,
       mission: {
@@ -49,6 +50,7 @@ export default async function CandidatePortalPage({ params }: CandidatePortalPag
 
   return (
     <CandidatePortalClient
+      token={token}
       missionCandidate={missionCandidate}
       candidate={missionCandidate.candidate}
       mission={missionCandidate.mission}
