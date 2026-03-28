@@ -172,7 +172,7 @@ export type MissionHeaderPayload = Prisma.MissionGetPayload<{
     country: true
     client: { select: { id: true; name: true; companyName: true } }
     mainContact: {
-      select: { id: true; firstName: true; lastName: true; name: true; email: true }
+      select: { id: true; firstName: true; lastName: true; email: true }
     }
     recruiter: { select: { id: true; name: true; email: true } }
     _count: { select: { missionCandidates: true } }
@@ -196,7 +196,7 @@ export async function getMissionHeader(id: string): Promise<MissionHeaderPayload
         select: { id: true, name: true, companyName: true },
       },
       mainContact: {
-        select: { id: true, firstName: true, lastName: true, name: true, email: true },
+        select: { id: true, firstName: true, lastName: true, email: true },
       },
       recruiter: {
         select: { id: true, name: true, email: true },
@@ -281,7 +281,6 @@ export async function getMission(id: string) {
           id: true,
           firstName: true,
           lastName: true,
-          name: true,
           email: true,
           title: true,
           isPrimary: true,
