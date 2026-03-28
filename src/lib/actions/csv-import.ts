@@ -41,15 +41,45 @@ export async function previewCsvImport(
 }> {
   const organizationId = await getOrganizationId()
 
+  // --- Batch duplicate detection ---
+  // Collect unique values upfront, run 3 queries total (instead of 3 per row)
+  const emails = [...new Set(rows.map(r => r.email).filter(Boolean) as string[])]
+  const phones = [...new Set(rows.map(r => r.phone).filter(Boolean) as string[])]
+  const profileUrls = [...new Set(rows.map(r => r.profileUrl).filter(Boolean) as string[])]
+
+  const [byEmailList, byPhoneList, byUrlList] = await Promise.all([
+    emails.length
+      ? prisma.candidate.findMany({
+          where: { organizationId, email: { in: emails } },
+          select: { id: true, firstName: true, lastName: true, email: true },
+        })
+      : [],
+    phones.length
+      ? prisma.candidate.findMany({
+          where: { organizationId, phone: { in: phones } },
+          select: { id: true, firstName: true, lastName: true, phone: true },
+        })
+      : [],
+    profileUrls.length
+      ? prisma.candidate.findMany({
+          where: { organizationId, profileUrl: { in: profileUrls } },
+          select: { id: true, firstName: true, lastName: true, profileUrl: true },
+        })
+      : [],
+  ])
+
+  const emailMap = new Map(byEmailList.map(c => [c.email!, c]))
+  const phoneMap = new Map(byPhoneList.map(c => [c.phone!, c]))
+  const urlMap = new Map(byUrlList.map(c => [c.profileUrl!, c]))
+  // --- End batch ---
+
   const previews: PreviewResult[] = []
   let newCount = 0
   let updateCount = 0
   let mergeCount = 0
-  const ignoreCount = 0
   let errorCount = 0
 
   for (const row of rows) {
-    // Validate required fields
     if (!row.firstName || !row.lastName) {
       previews.push({
         status: 'error',
@@ -60,35 +90,11 @@ export async function previewCsvImport(
       continue
     }
 
-    // Check for duplicates
-    let existingByEmail = null
-    let existingByPhone = null
-    let existingByUrl = null
+    const existingByEmail = row.email ? (emailMap.get(row.email) ?? null) : null
+    const existingByPhone = row.phone ? (phoneMap.get(row.phone) ?? null) : null
+    const existingByUrl = row.profileUrl ? (urlMap.get(row.profileUrl) ?? null) : null
 
-    if (row.email) {
-      existingByEmail = await prisma.candidate.findFirst({
-        where: { organizationId, email: row.email },
-        select: { id: true, firstName: true, lastName: true },
-      })
-    }
-
-    if (row.phone) {
-      existingByPhone = await prisma.candidate.findFirst({
-        where: { organizationId, phone: row.phone },
-        select: { id: true, firstName: true, lastName: true },
-      })
-    }
-
-    if (row.profileUrl) {
-      existingByUrl = await prisma.candidate.findFirst({
-        where: { organizationId, profileUrl: row.profileUrl },
-        select: { id: true, firstName: true, lastName: true },
-      })
-    }
-
-    // Determine action
     if (existingByEmail) {
-      // Update existing by email (priority)
       previews.push({
         status: 'update',
         data: row,
@@ -99,8 +105,7 @@ export async function previewCsvImport(
       })
       updateCount++
     } else if (existingByPhone || existingByUrl) {
-      // Merge with existing by phone or URL
-      const existing = existingByPhone || existingByUrl!
+      const existing = (existingByPhone ?? existingByUrl)!
       previews.push({
         status: 'merge',
         data: row,
@@ -112,7 +117,6 @@ export async function previewCsvImport(
       })
       mergeCount++
     } else {
-      // New candidate
       previews.push({
         status: 'new',
         data: row,
@@ -126,7 +130,7 @@ export async function previewCsvImport(
     new: newCount,
     updated: updateCount,
     merged: mergeCount,
-    ignored: ignoreCount,
+    ignored: 0,
     errors: errorCount,
     previews,
   }
@@ -156,10 +160,42 @@ export async function executeCsvImport(
     },
   })
 
+  // --- Batch duplicate detection ---
+  // Collect unique values upfront, run 3 queries total (instead of 3 per row)
+  const emails = [...new Set(rows.map(r => r.email).filter(Boolean) as string[])]
+  const phones = [...new Set(rows.map(r => r.phone).filter(Boolean) as string[])]
+  const profileUrls = [...new Set(rows.map(r => r.profileUrl).filter(Boolean) as string[])]
+
+  const [byEmailList, byPhoneList, byUrlList] = await Promise.all([
+    emails.length
+      ? prisma.candidate.findMany({
+          where: { organizationId, email: { in: emails } },
+          select: { id: true, firstName: true, lastName: true, email: true, phone: true, profileUrl: true, location: true, currentPosition: true, currentCompany: true, tags: true },
+        })
+      : [],
+    phones.length
+      ? prisma.candidate.findMany({
+          where: { organizationId, phone: { in: phones } },
+          select: { id: true, firstName: true, lastName: true, email: true, phone: true, profileUrl: true, location: true, currentPosition: true, currentCompany: true, tags: true },
+        })
+      : [],
+    profileUrls.length
+      ? prisma.candidate.findMany({
+          where: { organizationId, profileUrl: { in: profileUrls } },
+          select: { id: true, firstName: true, lastName: true, email: true, phone: true, profileUrl: true, location: true, currentPosition: true, currentCompany: true, tags: true },
+        })
+      : [],
+  ])
+
+  const emailMap = new Map(byEmailList.map(c => [c.email!, c]))
+  const phoneMap = new Map(byPhoneList.map(c => [c.phone!, c]))
+  const urlMap = new Map(byUrlList.map(c => [c.profileUrl!, c]))
+  // --- End batch ---
+
   const affectedCandidateIds: string[] = []
   let newCount = 0
   let updatedCount = 0
-  const mergedCount = 0
+  let mergedCount = 0
   let errorCount = 0
   const errors: { row: number; error: string }[] = []
 
@@ -173,26 +209,11 @@ export async function executeCsvImport(
         continue
       }
 
-      // Check for existing
-      let existingCandidate = null
-      
-      if (row.email) {
-        existingCandidate = await prisma.candidate.findFirst({
-          where: { organizationId, email: row.email },
-        })
-      }
-      
-      if (!existingCandidate && row.phone) {
-        existingCandidate = await prisma.candidate.findFirst({
-          where: { organizationId, phone: row.phone },
-        })
-      }
-      
-      if (!existingCandidate && row.profileUrl) {
-        existingCandidate = await prisma.candidate.findFirst({
-          where: { organizationId, profileUrl: row.profileUrl },
-        })
-      }
+      // Check for existing using pre-loaded maps
+      const existingByEmail = row.email ? (emailMap.get(row.email) ?? null) : null
+      const existingByPhone = row.phone ? (phoneMap.get(row.phone) ?? null) : null
+      const existingByUrl = row.profileUrl ? (urlMap.get(row.profileUrl) ?? null) : null
+      const existingCandidate = existingByEmail ?? existingByPhone ?? existingByUrl ?? null
 
       const tags = row.tags 
         ? row.tags.split(',').map((t) => t.trim()).filter(Boolean)
@@ -214,7 +235,11 @@ export async function executeCsvImport(
           },
         })
         affectedCandidateIds.push(existingCandidate.id)
-        updatedCount++
+        if (!existingByEmail && (existingByPhone || existingByUrl)) {
+          mergedCount++
+        } else {
+          updatedCount++
+        }
       } else {
         // Create new
         const candidate = await prisma.candidate.create({

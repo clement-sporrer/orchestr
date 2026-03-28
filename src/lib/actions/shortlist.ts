@@ -29,35 +29,40 @@ export async function createShortlist(
   const expiry = getTokenExpiry('client')
   const clientPortalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/client/${rawToken}`
 
-  const shortlist = await prisma.shortlist.create({
-    data: {
-      missionId,
-      name,
-      accessToken: tokenHash,
-      accessTokenExpiry: expiry,
-      clientPortalUrl,
-      candidates: {
-        create: candidateIds.map((mcId, index) => ({
-          missionCandidateId: mcId,
-          order: index,
-        })),
-      },
-    },
-  })
-
-  // Fetch missionCandidates to get candidateIds, then sync RelationshipLevel for each
-  // NOTE: Shortlist is already persisted at this point. If applyStageTransition throws
-  // mid-loop, the shortlist exists but some candidates may not have their stage updated.
-  // Full atomicity would require restructuring applyStageTransition to accept an external
-  // transaction — deferred to Phase 3.
+  // Fetch missionCandidates before the transaction to get candidateIds for stage sync
   const mcsToUpdate = await prisma.missionCandidate.findMany({
-    where: { id: { in: candidateIds } },
+    where: { id: { in: candidateIds }, missionId },
     select: { id: true, candidateId: true },
   })
 
-  for (const mc of mcsToUpdate) {
-    await applyStageTransition(mc.id, mc.candidateId, 'SHORTLIST')
+  if (mcsToUpdate.length === 0 && candidateIds.length > 0) {
+    throw new Error('Aucun candidat valide trouvé pour cette mission')
   }
+
+  // Single transaction: shortlist creation + all stage transitions are atomic
+  const shortlist = await prisma.$transaction(async (tx) => {
+    const created = await tx.shortlist.create({
+      data: {
+        missionId,
+        name,
+        accessToken: tokenHash,
+        accessTokenExpiry: expiry,
+        clientPortalUrl,
+        candidates: {
+          create: candidateIds.map((mcId, index) => ({
+            missionCandidateId: mcId,
+            order: index,
+          })),
+        },
+      },
+    })
+
+    for (const mc of mcsToUpdate) {
+      await applyStageTransition(mc.id, mc.candidateId, 'SHORTLIST', tx)
+    }
+
+    return created
+  })
 
   revalidatePath(`/missions/${missionId}`)
   return { ...shortlist, rawAccessToken: rawToken }
@@ -102,19 +107,6 @@ export async function submitClientFeedback(
     throw new Error('Candidat non trouvé dans cette shortlist')
   }
 
-  await prisma.clientFeedback.upsert({
-    where: { shortlistCandidateId },
-    create: {
-      shortlistCandidateId,
-      decision: data.decision,
-      comment: data.comment,
-    },
-    update: {
-      decision: data.decision,
-      comment: data.comment,
-    },
-  })
-
   const mission = await prisma.mission.findUnique({
     where: { id: shortlist.missionId },
     select: { organizationId: true },
@@ -124,34 +116,50 @@ export async function submitClientFeedback(
     throw new Error('Mission non trouvée')
   }
 
-  await prisma.interaction.create({
-    data: {
-      organizationId: mission.organizationId,
-      candidateId: shortlistCandidate.missionCandidate.candidateId,
-      missionCandidateId: shortlistCandidate.missionCandidateId,
-      type: 'CLIENT_FEEDBACK',
-      content: `Feedback client: ${data.decision}${data.comment ? ` - ${data.comment}` : ''}`,
-    },
-  })
-
-  if (data.decision === 'OK') {
-    await applyStageTransition(
-      shortlistCandidate.missionCandidateId,
-      shortlistCandidate.missionCandidate.candidateId,
-      'INTERVIEW'
-    )
-  } else if (data.decision === 'NO') {
-    await applyStageTransition(
-      shortlistCandidate.missionCandidateId,
-      shortlistCandidate.missionCandidate.candidateId,
-      'SHORTLIST'
-    )
-    // Add rejection metadata separately (applyStageTransition only handles stage + relationship)
-    await prisma.missionCandidate.update({
-      where: { id: shortlistCandidate.missionCandidateId },
-      data: { rejectedAt: new Date(), rejectionReason: data.comment },
+  await prisma.$transaction(async (tx) => {
+    await tx.clientFeedback.upsert({
+      where: { shortlistCandidateId },
+      create: {
+        shortlistCandidateId,
+        decision: data.decision,
+        comment: data.comment,
+      },
+      update: {
+        decision: data.decision,
+        comment: data.comment,
+      },
     })
-  }
+
+    await tx.interaction.create({
+      data: {
+        organizationId: mission.organizationId,
+        candidateId: shortlistCandidate.missionCandidate.candidateId,
+        missionCandidateId: shortlistCandidate.missionCandidateId,
+        type: 'CLIENT_FEEDBACK',
+        content: `Feedback client: ${data.decision}${data.comment ? ` - ${data.comment}` : ''}`,
+      },
+    })
+
+    if (data.decision === 'OK') {
+      await applyStageTransition(
+        shortlistCandidate.missionCandidateId,
+        shortlistCandidate.missionCandidate.candidateId,
+        'INTERVIEW',
+        tx
+      )
+    } else if (data.decision === 'NO') {
+      await applyStageTransition(
+        shortlistCandidate.missionCandidateId,
+        shortlistCandidate.missionCandidate.candidateId,
+        'SHORTLIST',
+        tx
+      )
+      await tx.missionCandidate.update({
+        where: { id: shortlistCandidate.missionCandidateId },
+        data: { rejectedAt: new Date(), rejectionReason: data.comment },
+      })
+    }
+  })
 }
 
 // Get shortlist

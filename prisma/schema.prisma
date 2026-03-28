@@ -292,7 +292,7 @@ model Mission {
   domain            String?       // PRD v2: from Settings
   sector            String?       // PRD v2: from Settings (mission-level)
   languages         Json?         // PRD v2: [{lang, level}]
-  priority          String?       @default("MEDIUM") // PRD v2: LOW, MEDIUM, HIGH, URGENT
+  priority          MissionPriority @default(MEDIUM)
   startDate         DateTime?
   deadline          DateTime?    // PRD v2
   shortlistDeadline DateTime?
@@ -647,6 +647,7 @@ model MissionCandidate {
   interviews             Interview[]
   externalAccessTokens   ExternalAccessToken[]
   documents              CandidateMissionDocument[]
+  tasks                  Task[]
 
   @@unique([missionId, candidateId])
   @@index([missionId])
@@ -855,14 +856,23 @@ model Task {
   updatedAt           DateTime      @updatedAt
 
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  missionCandidate MissionCandidate? @relation(fields: [missionCandidateId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([dueDate])
   @@index([completedAt])
+  @@index([missionCandidateId])
   @@map("tasks")
 }
 
 enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum MissionPriority {
   LOW
   MEDIUM
   HIGH
