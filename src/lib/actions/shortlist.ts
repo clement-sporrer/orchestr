@@ -29,35 +29,36 @@ export async function createShortlist(
   const expiry = getTokenExpiry('client')
   const clientPortalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/client/${rawToken}`
 
-  const shortlist = await prisma.shortlist.create({
-    data: {
-      missionId,
-      name,
-      accessToken: tokenHash,
-      accessTokenExpiry: expiry,
-      clientPortalUrl,
-      candidates: {
-        create: candidateIds.map((mcId, index) => ({
-          missionCandidateId: mcId,
-          order: index,
-        })),
-      },
-    },
-  })
-
-  // Fetch missionCandidates to get candidateIds, then sync RelationshipLevel for each
-  // NOTE: Shortlist is already persisted at this point. If applyStageTransition throws
-  // mid-loop, the shortlist exists but some candidates may not have their stage updated.
-  // Full atomicity would require restructuring applyStageTransition to accept an external
-  // transaction — deferred to Phase 3.
+  // Fetch missionCandidates before the transaction to get candidateIds for stage sync
   const mcsToUpdate = await prisma.missionCandidate.findMany({
     where: { id: { in: candidateIds } },
     select: { id: true, candidateId: true },
   })
 
-  for (const mc of mcsToUpdate) {
-    await applyStageTransition(mc.id, mc.candidateId, 'SHORTLIST')
-  }
+  // Single transaction: shortlist creation + all stage transitions are atomic
+  const shortlist = await prisma.$transaction(async (tx) => {
+    const created = await tx.shortlist.create({
+      data: {
+        missionId,
+        name,
+        accessToken: tokenHash,
+        accessTokenExpiry: expiry,
+        clientPortalUrl,
+        candidates: {
+          create: candidateIds.map((mcId, index) => ({
+            missionCandidateId: mcId,
+            order: index,
+          })),
+        },
+      },
+    })
+
+    for (const mc of mcsToUpdate) {
+      await applyStageTransition(mc.id, mc.candidateId, 'SHORTLIST', tx)
+    }
+
+    return created
+  })
 
   revalidatePath(`/missions/${missionId}`)
   return { ...shortlist, rawAccessToken: rawToken }
