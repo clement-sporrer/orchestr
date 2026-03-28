@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { generateToken, getTokenExpiry, hashToken } from '@/lib/utils/tokens'
+import { applyStageTransition } from '@/lib/actions/pipeline'
 
 // Generate portal token for candidate — stores hash, returns raw token for URL
 export async function generatePortalToken(missionCandidateId: string): Promise<string> {
@@ -91,16 +92,16 @@ export async function completePortal(portalToken: string) {
     return  // Idempotent — already completed, nothing to do
   }
 
-  // Only advance stage to RESPONSE if candidate is not already further in the pipeline
+  // Only advance stage to RESPONSE if candidate is not already further in the pipeline.
+  // applyStageTransition handles RelationshipLevel sync internally.
   const stagesBeforeResponse: string[] = ['SOURCED', 'CONTACTED']
-  const updateData: { portalCompleted: boolean; stage?: 'RESPONSE' } = { portalCompleted: true }
   if (stagesBeforeResponse.includes(mc.stage)) {
-    updateData.stage = 'RESPONSE'
+    await applyStageTransition(mc.id, mc.candidateId, 'RESPONSE')
   }
 
   await prisma.missionCandidate.update({
     where: { id: mc.id },
-    data: updateData,
+    data: { portalCompleted: true },
   })
 
   await prisma.candidate.update({
