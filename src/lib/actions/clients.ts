@@ -152,7 +152,11 @@ export async function getClient(id: string) {
     },
     include: {
       contacts: {
-        orderBy: { email: 'asc' },
+        orderBy: [
+          { lastName: { sort: 'asc', nulls: 'last' } },
+          { firstName: { sort: 'asc', nulls: 'last' } },
+          { email: 'asc' },
+        ],
       },
       missions: {
         orderBy: { createdAt: 'desc' },

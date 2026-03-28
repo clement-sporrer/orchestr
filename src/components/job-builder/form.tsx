@@ -29,6 +29,7 @@ interface Contact {
   firstName: string | null
   lastName: string | null
   email: string | null
+  title: string | null
   isPrimary: boolean
 }
 
