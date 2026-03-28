@@ -26,6 +26,7 @@ export async function createShortlist(
   const rawToken = generateToken()
   const tokenHash = hashToken(rawToken)
   const expiry = getTokenExpiry('client')
+  const clientPortalUrl = `${process.env.NEXT_PUBLIC_APP_URL}/client/${rawToken}`
 
   const shortlist = await prisma.shortlist.create({
     data: {
@@ -33,6 +34,7 @@ export async function createShortlist(
       name,
       accessToken: tokenHash,
       accessTokenExpiry: expiry,
+      clientPortalUrl,
       candidates: {
         create: candidateIds.map((mcId, index) => ({
           missionCandidateId: mcId,

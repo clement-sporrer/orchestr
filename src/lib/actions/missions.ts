@@ -356,7 +356,7 @@ export async function getMission(id: string) {
         select: {
           id: true,
           name: true,
-          accessToken: true,
+          clientPortalUrl: true,
           accessTokenExpiry: true,
           createdAt: true,
           _count: {

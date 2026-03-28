@@ -87,12 +87,20 @@ export async function completePortal(portalToken: string) {
     throw new Error('Lien expiré')
   }
 
+  if (mc.portalCompleted) {
+    return  // Idempotent — already completed, nothing to do
+  }
+
+  // Only advance stage to RESPONSE if candidate is not already further in the pipeline
+  const stagesBeforeResponse: string[] = ['SOURCED', 'CONTACTED']
+  const updateData: { portalCompleted: boolean; stage?: 'RESPONSE' } = { portalCompleted: true }
+  if (stagesBeforeResponse.includes(mc.stage)) {
+    updateData.stage = 'RESPONSE'
+  }
+
   await prisma.missionCandidate.update({
     where: { id: mc.id },
-    data: {
-      portalCompleted: true,
-      stage: 'RESPONSE',
-    },
+    data: updateData,
   })
 
   await prisma.candidate.update({
