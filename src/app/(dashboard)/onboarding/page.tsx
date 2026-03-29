@@ -19,6 +19,7 @@ import { Loader2, CheckCircle2, Building2, Users, Briefcase, ArrowRight, ArrowLe
 import { updateOrganization } from '@/lib/actions/organizations'
 import { createClient } from '@/lib/actions/clients'
 import { createMission } from '@/lib/actions/missions'
+import type { ContractType } from '@/generated/prisma'
 
 const STEPS = [
   {
@@ -131,7 +132,9 @@ function OnboardingContent() {
         clientId: createdClientId,
         title: missionTitle,
         location: missionLocation || undefined,
-        contractType: missionContractType as any || undefined,
+        contractType: missionContractType
+          ? (missionContractType as ContractType)
+          : undefined,
       })
       
       // Mark onboarding as complete

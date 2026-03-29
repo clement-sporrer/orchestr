@@ -177,6 +177,27 @@ export async function createCandidate(data: CreateCandidateInput) {
   return candidate
 }
 
+function buildCandidateUpdatePayload(
+  data: Partial<UpdateCandidateInput>,
+  transformedData: Omit<UpdateCandidateInput, 'id'>,
+): Record<string, unknown> {
+  const keysProvided = new Set(Object.keys(data)) as Set<keyof UpdateCandidateInput>
+  const updatePayload: Record<string, unknown> = {}
+  for (const key of keysProvided) {
+    if (key === 'id') continue
+    const v = transformedData[key]
+    if (v === undefined) continue
+    if (key === 'languages') {
+      updatePayload[key] = v ? (v as unknown as Prisma.InputJsonValue) : undefined
+    } else if (v === '') {
+      updatePayload[key] = null
+    } else {
+      updatePayload[key] = v
+    }
+  }
+  return updatePayload
+}
+
 // Update candidate (partial: only provided fields are updated, validation + normalisation)
 export async function updateCandidate(id: string, data: Partial<UpdateCandidateInput>) {
   const organizationId = await getOrganizationId()
@@ -203,20 +224,7 @@ export async function updateCandidate(id: string, data: Partial<UpdateCandidateI
     }
   }
 
-  const keysProvided = new Set(Object.keys(data)) as Set<keyof UpdateCandidateInput>
-  const updatePayload: Record<string, unknown> = {}
-  for (const key of keysProvided) {
-    if (key === 'id') continue
-    const v = transformedData[key as keyof typeof transformedData]
-    if (v === undefined) continue
-    if (key === 'languages') {
-      updatePayload[key] = v ? (v as unknown as Prisma.InputJsonValue) : undefined
-    } else if (v === '') {
-      updatePayload[key] = null
-    } else {
-      updatePayload[key] = v
-    }
-  }
+  const updatePayload = buildCandidateUpdatePayload(data, transformedData)
 
   const candidate = await prisma.candidate.update({
     where: { id },
@@ -326,7 +334,7 @@ export async function getAllTags() {
   const allTags = new Set<string>()
   candidates.forEach((c) => c.tags.forEach((t) => allTags.add(t)))
   
-  return Array.from(allTags).sort()
+  return Array.from(allTags).sort((a, b) => a.localeCompare(b, 'fr'))
 }
 
 // Add interaction
@@ -381,6 +389,8 @@ export interface LinkedInEnrichmentResult {
   data?: Partial<EnrichedProfileData>
   error?: string
   source: 'url_parsing' | 'ai_enrichment' | 'profile_text'
+  /** Populated in development to aid debugging failed enrichment */
+  diagnostics?: string
 }
 
 // Enrich candidate data from LinkedIn URL
@@ -454,11 +464,21 @@ export async function enrichFromProfileText(profileText: string, linkedInUrl?: s
       },
       source: 'ai_enrichment',
     }
-  } catch (error) {
+  } catch (error: unknown) {
+    let diagnostics: string | undefined
+    if (process.env.NODE_ENV === 'development') {
+      if (error instanceof Error) {
+        diagnostics = error.message
+      } else {
+        diagnostics = String(error)
+      }
+    }
+    const extras = diagnostics === undefined ? {} : { diagnostics }
     return {
       success: false,
       error: 'Erreur lors de l\'analyse du profil. Veuillez réessayer.',
       source: 'ai_enrichment',
+      ...extras,
     }
   }
 }
@@ -549,7 +569,7 @@ export async function checkCandidateExists(data: {
 
 /** Normalize phone number for comparison (strip spaces, dashes, dots, country code prefix) */
 function normalizePhone(phone: string): string {
-  let normalized = phone.replace(/[\s\-.()+]/g, '')
+  let normalized = phone.replaceAll(/[\s\-.()+]/g, '')
   // Normalize French prefix: 0033 or 33 → 0
   if (normalized.startsWith('0033')) normalized = '0' + normalized.slice(4)
   else if (normalized.startsWith('33') && normalized.length > 10) normalized = '0' + normalized.slice(2)

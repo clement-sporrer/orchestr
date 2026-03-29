@@ -21,9 +21,11 @@ export function VirtualList<T>({
   estimateSize = 80,
   overscan = 5,
   className,
-}: VirtualListProps<T>) {
+}: Readonly<VirtualListProps<T>>) {
   const parentRef = useRef<HTMLDivElement>(null)
 
+  /* TanStack Virtual returns unstable function refs; React Compiler skips memoizing this subtree */
+  // eslint-disable-next-line react-hooks/incompatible-library -- @tanstack/react-virtual
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current,

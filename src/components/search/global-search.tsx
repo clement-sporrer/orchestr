@@ -32,7 +32,7 @@ const typeLabels = {
   client: 'Client',
 }
 
-export function GlobalSearch({ children, className }: GlobalSearchProps) {
+export function GlobalSearch({ children, className }: Readonly<GlobalSearchProps>) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -54,16 +54,17 @@ export function GlobalSearch({ children, className }: GlobalSearchProps) {
     return () => document.removeEventListener('keydown', down)
   }, [])
 
-  useEffect(() => {
-    if (!open) {
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next)
+    if (!next) {
       setQuery('')
       setResults([])
-      return
     }
-  }, [open])
+  }
 
   useEffect(() => {
     if (debouncedQuery.length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clear stale results when query too short
       setResults([])
       return
     }
@@ -94,9 +95,13 @@ export function GlobalSearch({ children, className }: GlobalSearchProps) {
   return (
     <>
       {children ? (
-        <div onClick={() => setOpen(true)} className={className}>
+        <button
+          type="button"
+          className={cn('inline cursor-pointer border-0 bg-transparent p-0 text-left font-inherit', className)}
+          onClick={() => setOpen(true)}
+        >
           {children}
-        </div>
+        </button>
       ) : (
         <div className={cn('relative w-full max-w-md', className)}>
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -110,7 +115,7 @@ export function GlobalSearch({ children, className }: GlobalSearchProps) {
         </div>
       )}
 
-      <CommandDialog open={open} onOpenChange={setOpen}>
+      <CommandDialog open={open} onOpenChange={handleOpenChange}>
         <CommandInput
           placeholder="Rechercher candidats, missions, clients..."
           value={query}

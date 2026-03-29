@@ -30,10 +30,6 @@ export function MarketingHeader() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  useEffect(() => {
-    setIsMobileMenuOpen(false)
-  }, [pathname])
-
   return (
     <header
       className={cn(
@@ -109,16 +105,21 @@ export function MarketingHeader() {
                     ? 'text-primary'
                     : 'text-muted-foreground'
                 )}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 {link.label}
               </Link>
             ))}
             <div className="pt-4 space-y-3 border-t border-border">
               <Button variant="outline" asChild className="w-full">
-                <Link href="/login">{t('login')}</Link>
+                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                  {t('login')}
+                </Link>
               </Button>
               <Button asChild className="w-full">
-                <Link href="/signup">{t('requestAccess')}</Link>
+                <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>
+                  {t('requestAccess')}
+                </Link>
               </Button>
             </div>
           </div>

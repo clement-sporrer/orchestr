@@ -1,12 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../client'
-import { 
-  getClients, 
+import {
+  getClients,
   getClient,
   createClient,
   updateClient,
   deleteClient,
+  type ClientWithCount,
 } from '@/lib/actions/clients'
+
+type ClientsListData = Awaited<ReturnType<typeof getClients>>
+type ClientDetailData = Awaited<ReturnType<typeof getClient>>
+type ClientUpdatePayload = Parameters<typeof updateClient>[1]
 
 interface ClientsFilters {
   search?: string
@@ -58,21 +63,24 @@ export function useCreateClient() {
       
       queryClient.setQueriesData(
         { queryKey: queryKeys.clients.lists() },
-        (old: any) => {
+        (old: ClientsListData | undefined) => {
           if (!old) return old
+          const tempClient = {
+            ...newClient,
+            id: 'temp-' + Date.now(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            _count: { missions: 0, contacts: 0 },
+          } as unknown as ClientWithCount
+          const nextTotal = old.pagination.total + 1
           return {
             ...old,
-            clients: [
-              {
-                ...newClient,
-                id: 'temp-' + Date.now(),
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                _count: { missions: 0, contacts: 0 },
-              },
-              ...old.clients,
-            ],
-            total: old.total + 1,
+            clients: [tempClient, ...old.clients],
+            pagination: {
+              ...old.pagination,
+              total: nextTotal,
+              totalPages: Math.ceil(nextTotal / old.pagination.limit),
+            },
           }
         }
       )
@@ -99,7 +107,7 @@ export function useUpdateClient() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => 
+    mutationFn: ({ id, data }: { id: string; data: ClientUpdatePayload }) =>
       updateClient(id, data),
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.clients.detail(id) })
@@ -110,7 +118,7 @@ export function useUpdateClient() {
       
       queryClient.setQueryData(
         queryKeys.clients.detail(id),
-        (old: any) => {
+        (old: ClientDetailData | undefined) => {
           if (!old) return old
           return { ...old, ...data, updatedAt: new Date() }
         }

@@ -26,7 +26,9 @@ interface ClientDetailPageProps {
   params: Promise<{ id: string }>
 }
 
-export default async function ClientDetailPage({ params }: ClientDetailPageProps) {
+export default async function ClientDetailPage({
+  params,
+}: Readonly<ClientDetailPageProps>) {
   const { id } = await params
 
   let client
@@ -143,7 +145,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                   Missions
                 </CardTitle>
                 <CardDescription>
-                  {client.missions.length} mission{client.missions.length !== 1 ? 's' : ''}
+                  {client.missions.length} mission{client.missions.length === 1 ? '' : 's'}
                 </CardDescription>
               </div>
               <Button size="sm" asChild>
@@ -169,7 +171,8 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                       <div className="space-y-1">
                         <p className="font-medium">{mission.title}</p>
                         <p className="text-sm text-muted-foreground">
-                          {mission._count.missionCandidates} candidat{mission._count.missionCandidates !== 1 ? 's' : ''}
+                          {mission._count.missionCandidates} candidat
+                          {mission._count.missionCandidates === 1 ? '' : 's'}
                         </p>
                       </div>
                       <Badge className={getMissionStatusColor(mission.status)}>
@@ -193,7 +196,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                   Contacts
                 </CardTitle>
                 <CardDescription>
-                  {client.contacts.length} contact{client.contacts.length !== 1 ? 's' : ''}
+                  {client.contacts.length} contact{client.contacts.length === 1 ? '' : 's'}
                 </CardDescription>
               </div>
               <ContactDialog clientId={client.id}>

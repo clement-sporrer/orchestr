@@ -50,7 +50,7 @@ export function MissionsListWithViews({
   missions,
   search,
   status,
-}: MissionsListWithViewsProps) {
+}: Readonly<MissionsListWithViewsProps>) {
   const router = useRouter()
   const [viewMode, setViewMode] = useState<ViewMode>('cards')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -65,10 +65,8 @@ export function MissionsListWithViews({
     })
   }
 
-  const toggleSelectAll = (checked: boolean) => {
-    if (checked) setSelectedIds(new Set(missions.map((m) => m.id)))
-    else setSelectedIds(new Set())
-  }
+  const selectAllMissions = () => setSelectedIds(new Set(missions.map((m) => m.id)))
+  const clearAllMissionSelection = () => setSelectedIds(new Set())
 
   const allSelected = missions.length > 0 && selectedIds.size === missions.length
   const someSelected = selectedIds.size > 0
@@ -167,7 +165,7 @@ export function MissionsListWithViews({
                       <div className="text-right">
                         <p className="text-2xl font-bold">{mission._count.missionCandidates}</p>
                         <p className="text-sm text-muted-foreground">
-                          candidat{mission._count.missionCandidates !== 1 ? 's' : ''}
+                          candidat{mission._count.missionCandidates === 1 ? '' : 's'}
                         </p>
                       </div>
                     </div>
@@ -185,7 +183,10 @@ export function MissionsListWithViews({
                 <TableHead className="w-12">
                   <Checkbox
                     checked={allSelected}
-                    onCheckedChange={(checked) => toggleSelectAll(!!checked)}
+                    onCheckedChange={(state) => {
+                      if (state === true) selectAllMissions()
+                      else clearAllMissionSelection()
+                    }}
                     aria-label="Tout sélectionner"
                   />
                 </TableHead>

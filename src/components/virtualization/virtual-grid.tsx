@@ -24,12 +24,14 @@ export function VirtualGrid<T>({
   gap = 16,
   overscan = 2,
   className,
-}: VirtualGridProps<T>) {
+}: Readonly<VirtualGridProps<T>>) {
   const parentRef = useRef<HTMLDivElement>(null)
 
   // Calculate rows from items and columns
   const rows = Math.ceil(items.length / columns)
 
+  /* TanStack Virtual returns unstable function refs; React Compiler skips memoizing this subtree */
+  // eslint-disable-next-line react-hooks/incompatible-library -- @tanstack/react-virtual
   const virtualizer = useVirtualizer({
     count: rows,
     getScrollElement: () => parentRef.current,

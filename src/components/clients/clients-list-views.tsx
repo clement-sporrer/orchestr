@@ -27,7 +27,10 @@ interface ClientsListWithViewsProps {
   search?: string
 }
 
-export function ClientsListWithViews({ clients, search }: ClientsListWithViewsProps) {
+export function ClientsListWithViews({
+  clients,
+  search,
+}: Readonly<ClientsListWithViewsProps>) {
   const router = useRouter()
   const [viewMode, setViewMode] = useState<ViewMode>('cards')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -42,10 +45,8 @@ export function ClientsListWithViews({ clients, search }: ClientsListWithViewsPr
     })
   }
 
-  const toggleSelectAll = (checked: boolean) => {
-    if (checked) setSelectedIds(new Set(clients.map((c) => c.id)))
-    else setSelectedIds(new Set())
-  }
+  const selectAllClients = () => setSelectedIds(new Set(clients.map((c) => c.id)))
+  const clearAllClientSelection = () => setSelectedIds(new Set())
 
   const allSelected = clients.length > 0 && selectedIds.size === clients.length
   const someSelected = selectedIds.size > 0
@@ -132,14 +133,26 @@ export function ClientsListWithViews({ clients, search }: ClientsListWithViewsPr
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                      <span>{client._count.missions} mission{client._count.missions !== 1 ? 's' : ''}</span>
+                      <span>
+                        {client._count.missions} mission
+                        {client._count.missions === 1 ? '' : 's'}
+                      </span>
                       {(client.activeMissionsCount ?? 0) > 0 && (
-                        <span className="text-green-600 font-medium">{client.activeMissionsCount} active{(client.activeMissionsCount ?? 0) !== 1 ? 's' : ''}</span>
+                        <span className="text-green-600 font-medium">
+                          {client.activeMissionsCount} active
+                          {(client.activeMissionsCount ?? 0) === 1 ? '' : 's'}
+                        </span>
                       )}
                       {(client.placedCount ?? 0) > 0 && (
-                        <span className="text-primary font-medium">{client.placedCount} placement{(client.placedCount ?? 0) !== 1 ? 's' : ''}</span>
+                        <span className="text-primary font-medium">
+                          {client.placedCount} placement
+                          {(client.placedCount ?? 0) === 1 ? '' : 's'}
+                        </span>
                       )}
-                      <span>{client._count.contacts} contact{client._count.contacts !== 1 ? 's' : ''}</span>
+                      <span>
+                        {client._count.contacts} contact
+                        {client._count.contacts === 1 ? '' : 's'}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -155,7 +168,10 @@ export function ClientsListWithViews({ clients, search }: ClientsListWithViewsPr
                 <TableHead className="w-12">
                   <Checkbox
                     checked={allSelected}
-                    onCheckedChange={(checked) => toggleSelectAll(!!checked)}
+                    onCheckedChange={(state) => {
+                      if (state === true) selectAllClients()
+                      else clearAllClientSelection()
+                    }}
                     aria-label="Tout sélectionner"
                   />
                 </TableHead>

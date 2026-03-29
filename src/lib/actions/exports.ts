@@ -6,6 +6,26 @@ import { buildCandidateWhereClause } from '@/lib/filters/candidate-where'
 import { displayClientCompanyName } from '@/lib/utils/client-display'
 import type { CandidateFilters } from '@/lib/validations/candidate'
 
+function csvCellText(cell: unknown): string {
+  if (cell == null) return ''
+  if (typeof cell === 'string' || typeof cell === 'number' || typeof cell === 'boolean') {
+    return String(cell)
+  }
+  if (cell instanceof Date) {
+    return cell.toISOString()
+  }
+  try {
+    return JSON.stringify(cell)
+  } catch {
+    return ''
+  }
+}
+
+function escapeCsvCell(cell: unknown): string {
+  const raw = csvCellText(cell)
+  return `"${raw.replaceAll('"', '""')}"`
+}
+
 // Export candidates as CSV (uses same filters as list)
 export async function exportCandidatesCsv(filters?: Partial<CandidateFilters>) {
   const organizationId = await getOrganizationId()
@@ -42,7 +62,7 @@ export async function exportCandidatesCsv(filters?: Partial<CandidateFilters>) {
   ])
 
   const csv = [headers, ...rows]
-    .map((row) => row.map((cell) => `"${(cell || '').replace(/"/g, '""')}"`).join(','))
+    .map((row) => row.map(escapeCsvCell).join(','))
     .join('\n')
 
   return csv
@@ -85,7 +105,7 @@ export async function exportMissionPipelineCsv(missionId: string) {
   ])
 
   const csv = [headers, ...rows]
-    .map((row) => row.map((cell) => `"${(cell || '').replace(/"/g, '""')}"`).join(','))
+    .map((row) => row.map(escapeCsvCell).join(','))
     .join('\n')
 
   return csv
@@ -138,7 +158,7 @@ export async function exportShortlistCsv(shortlistId: string) {
   ])
 
   const csv = [headers, ...rows]
-    .map((row) => row.map((cell) => `"${(cell || '').replace(/"/g, '""')}"`).join(','))
+    .map((row) => row.map(escapeCsvCell).join(','))
     .join('\n')
 
   return csv

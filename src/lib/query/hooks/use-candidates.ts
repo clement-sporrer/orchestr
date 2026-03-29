@@ -1,13 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../client'
-import { 
-  getCandidates, 
-  getCandidate, 
+import {
+  getCandidates,
+  getCandidate,
   createCandidate,
   updateCandidate,
   deleteCandidate,
+  type CandidateWithCount,
 } from '@/lib/actions/candidates'
+import type { UpdateCandidateInput } from '@/lib/validations/candidate'
 import type { CandidateStatus } from '@/generated/prisma'
+
+type CandidatesListData = Awaited<ReturnType<typeof getCandidates>>
+type CandidateDetailData = Awaited<ReturnType<typeof getCandidate>>
+type CandidateUpdatePayload = Partial<UpdateCandidateInput>
 
 interface CandidatesFilters {
   search?: string
@@ -63,21 +69,24 @@ export function useCreateCandidate() {
       // Optimistically update cache
       queryClient.setQueriesData(
         { queryKey: queryKeys.candidates.lists() },
-        (old: any) => {
+        (old: CandidatesListData | undefined) => {
           if (!old) return old
+          const tempCandidate = {
+            ...newCandidate,
+            id: 'temp-' + Date.now(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            _count: { missionCandidates: 0 },
+          } as unknown as CandidateWithCount
+          const nextTotal = old.pagination.total + 1
           return {
             ...old,
-            candidates: [
-              {
-                ...newCandidate,
-                id: 'temp-' + Date.now(),
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                _count: { missionCandidates: 0 },
-              },
-              ...old.candidates,
-            ],
-            total: old.total + 1,
+            candidates: [tempCandidate, ...old.candidates],
+            pagination: {
+              ...old.pagination,
+              total: nextTotal,
+              totalPages: Math.ceil(nextTotal / old.pagination.limit),
+            },
           }
         }
       )
@@ -106,7 +115,7 @@ export function useUpdateCandidate() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => 
+    mutationFn: ({ id, data }: { id: string; data: CandidateUpdatePayload }) =>
       updateCandidate(id, data),
     onMutate: async ({ id, data }) => {
       // Cancel outgoing refetches
@@ -120,7 +129,7 @@ export function useUpdateCandidate() {
       // Optimistically update cache
       queryClient.setQueryData(
         queryKeys.candidates.detail(id),
-        (old: any) => {
+        (old: CandidateDetailData | undefined) => {
           if (!old) return old
           return { ...old, ...data, updatedAt: new Date() }
         }
@@ -165,12 +174,17 @@ export function useDeleteCandidate() {
       // Optimistically remove from cache
       queryClient.setQueriesData(
         { queryKey: queryKeys.candidates.lists() },
-        (old: any) => {
+        (old: CandidatesListData | undefined) => {
           if (!old) return old
+          const nextTotal = Math.max(0, old.pagination.total - 1)
           return {
             ...old,
-            candidates: old.candidates.filter((c: any) => c.id !== id),
-            total: old.total - 1,
+            candidates: old.candidates.filter((c) => c.id !== id),
+            pagination: {
+              ...old.pagination,
+              total: nextTotal,
+              totalPages: Math.ceil(nextTotal / old.pagination.limit),
+            },
           }
         }
       )

@@ -12,6 +12,18 @@ export interface SearchResult {
   url: string
 }
 
+function candidateSearchSubtitle(c: {
+  currentPosition: string | null
+  currentCompany: string | null
+  email: string | null
+}): string | undefined {
+  if (!c.currentPosition) {
+    return c.email ?? undefined
+  }
+  const companyPart = c.currentCompany ? ` @ ${c.currentCompany}` : ''
+  return `${c.currentPosition}${companyPart}`
+}
+
 export async function globalSearch(query: string): Promise<SearchResult[]> {
   if (!query || query.trim().length < 2) {
     return []
@@ -83,9 +95,7 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
       type: 'candidate' as const,
       id: c.id,
       title: `${c.firstName} ${c.lastName}`,
-      subtitle: c.currentPosition 
-        ? `${c.currentPosition}${c.currentCompany ? ` @ ${c.currentCompany}` : ''}`
-        : c.email || undefined,
+      subtitle: candidateSearchSubtitle(c),
       url: `/candidates/${c.id}`,
     })),
     ...missions.map((m) => ({

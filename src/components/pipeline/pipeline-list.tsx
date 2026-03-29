@@ -60,7 +60,12 @@ const contactStatusLabels: Record<ContactStatus, string> = {
   LATER: 'À recontacter',
 }
 
-export function PipelineList({ missionId: _missionId, candidates, stages, onAfterStageChange }: PipelineListProps) {
+export function PipelineList({
+  missionId: _missionId,
+  candidates,
+  stages,
+  onAfterStageChange,
+}: Readonly<PipelineListProps>) {
   const handleStageChange = async (candidateId: string, newStage: PipelineStage) => {
     try {
       await updateCandidateStage(candidateId, newStage)

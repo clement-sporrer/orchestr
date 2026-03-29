@@ -8,6 +8,25 @@ import type { FilterRule, FilterGroup, FilterConfig, FilterOperator } from './fi
 
 type FilterValue = FilterRule['value']
 
+function valueToComparableString(raw: unknown): string {
+  if (raw === null || raw === undefined) return ''
+  if (typeof raw === 'string') return raw.toLowerCase()
+  if (typeof raw === 'number') return raw.toString().toLowerCase()
+  if (typeof raw === 'bigint') return raw.toString().toLowerCase()
+  if (typeof raw === 'boolean') return raw ? 'true' : 'false'
+  if (raw instanceof Date) {
+    return raw.toISOString().toLowerCase()
+  }
+  if (typeof raw === 'object') {
+    try {
+      return JSON.stringify(raw).toLowerCase()
+    } catch {
+      return ''
+    }
+  }
+  return ''
+}
+
 /**
  * Apply a single filter rule to a value
  */
@@ -27,9 +46,9 @@ function applyRule(value: unknown, rule: FilterRule): boolean {
     return false
   }
 
-  // Convert to string for text operations
-  const strValue = String(value).toLowerCase()
-  const strFilterValue = filterValue != null ? String(filterValue).toLowerCase() : ''
+  const strValue = valueToComparableString(value)
+  const strFilterValue =
+    filterValue == null ? '' : String(filterValue).toLowerCase()
 
   switch (operator) {
     case 'eq':
@@ -94,8 +113,8 @@ function applyGroup(item: unknown, group: FilterGroup): boolean {
   })
 
   return group.combinator === 'AND'
-    ? results.every(r => r)
-    : results.some(r => r)
+    ? results.every(Boolean)
+    : results.some(Boolean)
 }
 
 /**
@@ -108,8 +127,8 @@ export function applyFilters<T>(items: T[], config: FilterConfig): T[] {
     const results = config.groups.map(group => applyGroup(item, group))
 
     return config.globalCombinator === 'AND'
-      ? results.every(r => r)
-      : results.some(r => r)
+      ? results.every(Boolean)
+      : results.some(Boolean)
   })
 }
 

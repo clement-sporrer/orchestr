@@ -46,7 +46,9 @@ const stageLabels: Record<PipelineStage, string> = {
   PLACED: 'Placé',
 }
 
-export default async function CandidateDetailPage({ params }: CandidateDetailPageProps) {
+export default async function CandidateDetailPage({
+  params,
+}: Readonly<CandidateDetailPageProps>) {
   const { id } = await params
   
   let candidate
@@ -195,7 +197,8 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
                 Missions
               </CardTitle>
               <CardDescription>
-                {candidate.missionCandidates.length} mission{candidate.missionCandidates.length !== 1 ? 's' : ''}
+                {candidate.missionCandidates.length} mission
+                {candidate.missionCandidates.length === 1 ? '' : 's'}
               </CardDescription>
             </CardHeader>
             <CardContent>

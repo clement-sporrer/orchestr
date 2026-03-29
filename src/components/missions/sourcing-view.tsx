@@ -23,7 +23,21 @@ interface MissionSourcingViewProps {
   onPipelineChanged?: () => void
 }
 
-export function MissionSourcingView({ mission, onPipelineChanged }: MissionSourcingViewProps) {
+function formatPoolCandidateSubtitle(
+  c: Pick<CandidateWithCount, 'currentPosition' | 'currentCompany' | 'email'>,
+): string {
+  if (!c.currentPosition && !c.currentCompany) {
+    return c.email ?? '—'
+  }
+  const positionPart = c.currentPosition ?? ''
+  const companySuffix = c.currentCompany ? ` @ ${c.currentCompany}` : ''
+  return `${positionPart}${companySuffix}`
+}
+
+export function MissionSourcingView({
+  mission,
+  onPipelineChanged,
+}: Readonly<MissionSourcingViewProps>) {
   const [searchQuery, setSearchQuery] = useState('')
   const [results, setResults] = useState<CandidateWithCount[]>([])
   const [searching, setSearching] = useState(false)
@@ -155,9 +169,7 @@ export function MissionSourcingView({ mission, onPipelineChanged }: MissionSourc
                         {candidate.firstName} {candidate.lastName}
                       </p>
                       <p className="text-sm text-muted-foreground truncate">
-                        {candidate.currentPosition || candidate.currentCompany
-                          ? `${candidate.currentPosition || ''}${candidate.currentCompany ? ` @ ${candidate.currentCompany}` : ''}`
-                          : candidate.email || '—'}
+                        {formatPoolCandidateSubtitle(candidate)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">

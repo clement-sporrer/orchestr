@@ -1,33 +1,46 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { 
-  Download, 
-  CheckCircle2, 
+import { Label } from '@/components/ui/label'
+import {
+  Download,
+  CheckCircle2,
   Copy,
   Check,
   Puzzle,
   MousePointer,
-  Linkedin,
   Sparkles,
   ArrowRight,
-  ExternalLink
+  ExternalLink,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+const EXTENSION_API_URL_INPUT_ID = 'extension-install-api-url'
+const EXTENSION_EMAIL_INPUT_ID = 'extension-install-email'
+
+/** LinkedIn mark (avoids deprecated lucide-react `Linkedin` brand icon). */
+function LinkedInMark({ className }: Readonly<{ className?: string }>) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden
+    >
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22 0H2C.9 0 0 .9 0 2v20c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V2c0-1.1-.9-2-2-2z" />
+    </svg>
+  )
+}
+
 export default function ExtensionInstallationPage() {
-  const [apiUrl, setApiUrl] = useState('')
+  const [apiUrl] = useState(() =>
+    globalThis.window === undefined ? '' : globalThis.window.location.origin,
+  )
   const [userEmail, setUserEmail] = useState('')
   const [copied, setCopied] = useState<'url' | 'email' | null>(null)
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setApiUrl(window.location.origin)
-    }
-  }, [])
 
   const copyToClipboard = async (text: string, type: 'url' | 'email') => {
     await navigator.clipboard.writeText(text)
@@ -64,8 +77,8 @@ export default function ExtensionInstallationPage() {
     <div className="p-6 max-w-3xl mx-auto space-y-8">
       {/* Hero */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-[#0077B5] to-[#00A0DC] text-white shadow-lg">
-          <Linkedin className="h-10 w-10" />
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-linear-to-br from-[#0077B5] to-[#00A0DC] text-white shadow-lg">
+          <LinkedInMark className="h-10 w-10" />
         </div>
         <h1 className="text-3xl font-bold tracking-tight">
           Extension Chrome ORCHESTR
@@ -83,7 +96,7 @@ export default function ExtensionInstallationPage() {
         >
           <Button 
             size="lg" 
-            className="h-16 px-8 text-lg bg-gradient-to-r from-[#0077B5] to-[#00A0DC] hover:from-[#006399] hover:to-[#0088BC] shadow-lg hover:shadow-xl transition-all"
+            className="h-16 px-8 text-lg bg-linear-to-r from-[#0077B5] to-[#00A0DC] hover:from-[#006399] hover:to-[#0088BC] shadow-lg hover:shadow-xl transition-all"
           >
             <Download className="mr-3 h-6 w-6" />
             Télécharger l&apos;extension
@@ -109,7 +122,7 @@ export default function ExtensionInstallationPage() {
 
       {/* Detailed Steps */}
       <Card className="overflow-hidden">
-        <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-6 border-b">
+        <div className="bg-linear-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-6 border-b">
           <h2 className="text-xl font-semibold flex items-center gap-2">
             <Puzzle className="h-5 w-5" />
             Guide d&apos;installation rapide
@@ -118,7 +131,7 @@ export default function ExtensionInstallationPage() {
         <CardContent className="p-6 space-y-6">
           {/* Step 1 */}
           <div className="flex gap-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+            <div className="shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
               1
             </div>
             <div className="space-y-2">
@@ -133,7 +146,7 @@ export default function ExtensionInstallationPage() {
 
           {/* Step 2 */}
           <div className="flex gap-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center font-bold">
+            <div className="shrink-0 w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center font-bold">
               2
             </div>
             <div className="space-y-2">
@@ -156,7 +169,7 @@ export default function ExtensionInstallationPage() {
 
           {/* Step 3 */}
           <div className="flex gap-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold">
+            <div className="shrink-0 w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold">
               3
             </div>
             <div className="space-y-2">
@@ -175,7 +188,7 @@ export default function ExtensionInstallationPage() {
 
           {/* Step 4 */}
           <div className="flex gap-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center font-bold">
+            <div className="shrink-0 w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center font-bold">
               4
             </div>
             <div className="space-y-2">
@@ -190,7 +203,7 @@ export default function ExtensionInstallationPage() {
 
           {/* Success */}
           <div className="flex gap-4 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-            <CheckCircle2 className="h-6 w-6 text-green-600 flex-shrink-0" />
+            <CheckCircle2 className="h-6 w-6 text-green-600 shrink-0" />
             <div>
               <h3 className="font-medium text-green-800 dark:text-green-200">C&apos;est installé !</h3>
               <p className="text-sm text-green-700 dark:text-green-300">
@@ -203,7 +216,7 @@ export default function ExtensionInstallationPage() {
 
       {/* Configuration */}
       <Card>
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 p-6 border-b">
+        <div className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 p-6 border-b">
           <h2 className="text-xl font-semibold flex items-center gap-2">
             <Sparkles className="h-5 w-5" />
             Configuration (30 secondes)
@@ -216,11 +229,14 @@ export default function ExtensionInstallationPage() {
           
           {/* API URL */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">URL de l&apos;API</label>
+            <Label htmlFor={EXTENSION_API_URL_INPUT_ID} className="text-sm font-medium">
+              URL de l&apos;API
+            </Label>
             <div className="flex gap-2">
-              <Input 
-                value={apiUrl} 
-                readOnly 
+              <Input
+                id={EXTENSION_API_URL_INPUT_ID}
+                value={apiUrl}
+                readOnly
                 className="font-mono text-sm"
               />
               <Button 
@@ -234,12 +250,15 @@ export default function ExtensionInstallationPage() {
 
           {/* API Key */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Clé API</label>
+            <Label htmlFor={EXTENSION_EMAIL_INPUT_ID} className="text-sm font-medium">
+              Clé API
+            </Label>
             <p className="text-sm text-muted-foreground">
               Votre <strong>email de connexion ORCHESTR</strong>
             </p>
             <div className="flex gap-2">
-              <Input 
+              <Input
+                id={EXTENSION_EMAIL_INPUT_ID}
                 value={userEmail || 'votre-email@exemple.com'}
                 onChange={(e) => setUserEmail(e.target.value)}
                 placeholder="votre-email@exemple.com"
@@ -267,11 +286,11 @@ export default function ExtensionInstallationPage() {
       </Card>
 
       {/* Usage */}
-      <Card className="bg-gradient-to-br from-[#0077B5]/5 to-[#00A0DC]/5 border-[#0077B5]/20">
+      <Card className="bg-linear-to-br from-[#0077B5]/5 to-[#00A0DC]/5 border-[#0077B5]/20">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
             <div className="p-3 rounded-xl bg-[#0077B5] text-white">
-              <Linkedin className="h-6 w-6" />
+              <LinkedInMark className="h-6 w-6" />
             </div>
             <div className="space-y-2">
               <h3 className="font-semibold text-lg">Utilisation</h3>

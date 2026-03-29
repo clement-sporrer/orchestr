@@ -7,7 +7,10 @@ interface MissionDetailPageProps {
   searchParams: Promise<{ tab?: string }>
 }
 
-export default async function MissionDetailPage({ params, searchParams }: MissionDetailPageProps) {
+export default async function MissionDetailPage({
+  params,
+  searchParams,
+}: Readonly<MissionDetailPageProps>) {
   const { id } = await params
   const { tab = 'pipeline' } = await searchParams
 

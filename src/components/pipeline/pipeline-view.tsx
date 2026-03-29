@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { LayoutGrid, List, Filter, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -46,7 +46,7 @@ export function PipelineView({
   mission,
   onAfterPipelineMutation,
   onNavigateToSourcing,
-}: PipelineViewProps) {
+}: Readonly<PipelineViewProps>) {
   const router = useRouter()
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban')
   const [stageFilter, setStageFilter] = useState<PipelineStage | 'all'>('all')
@@ -64,6 +64,44 @@ export function PipelineView({
       ...stage,
       count: mission.missionCandidates.filter((mc) => mc.stage === stage.value).length,
     })), [mission.missionCandidates])
+
+  const emptyPipelineMessage =
+    stageFilter === 'all'
+      ? 'Commencez à sourcer des candidats pour cette mission.'
+      : `Aucun candidat à l'étape "${stages.find((s) => s.value === stageFilter)?.label}"`
+
+  let pipelineMain: ReactNode
+  if (filteredCandidates.length === 0) {
+    pipelineMain = (
+      <Card className="border-dashed">
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <UserPlus className="h-12 w-12 text-muted-foreground/50" />
+          <h3 className="mt-4 text-lg font-semibold">Aucun candidat</h3>
+          <p className="mt-2 text-sm text-muted-foreground text-center max-w-sm">
+            {emptyPipelineMessage}
+          </p>
+        </CardContent>
+      </Card>
+    )
+  } else if (viewMode === 'kanban') {
+    pipelineMain = (
+      <KanbanBoard
+        missionId={mission.id}
+        candidates={filteredCandidates}
+        stages={stages}
+        onAfterStageChange={onAfterPipelineMutation}
+      />
+    )
+  } else {
+    pipelineMain = (
+      <PipelineList
+        missionId={mission.id}
+        candidates={filteredCandidates}
+        stages={stages}
+        onAfterStageChange={onAfterPipelineMutation}
+      />
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -141,34 +179,7 @@ export function PipelineView({
       </div>
 
       {/* Content */}
-      {filteredCandidates.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <UserPlus className="h-12 w-12 text-muted-foreground/50" />
-            <h3 className="mt-4 text-lg font-semibold">Aucun candidat</h3>
-            <p className="mt-2 text-sm text-muted-foreground text-center max-w-sm">
-              {stageFilter !== 'all'
-                ? `Aucun candidat à l'étape "${stages.find((s) => s.value === stageFilter)?.label}"`
-                : 'Commencez à sourcer des candidats pour cette mission.'
-              }
-            </p>
-          </CardContent>
-        </Card>
-      ) : viewMode === 'kanban' ? (
-        <KanbanBoard
-          missionId={mission.id}
-          candidates={filteredCandidates}
-          stages={stages}
-          onAfterStageChange={onAfterPipelineMutation}
-        />
-      ) : (
-        <PipelineList
-          missionId={mission.id}
-          candidates={filteredCandidates}
-          stages={stages}
-          onAfterStageChange={onAfterPipelineMutation}
-        />
-      )}
+      {pipelineMain}
     </div>
   )
 }

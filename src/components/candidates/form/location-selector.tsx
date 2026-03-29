@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import {
   Select,
   SelectContent,
@@ -38,26 +38,20 @@ export function LocationSelector({
   onCityChange,
   onRegionChange,
   disabled,
-}: LocationSelectorProps) {
-  const [availableCities, setAvailableCities] = useState<string[]>([])
+}: Readonly<LocationSelectorProps>) {
+  const availableCities = useMemo(
+    () => (country ? getCitiesForCountry(country) : []),
+    [country],
+  )
 
-  // Update cities when country changes
   useEffect(() => {
-    if (country) {
-      const cities = getCitiesForCountry(country)
-      setAvailableCities(cities)
-
-      // Clear city if not in new list
-      if (city && !cities.includes(city)) {
-        onCityChange('')
-        onRegionChange('')
-      }
-    } else {
-      setAvailableCities([])
+    if (!country) return
+    if (city && !availableCities.includes(city)) {
+      onCityChange('')
+      onRegionChange('')
     }
-  }, [country])
+  }, [country, city, availableCities, onCityChange, onRegionChange])
 
-  // Auto-detect region when city changes
   useEffect(() => {
     if (country && city) {
       const detectedRegion = detectRegion(city, country)
@@ -65,7 +59,7 @@ export function LocationSelector({
         onRegionChange(detectedRegion)
       }
     }
-  }, [city, country])
+  }, [city, country, onRegionChange])
 
   const handleCountryChange = (value: string) => {
     onCountryChange(value)

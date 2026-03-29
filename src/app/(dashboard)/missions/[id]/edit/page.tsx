@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { JobBuilderFormLazy } from '@/components/job-builder/form-lazy'
 import { getMissionOverview, getClientsWithContactsForSelect } from '@/lib/actions/missions'
 import { displayClientCompanyName } from '@/lib/utils/client-display'
@@ -10,7 +11,9 @@ interface EditMissionPageProps {
   params: Promise<{ id: string }>
 }
 
-export default async function EditMissionPage({ params }: EditMissionPageProps) {
+export default async function EditMissionPage({
+  params,
+}: Readonly<EditMissionPageProps>) {
   const { id } = await params
 
   let mission
@@ -50,19 +53,23 @@ export default async function EditMissionPage({ params }: EditMissionPageProps) 
     processVisibility: mission.processVisibility,
   }
 
+  const backHref = '/missions/' + id
+  const clientLabel = displayClientCompanyName(mission.client.companyName)
+  const missionSubtitle = mission.title + ' – ' + clientLabel
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/missions/${id}`}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
+        <Link
+          href={backHref}
+          className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}
+          aria-label="Retour à la mission"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Link>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Modifier la mission</h1>
-          <p className="text-muted-foreground">
-            {mission.title} – {displayClientCompanyName(mission.client.companyName)}
-          </p>
+          <p className="text-muted-foreground">{missionSubtitle}</p>
         </div>
       </div>
 

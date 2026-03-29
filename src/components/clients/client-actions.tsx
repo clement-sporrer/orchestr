@@ -28,7 +28,10 @@ interface ClientActionsProps {
   clientCategories?: string[]
 }
 
-export function ClientActions({ client, clientCategories = [] }: ClientActionsProps) {
+export function ClientActions({
+  client,
+  clientCategories = [],
+}: Readonly<ClientActionsProps>) {
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const displayName = displayClientCompanyName(client.companyName)

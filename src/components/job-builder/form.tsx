@@ -127,7 +127,7 @@ export function JobBuilderForm({
   defaultClientId,
   missionId,
   initialData,
-}: JobBuilderFormProps) {
+}: Readonly<JobBuilderFormProps>) {
   const router = useRouter()
   const list = clientsWithContacts ?? clients ?? []
   const isEdit = !!missionId && !!initialData
@@ -144,21 +144,21 @@ export function JobBuilderForm({
           location: initialData.location ?? '',
           contractType: initialData.contractType ?? '',
           seniority: initialData.seniority ?? '',
-          salaryMin: initialData.salaryMin != null ? String(initialData.salaryMin) : '',
-          salaryMax: initialData.salaryMax != null ? String(initialData.salaryMax) : '',
+          salaryMin: initialData.salaryMin == null ? '' : String(initialData.salaryMin),
+          salaryMax: initialData.salaryMax == null ? '' : String(initialData.salaryMax),
           salaryVisible: initialData.salaryVisible ?? false,
           currency: initialData.currency ?? 'EUR',
           context: initialData.context ?? '',
-          contextVisibility: (initialData.contextVisibility ?? 'INTERNAL') as Visibility,
+          contextVisibility: initialData.contextVisibility ?? 'INTERNAL',
           responsibilities: initialData.responsibilities ?? '',
-          responsibilitiesVisibility: (initialData.responsibilitiesVisibility ?? 'ALL') as Visibility,
+          responsibilitiesVisibility: initialData.responsibilitiesVisibility ?? 'ALL',
           mustHave: initialData.mustHave ?? '',
-          mustHaveVisibility: (initialData.mustHaveVisibility ?? 'ALL') as Visibility,
+          mustHaveVisibility: initialData.mustHaveVisibility ?? 'ALL',
           niceToHave: initialData.niceToHave ?? '',
-          niceToHaveVisibility: (initialData.niceToHaveVisibility ?? 'ALL') as Visibility,
+          niceToHaveVisibility: initialData.niceToHaveVisibility ?? 'ALL',
           redFlags: initialData.redFlags ?? '',
           process: initialData.process ?? '',
-          processVisibility: (initialData.processVisibility ?? 'INTERNAL_CLIENT') as Visibility,
+          processVisibility: initialData.processVisibility ?? 'INTERNAL_CLIENT',
         }
       : { ...defaultFormData, clientId: defaultClientId || '', mainContactId: '' }
     return base
@@ -188,8 +188,8 @@ export function JobBuilderForm({
         location: formData.location || undefined,
         contractType: formData.contractType as 'CDI' | 'CDD' | 'FREELANCE' | 'INTERNSHIP' | 'APPRENTICESHIP' | 'OTHER' | undefined,
         seniority: formData.seniority as 'JUNIOR' | 'MID' | 'SENIOR' | 'LEAD' | 'EXECUTIVE' | undefined,
-        salaryMin: formData.salaryMin ? parseInt(formData.salaryMin) : undefined,
-        salaryMax: formData.salaryMax ? parseInt(formData.salaryMax) : undefined,
+        salaryMin: formData.salaryMin ? Number.parseInt(formData.salaryMin, 10) : undefined,
+        salaryMax: formData.salaryMax ? Number.parseInt(formData.salaryMax, 10) : undefined,
         salaryVisible: formData.salaryVisible,
         currency: formData.currency,
         context: formData.context || undefined,

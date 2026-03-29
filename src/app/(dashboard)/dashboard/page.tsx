@@ -93,6 +93,21 @@ async function getDashboardStats() {
     ? Math.round(((candidatesThisMonth - candidatesLastMonth) / candidatesLastMonth) * 100)
     : 0
 
+  let candidateChangeLabel: string
+  if (candidateChange >= 0) {
+    candidateChangeLabel = `+${candidateChange}% vs mois dernier`
+  } else {
+    candidateChangeLabel = `${candidateChange}% vs mois dernier`
+  }
+
+  let urgentTasksLabel: string
+  if (urgentTasksCount === 0) {
+    urgentTasksLabel = 'Aucune urgente'
+  } else {
+    const urgentPlural = urgentTasksCount > 1 ? 's' : ''
+    urgentTasksLabel = `${urgentTasksCount} urgente${urgentPlural}`
+  }
+
   return {
     activeMissions: {
       value: activeMissionsCount,
@@ -100,11 +115,11 @@ async function getDashboardStats() {
     },
     candidatesThisMonth: {
       value: candidatesThisMonth,
-      change: candidateChange >= 0 ? `+${candidateChange}% vs mois dernier` : `${candidateChange}% vs mois dernier`,
+      change: candidateChangeLabel,
     },
     pendingTasks: {
       value: pendingTasksCount,
-      change: urgentTasksCount > 0 ? `${urgentTasksCount} urgente${urgentTasksCount > 1 ? 's' : ''}` : 'Aucune urgente',
+      change: urgentTasksLabel,
     },
     shortlists: {
       value: shortlistsSentCount,
@@ -189,6 +204,13 @@ async function StatsCards() {
   )
 }
 
+function taskPriorityBadgeVariant(priority: string): 'destructive' | 'secondary' {
+  if (priority === 'URGENT' || priority === 'HIGH') {
+    return 'destructive'
+  }
+  return 'secondary'
+}
+
 async function TasksList() {
   const context = await getOrganizationId()
   if (!context) return null
@@ -270,12 +292,8 @@ async function TasksList() {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <Badge 
-                variant={
-                  task.priority === 'URGENT' ? 'destructive' : 
-                  task.priority === 'HIGH' ? 'destructive' : 
-                  'secondary'
-                }
+              <Badge
+                variant={taskPriorityBadgeVariant(task.priority)}
                 className="text-xs"
               >
                 {formatDueDate(task.dueDate)}
@@ -338,8 +356,8 @@ async function RecentActivity() {
 
   const getActivityDescription = (interaction: typeof interactions[0]) => {
     const candidateName = `${interaction.candidate.firstName} ${interaction.candidate.lastName}`
-    const missionTitle = interaction.missionCandidate?.mission?.title || ''
-    
+    const missionTitle = interaction.missionCandidate?.mission?.title ?? ''
+
     switch (interaction.type) {
       case 'MESSAGE':
         return `Message envoyé à ${candidateName}`
@@ -359,8 +377,10 @@ async function RecentActivity() {
         return `Note ajoutée pour ${candidateName}`
       case 'STATUS_CHANGE':
         return `Statut modifié pour ${candidateName}`
-      default:
-        return `Activité pour ${candidateName}${missionTitle ? ` - ${missionTitle}` : ''}`
+      default: {
+        const missionSuffix = missionTitle === '' ? '' : ` - ${missionTitle}`
+        return `Activité pour ${candidateName}${missionSuffix}`
+      }
     }
   }
 
@@ -435,13 +455,13 @@ async function ActiveMissions() {
   })
 
   const getStageLabel = (mission: typeof missions[0]) => {
-    const stages = mission.missionCandidates.map(mc => mc.stage)
-    if (stages.includes('PLACED')) return 'Placé'
-    if (stages.includes('OFFER')) return 'Offre'
-    if (stages.includes('SHORTLIST')) return 'Shortlist'
-    if (stages.includes('INTERVIEW')) return 'Entretien'
-    if (stages.includes('RESPONSE')) return 'Réponse'
-    if (stages.includes('CONTACTED')) return 'Prise de contact'
+    const stages = new Set(mission.missionCandidates.map((mc) => mc.stage))
+    if (stages.has('PLACED')) return 'Placé'
+    if (stages.has('OFFER')) return 'Offre'
+    if (stages.has('SHORTLIST')) return 'Shortlist'
+    if (stages.has('INTERVIEW')) return 'Entretien'
+    if (stages.has('RESPONSE')) return 'Réponse'
+    if (stages.has('CONTACTED')) return 'Prise de contact'
     return 'Sourcing'
   }
 

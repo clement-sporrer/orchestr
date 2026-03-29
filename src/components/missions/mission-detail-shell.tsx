@@ -71,7 +71,11 @@ interface MissionDetailShellProps {
   initialTab: string
 }
 
-export function MissionDetailShell({ missionId, overview, initialTab }: MissionDetailShellProps) {
+export function MissionDetailShell({
+  missionId,
+  overview,
+  initialTab,
+}: Readonly<MissionDetailShellProps>) {
   const queryClient = useQueryClient()
   const [tab, setTab] = useState<MissionTab>(() =>
     isMissionTab(initialTab) ? initialTab : 'pipeline',
@@ -80,10 +84,10 @@ export function MissionDetailShell({ missionId, overview, initialTab }: MissionD
   const onTabChange = useCallback((value: string) => {
     if (!isMissionTab(value)) return
     setTab(value)
-    if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href)
+    if (globalThis.window !== undefined) {
+      const url = new URL(globalThis.window.location.href)
       url.searchParams.set('tab', value)
-      window.history.replaceState(null, '', url)
+      globalThis.window.history.replaceState(null, '', url)
     }
   }, [])
 
@@ -109,9 +113,9 @@ export function MissionDetailShell({ missionId, overview, initialTab }: MissionD
   }, [overview, missionCandidates])
 
   const candidateCount =
-    missionCandidates !== undefined
-      ? missionCandidates.length
-      : overview._count.missionCandidates
+    missionCandidates === undefined
+      ? overview._count.missionCandidates
+      : missionCandidates.length
 
   const clientLabel = displayClientCompanyName(overview.client.companyName)
 
@@ -162,7 +166,7 @@ export function MissionDetailShell({ missionId, overview, initialTab }: MissionD
               <span className="flex items-center gap-1">
                 <Users className="h-4 w-4" />
                 {candidateCount} candidat
-                {candidateCount !== 1 ? 's' : ''}
+                {candidateCount === 1 ? '' : 's'}
               </span>
             </div>
           </div>

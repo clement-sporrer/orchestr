@@ -47,17 +47,12 @@ async function getOrganizationWithSubscription() {
     },
   })
 
-  return dbUser?.organization || null
+  return dbUser?.organization ?? null
 }
 
 // Get today's AI usage count
-async function getAIUsageToday(organizationId: string): Promise<number> {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  // Event tracking table removed — AI usage limits not enforced
-  void organizationId
-  void today
+async function getAIUsageToday(_organizationId: string): Promise<number> {
+  // Event tracking table removed — AI usage limits not enforced; counts stay at 0
   return 0
 }
 
@@ -183,8 +178,8 @@ export async function canUseAPI(): Promise<{ allowed: boolean; reason?: string }
 
 // Track AI usage
 export async function trackAIUsage(
-  feature: 'scoring' | 'structuring' | 'message_generation',
-  metadata?: Record<string, unknown>
+  _feature: 'scoring' | 'structuring' | 'message_generation',
+  _metadata?: Record<string, unknown>
 ) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -199,7 +194,6 @@ export async function trackAIUsage(
   if (!dbUser) return
 
   // Event tracking table removed — AI usage event not logged
-  void dbUser
 }
 
 // Higher-order function to wrap AI features with limit checking

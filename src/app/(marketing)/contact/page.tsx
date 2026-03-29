@@ -33,10 +33,11 @@ export default function ContactPage() {
   const [reason, setReason] = useState('')
   const [message, setMessage] = useState('')
 
-  // Prefill reason from URL
+  // Prefill reason from URL when marketing links include ?reason=
   useEffect(() => {
     const urlReason = searchParams.get('reason')
-    if (urlReason && reasons.some(r => r.value === urlReason)) {
+    if (urlReason && reasons.some((r) => r.value === urlReason)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- URL query is external input synced into form state
       setReason(urlReason)
     }
   }, [searchParams])
@@ -45,8 +46,7 @@ export default function ContactPage() {
     e.preventDefault()
     setLoading(true)
 
-    // TODO: Integrate with email service (SendGrid, Resend, etc.)
-    // For now, simulate a submission delay
+    // UI-only demo: wire to Resend/SendGrid when product email flow is ready
     await new Promise(resolve => setTimeout(resolve, 1000))
 
     setLoading(false)
@@ -72,15 +72,15 @@ export default function ContactPage() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-primary">1.</span>
-                  Our team reviews your request
+                  <span>Our team reviews your request</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary">2.</span>
-                  We reach out to schedule a call or provide information
+                  <span>We reach out to schedule a call or provide information</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary">3.</span>
-                  For demos, we prepare a personalized walkthrough
+                  <span>For demos, we prepare a personalized walkthrough</span>
                 </li>
               </ul>
             </div>
@@ -105,7 +105,7 @@ export default function ContactPage() {
 
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
                   <Mail className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -117,7 +117,7 @@ export default function ContactPage() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
                   <Building2 className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -129,7 +129,7 @@ export default function ContactPage() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
                   <MessageSquare className="h-5 w-5 text-primary" />
                 </div>
                 <div>

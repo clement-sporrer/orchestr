@@ -1,13 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../client'
-import { 
-  getMissions, 
+import {
+  getMissions,
   getMission,
   createMission,
   updateMission,
   deleteMission,
+  type MissionWithCount,
 } from '@/lib/actions/missions'
 import type { MissionStatus } from '@/generated/prisma'
+
+type MissionsListData = Awaited<ReturnType<typeof getMissions>>
+type MissionDetailData = Awaited<ReturnType<typeof getMission>>
+type MissionUpdatePayload = Parameters<typeof updateMission>[1]
 
 interface MissionsFilters {
   search?: string
@@ -60,21 +65,24 @@ export function useCreateMission() {
       
       queryClient.setQueriesData(
         { queryKey: queryKeys.missions.lists() },
-        (old: any) => {
+        (old: MissionsListData | undefined) => {
           if (!old) return old
+          const tempMission = {
+            ...newMission,
+            id: 'temp-' + Date.now(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            _count: { missionCandidates: 0 },
+          } as unknown as MissionWithCount
+          const nextTotal = old.pagination.total + 1
           return {
             ...old,
-            missions: [
-              {
-                ...newMission,
-                id: 'temp-' + Date.now(),
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                _count: { missionCandidates: 0 },
-              },
-              ...old.missions,
-            ],
-            total: old.total + 1,
+            missions: [tempMission, ...old.missions],
+            pagination: {
+              ...old.pagination,
+              total: nextTotal,
+              totalPages: Math.ceil(nextTotal / old.pagination.limit),
+            },
           }
         }
       )
@@ -102,7 +110,7 @@ export function useUpdateMission() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => 
+    mutationFn: ({ id, data }: { id: string; data: MissionUpdatePayload }) =>
       updateMission(id, data),
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.missions.detail(id) })
@@ -113,7 +121,7 @@ export function useUpdateMission() {
       
       queryClient.setQueryData(
         queryKeys.missions.detail(id),
-        (old: any) => {
+        (old: MissionDetailData | undefined) => {
           if (!old) return old
           return { ...old, ...data, updatedAt: new Date() }
         }

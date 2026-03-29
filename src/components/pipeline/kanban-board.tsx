@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { 
   DndContext, 
   DragOverlay,
@@ -40,10 +40,15 @@ interface KanbanBoardProps {
   onAfterStageChange?: () => void
 }
 
-export function KanbanBoard({ missionId, candidates, stages, onAfterStageChange }: KanbanBoardProps) {
+export function KanbanBoard({
+  missionId,
+  candidates,
+  stages,
+  onAfterStageChange,
+}: Readonly<KanbanBoardProps>) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, PipelineStage>>({})
-  const [, setIsUpdating] = useState<string | null>(null)
+  const updatingCandidateIdRef = useRef<string | null>(null)
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -84,7 +89,7 @@ export function KanbanBoard({ missionId, candidates, stages, onAfterStageChange 
       
       // Optimistic update
       setOptimisticUpdates(prev => ({ ...prev, [candidateId]: stageFromCard }))
-      setIsUpdating(candidateId)
+      updatingCandidateIdRef.current = candidateId
       
       try {
         await updateCandidateStage(candidateId, stageFromCard)
@@ -98,7 +103,7 @@ export function KanbanBoard({ missionId, candidates, stages, onAfterStageChange 
         })
         toast.error(err instanceof Error ? err.message : 'Erreur lors du déplacement')
       } finally {
-        setIsUpdating(null)
+        updatingCandidateIdRef.current = null
       }
       return
     }
@@ -108,7 +113,7 @@ export function KanbanBoard({ missionId, candidates, stages, onAfterStageChange 
 
     // Optimistic update
     setOptimisticUpdates(prev => ({ ...prev, [candidateId]: targetStage }))
-    setIsUpdating(candidateId)
+    updatingCandidateIdRef.current = candidateId
 
     try {
       await updateCandidateStage(candidateId, targetStage)
@@ -123,7 +128,7 @@ export function KanbanBoard({ missionId, candidates, stages, onAfterStageChange 
       })
       toast.error(err instanceof Error ? err.message : 'Erreur lors du déplacement')
     } finally {
-      setIsUpdating(null)
+      updatingCandidateIdRef.current = null
     }
   }
 

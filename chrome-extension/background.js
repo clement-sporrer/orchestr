@@ -10,7 +10,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 });
 
 // Handle messages from content script or popup
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, _sender, _sendResponse) => {
   if (request.action === 'openSettings') {
     chrome.runtime.openOptionsPage();
   }

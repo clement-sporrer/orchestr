@@ -29,7 +29,7 @@ export function LanguageInput({
   value = [],
   onChange,
   disabled,
-}: LanguageInputProps) {
+}: Readonly<LanguageInputProps>) {
   const [newLanguage, setNewLanguage] = useState('')
   const [newLevel, setNewLevel] = useState<
     'BEGINNER' | 'INTERMEDIATE' | 'FLUENT' | 'NATIVE'
@@ -130,7 +130,9 @@ export function LanguageInput({
         />
         <Select
           value={newLevel}
-          onValueChange={(val: any) => setNewLevel(val)}
+          onValueChange={(val) =>
+            setNewLevel(val as typeof newLevel)
+          }
           disabled={disabled}
         >
           <SelectTrigger className="w-[160px]">
