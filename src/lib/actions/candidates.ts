@@ -448,7 +448,6 @@ export async function enrichFromProfileText(profileText: string, linkedInUrl?: s
       source: 'ai_enrichment',
     }
   } catch (error) {
-    console.error('AI enrichment error:', error)
     return {
       success: false,
       error: 'Erreur lors de l\'analyse du profil. Veuillez réessayer.',
@@ -737,90 +736,4 @@ export async function mergeCandidates(targetId: string, sourceId: string) {
   return { success: true, mergedInto: targetId }
 }
 
-// Create candidate with enrichment data
-export async function createCandidateWithEnrichment(data: {
-  // Basic info
-  firstName: string
-  lastName: string
-  email?: string
-  phone?: string
-  currentPosition?: string
-  currentCompany?: string
-  linkedin?: string
-  tags?: string[]
-  sector?: string
-  // Enrichment data
-  linkedinHeadline?: string
-  linkedinSummary?: string
-  experiences?: Array<{
-    company: string
-    title: string
-    startDate?: string
-    endDate?: string
-    description?: string
-  }>
-  education?: Array<{
-    school: string
-    degree?: string
-    field?: string
-    year?: string
-  }>
-  skills?: string[]
-  languages?: string[]
-}) {
-  const organizationId = await getOrganizationId()
-
-  // Check for duplicates
-  if (data.email || data.linkedin) {
-    const existing = await checkCandidateExists({
-      email: data.email,
-      linkedin: data.linkedin,
-      firstName: data.firstName,
-      lastName: data.lastName,
-    })
-    
-    if (existing.exists && existing.candidate) {
-      throw new Error(`Un candidat avec ce profil existe déjà: ${existing.candidate.firstName} ${existing.candidate.lastName}`)
-    }
-  }
-
-  const hasEnrichmentData = data.linkedinHeadline || data.linkedinSummary ||
-    (data.experiences && data.experiences.length > 0) ||
-    (data.education && data.education.length > 0) ||
-    (data.skills && data.skills.length > 0)
-
-  const candidate = await prisma.candidate.create({
-    data: {
-      organizationId,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email || null,
-      phone: data.phone || null,
-      currentPosition: data.currentPosition || null,
-      currentCompany: data.currentCompany || null,
-      linkedin: data.linkedin || null,
-      tags: data.tags || [],
-      sector: data.sector || null,
-      status: 'ACTIVE',
-      ...(hasEnrichmentData ? {
-        enrichment: {
-          create: {
-            linkedinUrl: data.linkedin || null,
-            linkedinHeadline: data.linkedinHeadline || null,
-            linkedinSummary: data.linkedinSummary || null,
-            experiences: data.experiences as object || null,
-            education: data.education as object || null,
-            skills: data.skills || [],
-            languages: data.languages || [],
-            lastEnrichedAt: new Date(),
-            enrichmentSource: 'manual',
-          },
-        },
-      } : {}),
-    },
-  })
-
-  revalidatePath('/candidates')
-  return candidate
-}
 
