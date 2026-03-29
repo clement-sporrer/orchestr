@@ -49,6 +49,7 @@ interface PipelineListProps {
   missionId: string
   candidates: CandidateWithDetails[]
   stages: Stage[]
+  onAfterStageChange?: () => void
 }
 
 const contactStatusLabels: Record<ContactStatus, string> = {
@@ -59,10 +60,11 @@ const contactStatusLabels: Record<ContactStatus, string> = {
   LATER: 'À recontacter',
 }
 
-export function PipelineList({ missionId: _missionId, candidates, stages }: PipelineListProps) {
+export function PipelineList({ missionId: _missionId, candidates, stages, onAfterStageChange }: PipelineListProps) {
   const handleStageChange = async (candidateId: string, newStage: PipelineStage) => {
     try {
       await updateCandidateStage(candidateId, newStage)
+      onAfterStageChange?.()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erreur')
     }

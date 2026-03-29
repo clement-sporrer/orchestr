@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { getOrganizationId } from '@/lib/auth/helpers'
+import { displayClientCompanyName } from '@/lib/utils/client-display'
 
 export interface SearchResult {
   type: 'candidate' | 'mission' | 'client'
@@ -91,13 +92,13 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
       type: 'mission' as const,
       id: m.id,
       title: m.title,
-      subtitle: m.client.companyName,
+      subtitle: displayClientCompanyName(m.client.companyName),
       url: `/missions/${m.id}`,
     })),
     ...clients.map((c) => ({
       type: 'client' as const,
       id: c.id,
-      title: c.companyName,
+      title: displayClientCompanyName(c.companyName),
       subtitle: c.sector || undefined,
       url: `/clients/${c.id}`,
     })),

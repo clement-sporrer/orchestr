@@ -12,10 +12,10 @@ import type { FilterConfig } from './filter-types'
 const EMPTY_CONFIG: FilterConfig = { groups: [], globalCombinator: 'AND' }
 
 const items = [
-  { id: '1', name: 'Alice', status: 'ACTIVE', score: 80, tags: ['js', 'ts'], client: { name: 'Acme' } },
-  { id: '2', name: 'Bob', status: 'INACTIVE', score: 50, tags: ['python'], client: { name: 'Beta' } },
-  { id: '3', name: 'Charlie', status: 'ACTIVE', score: 90, tags: ['js'], client: { name: 'Acme' } },
-  { id: '4', name: 'Diana', status: 'ARCHIVED', score: 0, tags: [], client: { name: '' } },
+  { id: '1', name: 'Alice', status: 'ACTIVE', score: 80, tags: ['js', 'ts'], client: { companyName: 'Acme' } },
+  { id: '2', name: 'Bob', status: 'INACTIVE', score: 50, tags: ['python'], client: { companyName: 'Beta' } },
+  { id: '3', name: 'Charlie', status: 'ACTIVE', score: 90, tags: ['js'], client: { companyName: 'Acme' } },
+  { id: '4', name: 'Diana', status: 'ARCHIVED', score: 0, tags: [], client: { companyName: '' } },
 ]
 
 function makeConfig(
@@ -113,8 +113,14 @@ describe('applyFilters', () => {
     expect(result).toHaveLength(3)
   })
 
-  it('nested dot notation — client.name', () => {
+  it('nested dot notation — client.name maps to client.companyName', () => {
     const result = applyFilters(items, makeConfig('client.name', 'eq', 'Acme'))
+    expect(result).toHaveLength(2)
+    expect(result.map(i => i.name)).toEqual(['Alice', 'Charlie'])
+  })
+
+  it('nested dot notation — client.companyName', () => {
+    const result = applyFilters(items, makeConfig('client.companyName', 'eq', 'Acme'))
     expect(result).toHaveLength(2)
     expect(result.map(i => i.name)).toEqual(['Alice', 'Charlie'])
   })

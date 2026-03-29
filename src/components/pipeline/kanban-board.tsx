@@ -37,9 +37,10 @@ interface KanbanBoardProps {
   missionId: string
   candidates: CandidateWithDetails[]
   stages: Stage[]
+  onAfterStageChange?: () => void
 }
 
-export function KanbanBoard({ missionId, candidates, stages }: KanbanBoardProps) {
+export function KanbanBoard({ missionId, candidates, stages, onAfterStageChange }: KanbanBoardProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, PipelineStage>>({})
   const [, setIsUpdating] = useState<string | null>(null)
@@ -88,8 +89,8 @@ export function KanbanBoard({ missionId, candidates, stages }: KanbanBoardProps)
       try {
         await updateCandidateStage(candidateId, stageFromCard)
         toast.success('Candidat déplacé')
+        onAfterStageChange?.()
       } catch (err) {
-        // Revert optimistic update
         setOptimisticUpdates(prev => {
           const next = { ...prev }
           delete next[candidateId]
@@ -112,6 +113,7 @@ export function KanbanBoard({ missionId, candidates, stages }: KanbanBoardProps)
     try {
       await updateCandidateStage(candidateId, targetStage)
       toast.success('Candidat déplacé')
+      onAfterStageChange?.()
     } catch (err) {
       // Revert optimistic update
       setOptimisticUpdates(prev => {

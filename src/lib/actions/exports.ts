@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { getOrganizationId } from '@/lib/auth/helpers'
 import { buildCandidateWhereClause } from '@/lib/filters/candidate-where'
+import { displayClientCompanyName } from '@/lib/utils/client-display'
 import type { CandidateFilters } from '@/lib/validations/candidate'
 
 // Export candidates as CSV (uses same filters as list)
@@ -174,7 +175,7 @@ export async function getShortlistPrintData(shortlistId: string) {
   return {
     mission: {
       title: shortlist.mission.title,
-      client: shortlist.mission.client.companyName,
+      client: displayClientCompanyName(shortlist.mission.client.companyName),
       location: shortlist.mission.location,
     },
     candidates: shortlist.candidates.map((sc) => ({

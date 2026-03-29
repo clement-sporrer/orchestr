@@ -129,8 +129,12 @@ export function useUpdateMission() {
         )
       }
     },
-    onSettled: (_data, _error, { id }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.missions.detail(id) })
+    onSettled: (_data, _error, variables) => {
+      const id = variables?.id
+      if (id) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.missions.detail(id) })
+        queryClient.invalidateQueries({ queryKey: queryKeys.missions.pipeline(id) })
+      }
       queryClient.invalidateQueries({ queryKey: queryKeys.missions.lists() })
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.missions() })
     },

@@ -21,6 +21,7 @@ import { BulkActionBar } from '@/components/list-views/bulk-action-bar'
 import { deleteMission } from '@/lib/actions/missions'
 import { toast } from 'sonner'
 import type { MissionWithCount } from '@/lib/actions/missions'
+import { displayClientCompanyName } from '@/lib/utils/client-display'
 import type { MissionStatus } from '@/generated/prisma'
 
 const statusLabels: Record<MissionStatus, string> = {
@@ -156,7 +157,7 @@ export function MissionsListWithViews({
                             {statusLabels[mission.status]}
                           </Badge>
                         </div>
-                        <p className="text-muted-foreground">{mission.client.companyName}</p>
+                        <p className="text-muted-foreground">{displayClientCompanyName(mission.client.companyName)}</p>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
                           {mission.location && <span>{mission.location}</span>}
                           {mission.contractType && <span>{mission.contractType}</span>}
@@ -210,7 +211,9 @@ export function MissionsListWithViews({
                     />
                   </TableCell>
                   <TableCell className="font-medium">{mission.title}</TableCell>
-                  <TableCell className="text-muted-foreground">{mission.client.companyName}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {displayClientCompanyName(mission.client.companyName)}
+                  </TableCell>
                   <TableCell>
                     <Badge className={statusColors[mission.status]}>
                       {statusLabels[mission.status]}

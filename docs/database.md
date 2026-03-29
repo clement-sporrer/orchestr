@@ -6,17 +6,21 @@
 
 ## Overview
 
-ORCHESTR uses PostgreSQL (via Supabase) with Prisma ORM. The database is designed around three interconnected graphs:
+ORCHESTR uses PostgreSQL (via Supabase) with Prisma ORM. **Clean Slate v2** (2026-03) reduced the product schema to **17 tenant-scoped tables**, unified documents, and full Row Level Security on `public`.  
+**Source of truth:** [`prisma/schema.prisma`](../prisma/schema.prisma) and [`supabase/policies.sql`](../supabase/policies.sql).  
+**Diagnostics:** [`supabase/diagnose.sql`](../supabase/diagnose.sql).
 
-1. **People Graph** — Candidates, taxonomy classification, relationship maturity, pool memberships
-2. **Client & Missions Graph** — Clients, missions, applications, interactions
-3. **Users & Access Graph** — Internal users, organization membership, external tokens
+Domains:
 
-All data is multi-tenant, scoped by `organizationId` and enforced through Row Level Security (RLS).
+1. **Tenant & billing** — organizations, settings, subscriptions, users  
+2. **CRM & missions** — clients, contacts, missions, mission candidates, shortlists, client feedback  
+3. **Talent** — candidates, pools, interactions, tasks, documents  
+
+Removed from the ORM (no longer in Prisma): taxonomy poles/positions, questionnaires, interviews, events, separate enrichment table, legacy CSV/import-only tables.
 
 ---
 
-## Entity Relationship Diagram
+## Entity relationship (Clean Slate v2)
 
 ```mermaid
 erDiagram
@@ -25,38 +29,59 @@ erDiagram
     Organization ||--o{ Mission : has
     Organization ||--o{ Candidate : has
     Organization ||--o{ Pool : has
-    Organization ||--o{ TaxonomyPole : has
-    Organization ||--o{ Event : has
+    Organization ||--o{ Task : has
+    Organization ||--o{ Document : has
     Organization ||--|| Subscription : has
+    Organization ||--o| OrganizationSettings : has
 
     Client ||--o{ Contact : has
     Client ||--o{ Mission : has
 
     Mission ||--o{ MissionCandidate : has
-    Mission ||--o{ Questionnaire : has
     Mission ||--o{ Shortlist : has
+    User ||--o{ Mission : recruits
+    User ||--o{ Interaction : creates
+    User ||--o{ Task : owns
 
-    Candidate ||--o{ MissionCandidate : applies_via
-    Candidate ||--o{ CandidatePool : member_of
-    Candidate ||--o{ Interaction : logs
-    Candidate ||--o{ CandidatePosition : has
-    Candidate ||--|| CandidateEnrichment : has
+    Candidate ||--o{ MissionCandidate : applies
+    Candidate ||--o{ CandidatePool : member
+    Candidate ||--o{ Interaction : has
 
     Pool ||--o{ CandidatePool : contains
-    TaxonomyPole ||--o{ TaxonomyPosition : contains
-    TaxonomyPosition ||--o{ CandidatePosition : assigned_to
 
-    MissionCandidate ||--o{ Interaction : optional_link
-    MissionCandidate ||--o{ Interview : has
-    MissionCandidate ||--o{ QuestionnaireResponse : has
-
-    Shortlist ||--o{ ShortlistCandidate : contains
-    ShortlistCandidate ||--|| ClientFeedback : receives
-
-    User ||--o{ Mission : recruiter_for
-    User ||--o{ Interaction : created_by
-    User ||--o{ Task : owns
+    MissionCandidate ||--o{ Interaction : has
+    MissionCandidate ||--o{ ShortlistCandidate : listed
+    Shortlist ||--o{ ShortlistCandidate : has
+    ShortlistCandidate ||--o| ClientFeedback : has
 ```
+
+### Table list (public, app)
+
+| Table | Prisma model |
+|-------|----------------|
+| `organizations` | Organization |
+| `organization_settings` | OrganizationSettings |
+| `subscriptions` | Subscription |
+| `users` | User |
+| `clients` | Client |
+| `contacts` | Contact |
+| `missions` | Mission |
+| `candidates` | Candidate |
+| `mission_candidates` | MissionCandidate |
+| `pools` | Pool |
+| `candidate_pools` | CandidatePool |
+| `interactions` | Interaction |
+| `tasks` | Task |
+| `documents` | Document |
+| `shortlists` | Shortlist |
+| `shortlist_candidates` | ShortlistCandidate |
+| `client_feedbacks` | ClientFeedback |
+
+**UI field note:** clients use `companyName` (not `name`). Filters or saved views using `client.name` are mapped to `companyName` in [`src/lib/filters/filter-engine.ts`](../src/lib/filters/filter-engine.ts).
+
+---
+
+> **Legacy doc:** Sections below still describe older entities (taxonomy, enrichment, questionnaires, etc.) for historical context and may not match the current schema. Prefer `prisma/schema.prisma` when in doubt.
 
 ---
 

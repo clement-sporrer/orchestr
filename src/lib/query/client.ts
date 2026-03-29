@@ -63,6 +63,8 @@ export const queryKeys = {
       [...queryKeys.missions.lists(), filters] as const,
     details: () => [...queryKeys.missions.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.missions.details(), id] as const,
+    /** Pipeline payload (mission candidates) — lazy-loaded on mission detail tabs */
+    pipeline: (id: string) => [...queryKeys.missions.detail(id), 'pipeline'] as const,
   },
   
   // Clients

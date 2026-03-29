@@ -22,6 +22,7 @@ import { createMission, updateMission } from '@/lib/actions/missions'
 import { VisibilitySelect } from './visibility-select'
 import { JobPreview } from './job-preview'
 import { toast } from 'sonner'
+import { displayClientCompanyName } from '@/lib/utils/client-display'
 import type { Visibility } from '@/generated/prisma'
 
 interface Contact {
@@ -260,7 +261,7 @@ export function JobBuilderForm({
                         <SelectContent>
                           {list.map((client) => (
                             <SelectItem key={client.id} value={client.id}>
-                              {client.companyName}
+                              {displayClientCompanyName(client.companyName)}
                             </SelectItem>
                           ))}
                         </SelectContent>

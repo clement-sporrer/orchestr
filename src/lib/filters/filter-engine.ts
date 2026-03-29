@@ -61,12 +61,22 @@ function applyRule(value: unknown, rule: FilterRule): boolean {
   }
 }
 
+/** Map legacy saved filters (pre–companyName) to current payload shape. */
+function normalizeFilterFieldPath(path: string): string {
+  if (path === 'client.name') return 'client.companyName'
+  if (path.startsWith('client.name.')) {
+    return `client.companyName.${path.slice('client.name.'.length)}`
+  }
+  return path
+}
+
 /**
  * Get nested value from object using dot notation
- * e.g., "client.name" from { client: { name: "Acme" } }
+ * e.g., "client.companyName" or legacy "client.name" → company field on Client
  */
 function getNestedValue(obj: unknown, path: string): unknown {
-  return path.split('.').reduce<unknown>((current, key) => {
+  const normalized = normalizeFilterFieldPath(path)
+  return normalized.split('.').reduce<unknown>((current, key) => {
     if (typeof current !== 'object' || current === null) return undefined
     return (current as Record<string, unknown>)[key]
   }, obj)

@@ -26,6 +26,10 @@ interface MissionWithCandidates extends Mission {
 
 interface PipelineViewProps {
   mission: MissionWithCandidates
+  /** Refresh lazy-loaded pipeline query after stage changes */
+  onAfterPipelineMutation?: () => void
+  /** Switch mission detail tab without full navigation (client tabs) */
+  onNavigateToSourcing?: () => void
 }
 
 const stages: { value: PipelineStage; label: string; color: string }[] = [
@@ -38,7 +42,11 @@ const stages: { value: PipelineStage; label: string; color: string }[] = [
   { value: 'PLACED', label: 'Placé', color: 'bg-green-500' },
 ]
 
-export function PipelineView({ mission }: PipelineViewProps) {
+export function PipelineView({
+  mission,
+  onAfterPipelineMutation,
+  onNavigateToSourcing,
+}: PipelineViewProps) {
   const router = useRouter()
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban')
   const [stageFilter, setStageFilter] = useState<PipelineStage | 'all'>('all')
@@ -121,9 +129,11 @@ export function PipelineView({ mission }: PipelineViewProps) {
           </Select>
         </div>
 
-        <Button 
-          size="sm" 
-          onClick={() => router.push(`/missions/${mission.id}?tab=sourcing`)}
+        <Button
+          size="sm"
+          onClick={() =>
+            onNavigateToSourcing ? onNavigateToSourcing() : router.push(`/missions/${mission.id}?tab=sourcing`)
+          }
         >
           <UserPlus className="mr-2 h-4 w-4" />
           Ajouter un candidat
@@ -149,12 +159,14 @@ export function PipelineView({ mission }: PipelineViewProps) {
           missionId={mission.id}
           candidates={filteredCandidates}
           stages={stages}
+          onAfterStageChange={onAfterPipelineMutation}
         />
       ) : (
         <PipelineList
           missionId={mission.id}
           candidates={filteredCandidates}
           stages={stages}
+          onAfterStageChange={onAfterPipelineMutation}
         />
       )}
     </div>

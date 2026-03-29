@@ -19,9 +19,11 @@ interface MissionWithCandidates extends Mission {
 
 interface MissionSourcingViewProps {
   mission: MissionWithCandidates
+  /** After adding a candidate, invalidate lazy pipeline cache on mission detail */
+  onPipelineChanged?: () => void
 }
 
-export function MissionSourcingView({ mission }: MissionSourcingViewProps) {
+export function MissionSourcingView({ mission, onPipelineChanged }: MissionSourcingViewProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [results, setResults] = useState<CandidateWithCount[]>([])
   const [searching, setSearching] = useState(false)
@@ -58,6 +60,7 @@ export function MissionSourcingView({ mission }: MissionSourcingViewProps) {
     try {
       await addCandidateToMission(mission.id, candidateId)
       toast.success('Candidat ajouté à la mission')
+      onPipelineChanged?.()
       setResults((prev) => prev.filter((c) => c.id !== candidateId))
     } catch (err) {
       const msg = err instanceof Error ? err.message : ''

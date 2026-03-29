@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { getClient } from '@/lib/actions/clients'
+import { displayClientCompanyName } from '@/lib/utils/client-display'
 import { getOrganizationSettings } from '@/lib/actions/organization-settings'
 import { ContactDialog } from '@/components/clients/contact-dialog'
 import { ClientActions } from '@/components/clients/client-actions'
@@ -84,7 +85,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
             <div className="flex items-center gap-3">
               <Building2 className="h-6 w-6 text-primary" />
               <h1 className="text-2xl font-bold tracking-tight">
-                {client.companyName}
+                {displayClientCompanyName(client.companyName)}
               </h1>
             </div>
             {(client.category ?? client.sector) && (

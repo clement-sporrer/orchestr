@@ -44,3 +44,15 @@ WHERE table_schema = 'public'
     (table_name = 'contacts' AND column_name IN ('name', 'role'))
   )
 ORDER BY table_name, column_name;
+
+-- 5. Client display / mission integrity (Clean Slate — companyName required in app)
+--    Rows here explain "mission exists but client name missing" in UI
+SELECT id, "organizationId", TRIM(COALESCE("companyName", '')) AS trimmed_name
+FROM public.clients
+WHERE TRIM(COALESCE("companyName", '')) = '';
+
+-- Missions whose client row is missing (should be 0 if FKs enforced)
+SELECT m.id AS mission_id, m."clientId"
+FROM public.missions m
+LEFT JOIN public.clients c ON c.id = m."clientId"
+WHERE c.id IS NULL;

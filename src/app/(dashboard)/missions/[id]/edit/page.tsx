@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { JobBuilderFormLazy } from '@/components/job-builder/form-lazy'
-import { getMission, getClientsWithContactsForSelect } from '@/lib/actions/missions'
+import { getMissionOverview, getClientsWithContactsForSelect } from '@/lib/actions/missions'
+import { displayClientCompanyName } from '@/lib/utils/client-display'
 
 interface EditMissionPageProps {
   params: Promise<{ id: string }>
@@ -16,7 +17,7 @@ export default async function EditMissionPage({ params }: EditMissionPageProps) 
   let clientsWithContacts: Awaited<ReturnType<typeof getClientsWithContactsForSelect>> = []
   try {
     ;[mission, clientsWithContacts] = await Promise.all([
-      getMission(id),
+      getMissionOverview(id),
       getClientsWithContactsForSelect(),
     ])
   } catch {
@@ -60,7 +61,7 @@ export default async function EditMissionPage({ params }: EditMissionPageProps) 
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Modifier la mission</h1>
           <p className="text-muted-foreground">
-            {mission.title} – {mission.client.companyName}
+            {mission.title} – {displayClientCompanyName(mission.client.companyName)}
           </p>
         </div>
       </div>

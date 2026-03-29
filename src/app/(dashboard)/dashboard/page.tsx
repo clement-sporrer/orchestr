@@ -22,6 +22,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth/helpers'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { displayClientCompanyName } from '@/lib/utils/client-display'
 
 // Get current user's organization
 async function getOrganizationId(): Promise<{ organizationId: string; userId: string } | null> {
@@ -496,7 +497,9 @@ async function ActiveMissions() {
             >
               <div className="space-y-1">
                 <p className="text-sm font-medium">{mission.title}</p>
-                <p className="text-xs text-muted-foreground">{mission.client.companyName}</p>
+                <p className="text-xs text-muted-foreground">
+                  {displayClientCompanyName(mission.client.companyName)}
+                </p>
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-right">

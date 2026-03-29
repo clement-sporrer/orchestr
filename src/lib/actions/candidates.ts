@@ -93,8 +93,15 @@ export async function getCandidate(id: string) {
       missionCandidates: {
         include: {
           mission: {
-            include: {
-              client: true,
+            select: {
+              id: true,
+              title: true,
+              client: {
+                select: {
+                  id: true,
+                  companyName: true,
+                },
+              },
             },
           },
         },

@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { EditClientDialog } from './edit-client-dialog'
 import { DeleteClientDialog } from './delete-client-dialog'
+import { displayClientCompanyName } from '@/lib/utils/client-display'
 
 interface Client {
   id: string
@@ -30,7 +31,7 @@ interface ClientActionsProps {
 export function ClientActions({ client, clientCategories = [] }: ClientActionsProps) {
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const displayName = client.companyName
+  const displayName = displayClientCompanyName(client.companyName)
 
   return (
     <>

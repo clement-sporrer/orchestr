@@ -23,6 +23,7 @@ import {
 import { getMissions } from '@/lib/actions/missions'
 import { addCandidateToMission } from '@/lib/actions/pipeline'
 import { toast } from 'sonner'
+import { displayClientCompanyName } from '@/lib/utils/client-display'
 
 interface MissionOption {
   id: string
@@ -117,7 +118,9 @@ export function AddToMissionDialog({
 
   const count = candidateIds.length
   const missionLabel = (m: MissionOption) =>
-    m.client?.companyName ? `${m.title} — ${m.client.companyName}` : m.title
+    m.client?.companyName
+      ? `${m.title} — ${displayClientCompanyName(m.client.companyName)}`
+      : m.title
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

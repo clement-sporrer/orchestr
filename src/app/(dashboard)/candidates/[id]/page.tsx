@@ -29,8 +29,8 @@ import { CandidateTagsEditor } from '@/components/candidates/tags-editor'
 import { CandidateStatusBadge } from '@/components/candidates/status-badge'
 import { AddToMissionButton } from '@/components/candidates/add-to-mission-button'
 import { InteractionsList } from '@/components/candidates/interactions-list'
-import { EnrichmentPanel } from '@/components/candidates/enrichment-panel'
 import type { PipelineStage } from '@/generated/prisma'
+import { displayClientCompanyName } from '@/lib/utils/client-display'
 
 interface CandidateDetailPageProps {
   params: Promise<{ id: string }>
@@ -214,7 +214,7 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
                       <div className="space-y-1">
                         <p className="font-medium">{mc.mission.title}</p>
                         <p className="text-sm text-muted-foreground">
-                          {mc.mission.client.companyName}
+                          {displayClientCompanyName(mc.mission.client.companyName)}
                         </p>
                       </div>
                       <Badge variant="outline">
@@ -236,12 +236,6 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Enrichment */}
-          <EnrichmentPanel
-            enrichment={null}
-            candidateId={candidate.id}
-          />
-
           {/* Tags */}
           <Card>
             <CardHeader>

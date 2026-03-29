@@ -207,7 +207,253 @@ export async function getMissionHeader(id: string): Promise<MissionHeaderPayload
   return mission
 }
 
-// Get single mission with optimized query (full payload for tabs)
+/** Mission row for detail page / edit form: scalars + client, contacts, shortlists — no pipeline payload. */
+export type MissionDetailOverview = Prisma.MissionGetPayload<{
+  select: {
+    id: true
+    organizationId: true
+    clientId: true
+    mainContactId: true
+    recruiterId: true
+    title: true
+    jobFamily: true
+    status: true
+    location: true
+    city: true
+    country: true
+    isRemote: true
+    domain: true
+    sector: true
+    priority: true
+    contractType: true
+    seniority: true
+    salaryMin: true
+    salaryMax: true
+    salaryNotes: true
+    internalNotes: true
+    languages: true
+    salaryVisible: true
+    startDate: true
+    currency: true
+    context: true
+    contextVisibility: true
+    responsibilities: true
+    responsibilitiesVisibility: true
+    mustHave: true
+    mustHaveVisibility: true
+    niceToHave: true
+    niceToHaveVisibility: true
+    redFlags: true
+    process: true
+    processVisibility: true
+    shortlistDeadline: true
+    deadline: true
+    createdAt: true
+    updatedAt: true
+    client: {
+      select: {
+        id: true
+        companyName: true
+        category: true
+        sector: true
+        website: true
+      }
+    }
+    mainContact: {
+      select: {
+        id: true
+        firstName: true
+        lastName: true
+        email: true
+        title: true
+        isPrimary: true
+      }
+    }
+    recruiter: {
+      select: {
+        id: true
+        name: true
+        email: true
+      }
+    }
+    shortlists: {
+      select: {
+        id: true
+        name: true
+        clientPortalUrl: true
+        accessTokenExpiry: true
+        createdAt: true
+        _count: {
+          select: { candidates: true }
+        }
+      }
+    }
+    _count: {
+      select: { missionCandidates: true }
+    }
+  }
+}>
+
+const missionOverviewSelect = {
+  id: true,
+  organizationId: true,
+  clientId: true,
+  mainContactId: true,
+  recruiterId: true,
+  title: true,
+  jobFamily: true,
+  status: true,
+  location: true,
+  city: true,
+  country: true,
+  isRemote: true,
+  domain: true,
+  sector: true,
+  priority: true,
+  contractType: true,
+  seniority: true,
+  salaryMin: true,
+  salaryMax: true,
+  salaryNotes: true,
+  internalNotes: true,
+  languages: true,
+  salaryVisible: true,
+  startDate: true,
+  currency: true,
+  context: true,
+  contextVisibility: true,
+  responsibilities: true,
+  responsibilitiesVisibility: true,
+  mustHave: true,
+  mustHaveVisibility: true,
+  niceToHave: true,
+  niceToHaveVisibility: true,
+  redFlags: true,
+  process: true,
+  processVisibility: true,
+  shortlistDeadline: true,
+  deadline: true,
+  createdAt: true,
+  updatedAt: true,
+  client: {
+    select: {
+      id: true,
+      companyName: true,
+      category: true,
+      sector: true,
+      website: true,
+    },
+  },
+  mainContact: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      title: true,
+      isPrimary: true,
+    },
+  },
+  recruiter: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  },
+  shortlists: {
+    select: {
+      id: true,
+      name: true,
+      clientPortalUrl: true,
+      accessTokenExpiry: true,
+      createdAt: true,
+      _count: {
+        select: { candidates: true },
+      },
+    },
+    orderBy: { createdAt: 'desc' as const },
+    take: 10,
+  },
+  _count: {
+    select: { missionCandidates: true },
+  },
+} satisfies Prisma.MissionSelect
+
+export async function getMissionOverview(id: string): Promise<MissionDetailOverview | null> {
+  const organizationId = await getOrganizationId()
+
+  const mission = await prisma.mission.findFirst({
+    where: { id, organizationId },
+    select: missionOverviewSelect,
+  })
+
+  return mission
+}
+
+const missionPipelineCandidateSelect = {
+  select: {
+    id: true,
+    stage: true,
+    contactStatus: true,
+    portalToken: true,
+    portalTokenExpiry: true,
+    portalStep: true,
+    portalCompleted: true,
+    createdAt: true,
+    candidate: {
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        currentPosition: true,
+        currentCompany: true,
+        city: true,
+        country: true,
+        tags: true,
+        relationshipLevel: true,
+      },
+    },
+    interactions: {
+      select: {
+        id: true,
+        type: true,
+        content: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' as const },
+      take: 5,
+    },
+  },
+  orderBy: { createdAt: 'desc' as const },
+  take: 100,
+} satisfies Prisma.MissionCandidateFindManyArgs
+
+export type MissionPipelineCandidateRow = Prisma.MissionCandidateGetPayload<{
+  select: typeof missionPipelineCandidateSelect.select
+}>
+
+/** Pipeline + sourcing tabs: mission candidates with nested candidate and recent interactions. */
+export async function getMissionPipelineCandidates(id: string): Promise<MissionPipelineCandidateRow[]> {
+  const organizationId = await getOrganizationId()
+
+  const mission = await prisma.mission.findFirst({
+    where: { id, organizationId },
+    select: {
+      missionCandidates: missionPipelineCandidateSelect,
+    },
+  })
+
+  if (!mission) {
+    throw new Error('Mission non trouvée')
+  }
+
+  return mission.missionCandidates
+}
+
+// Get single mission with optimized query (full payload — one round-trip; used by prefetch/cache)
 export async function getMission(id: string) {
   const organizationId = await getOrganizationId()
 
@@ -217,125 +463,8 @@ export async function getMission(id: string) {
       organizationId,
     },
     select: {
-      id: true,
-      organizationId: true,
-      clientId: true,
-      mainContactId: true,
-      recruiterId: true,
-      title: true,
-      jobFamily: true,
-      status: true,
-      location: true,
-      city: true,
-      country: true,
-      isRemote: true,
-      domain: true,
-      sector: true,
-      priority: true,
-      contractType: true,
-      seniority: true,
-      salaryMin: true,
-      salaryMax: true,
-      salaryNotes: true,
-      internalNotes: true,
-      languages: true,
-      salaryVisible: true,
-      startDate: true,
-      currency: true,
-      context: true,
-      contextVisibility: true,
-      responsibilities: true,
-      responsibilitiesVisibility: true,
-      mustHave: true,
-      mustHaveVisibility: true,
-      niceToHave: true,
-      niceToHaveVisibility: true,
-      redFlags: true,
-      process: true,
-      processVisibility: true,
-      shortlistDeadline: true,
-      deadline: true,
-      createdAt: true,
-      updatedAt: true,
-      client: {
-        select: {
-          id: true,
-          companyName: true,
-          category: true,
-          sector: true,
-          website: true,
-        },
-      },
-      mainContact: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          title: true,
-          isPrimary: true,
-        },
-      },
-      recruiter: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-      missionCandidates: {
-        select: {
-          id: true,
-          stage: true,
-          contactStatus: true,
-          portalToken: true,
-          portalTokenExpiry: true,
-          portalStep: true,
-          portalCompleted: true,
-          createdAt: true,
-          candidate: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-              phone: true,
-              currentPosition: true,
-              currentCompany: true,
-              city: true,
-              country: true,
-              tags: true,
-              relationshipLevel: true,
-            },
-          },
-          interactions: {
-            select: {
-              id: true,
-              type: true,
-              content: true,
-              createdAt: true,
-            },
-            orderBy: { createdAt: 'desc' },
-            take: 5, // Limit interactions per candidate
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 100, // Limit candidates to prevent huge payloads
-      },
-      shortlists: {
-        select: {
-          id: true,
-          name: true,
-          clientPortalUrl: true,
-          accessTokenExpiry: true,
-          createdAt: true,
-          _count: {
-            select: { candidates: true },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 10, // Limit shortlists
-      },
+      ...missionOverviewSelect,
+      missionCandidates: missionPipelineCandidateSelect,
     },
   })
 
