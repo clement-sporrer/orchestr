@@ -306,7 +306,7 @@ async function RecentActivity() {
       missionCandidate: {
         select: {
           mission: {
-            select: { title: true, client: { select: { name: true } } },
+            select: { title: true, client: { select: { companyName: true } } },
           },
         },
       },
@@ -420,7 +420,7 @@ async function ActiveMissions() {
     },
     include: {
       client: {
-        select: { name: true },
+        select: { companyName: true },
       },
       _count: {
         select: { missionCandidates: true },
@@ -496,7 +496,7 @@ async function ActiveMissions() {
             >
               <div className="space-y-1">
                 <p className="text-sm font-medium">{mission.title}</p>
-                <p className="text-xs text-muted-foreground">{mission.client.name}</p>
+                <p className="text-xs text-muted-foreground">{mission.client.companyName}</p>
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-right">
@@ -545,9 +545,6 @@ export default async function DashboardPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link href="/import">Importer CSV</Link>
-          </Button>
           <Button asChild>
             <Link href="/missions/new">Nouvelle mission</Link>
           </Button>

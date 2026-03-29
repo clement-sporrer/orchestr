@@ -33,7 +33,7 @@ export async function exportCandidatesCsv(filters?: Partial<CandidateFilters>) {
     c.lastName,
     c.email || '',
     c.phone || '',
-    c.location || '',
+    [c.city, c.country].filter(Boolean).join(', '),
     c.currentPosition || '',
     c.currentCompany || '',
     c.tags.join(', '),
@@ -71,7 +71,6 @@ export async function exportMissionPipelineCsv(missionId: string) {
     'Email',
     'Téléphone',
     'Étape',
-    'Score',
     'Date ajout',
   ]
 
@@ -81,7 +80,6 @@ export async function exportMissionPipelineCsv(missionId: string) {
     mc.candidate.email || '',
     mc.candidate.phone || '',
     mc.stage,
-    mc.score?.toString() || '',
     mc.createdAt.toISOString().split('T')[0],
   ])
 
@@ -124,7 +122,6 @@ export async function exportShortlistCsv(shortlistId: string) {
     'Email',
     'Poste actuel',
     'Entreprise',
-    'Score',
     'Feedback',
     'Commentaire',
   ]
@@ -135,7 +132,6 @@ export async function exportShortlistCsv(shortlistId: string) {
     sc.missionCandidate.candidate.email || '',
     sc.missionCandidate.candidate.currentPosition || '',
     sc.missionCandidate.candidate.currentCompany || '',
-    sc.missionCandidate.score?.toString() || '',
     sc.feedback?.decision || '',
     sc.feedback?.comment || '',
   ])
@@ -178,17 +174,16 @@ export async function getShortlistPrintData(shortlistId: string) {
   return {
     mission: {
       title: shortlist.mission.title,
-      client: shortlist.mission.client.name,
+      client: shortlist.mission.client.companyName,
       location: shortlist.mission.location,
     },
     candidates: shortlist.candidates.map((sc) => ({
       name: `${sc.missionCandidate.candidate.firstName} ${sc.missionCandidate.candidate.lastName}`,
       currentPosition: sc.missionCandidate.candidate.currentPosition,
       currentCompany: sc.missionCandidate.candidate.currentCompany,
-      location: sc.missionCandidate.candidate.location,
+      location: [sc.missionCandidate.candidate.city, sc.missionCandidate.candidate.country].filter(Boolean).join(', '),
       summary: sc.summary,
       tags: sc.missionCandidate.candidate.tags,
-      score: sc.missionCandidate.score,
     })),
     generatedAt: new Date(),
   }

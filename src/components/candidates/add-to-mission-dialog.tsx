@@ -28,7 +28,7 @@ interface MissionOption {
   id: string
   title: string
   status: string
-  client: { id: string; name: string }
+  client: { id: string; companyName: string }
 }
 
 interface AddToMissionDialogProps {
@@ -117,7 +117,7 @@ export function AddToMissionDialog({
 
   const count = candidateIds.length
   const missionLabel = (m: MissionOption) =>
-    m.client?.name ? `${m.title} — ${m.client.name}` : m.title
+    m.client?.companyName ? `${m.title} — ${m.client.companyName}` : m.title
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

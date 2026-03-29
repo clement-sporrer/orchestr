@@ -54,10 +54,6 @@ export function Header({ user }: HeaderProps) {
           <DropdownMenuItem asChild>
             <Link href="/clients/new">Nouveau client</Link>
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <Link href="/import">Importer CSV</Link>
-          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 

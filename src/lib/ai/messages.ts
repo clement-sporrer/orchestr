@@ -1,5 +1,5 @@
 import OpenAI from 'openai'
-import type { Mission, Candidate, CandidateEnrichment } from '@/generated/prisma'
+import type { Mission, Candidate } from '@/generated/prisma'
 
 function getOpenAI() {
   const apiKey = process.env.OPENAI_API_KEY
@@ -100,16 +100,11 @@ Réponds en JSON: {"subject": "<objet email>", "content": "<message>"}`,
 // Generate approach message for LinkedIn or email
 export async function generateApproachMessage(
   format: MessageFormat,
-  candidate: Candidate & { enrichment?: CandidateEnrichment | null },
+  candidate: Candidate,
   mission: Mission,
   customContext?: string
 ): Promise<GeneratedMessage> {
-  // Build candidate context from enrichment if available
-  const enrichmentContext = candidate.enrichment ? `
-ENRICHISSEMENT LINKEDIN:
-- Headline: ${candidate.enrichment.linkedinHeadline || 'Non disponible'}
-- Skills: ${candidate.enrichment.skills?.slice(0, 5).join(', ') || 'Non disponibles'}
-` : ''
+  const enrichmentContext = ''
 
   const prompts: Record<MessageFormat, string> = {
     linkedin_connection: `Tu es un recruteur expert. Génère une note de connexion LinkedIn ULTRA COURTE.

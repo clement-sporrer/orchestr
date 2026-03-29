@@ -27,7 +27,6 @@ export function generateJobPostView(mission: Mission, audience: AudienceView): J
     location: mission.location ?? undefined,
     contractType: mission.contractType ?? undefined,
     seniority: mission.seniority ?? undefined,
-    calendlyLink: mission.calendlyLink ?? undefined,
   }
 
   // Salary - only show if visible for audience and marked as visible

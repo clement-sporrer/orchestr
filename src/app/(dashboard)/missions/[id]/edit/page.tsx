@@ -47,9 +47,6 @@ export default async function EditMissionPage({ params }: EditMissionPageProps) 
     redFlags: mission.redFlags ?? undefined,
     process: mission.process ?? undefined,
     processVisibility: mission.processVisibility,
-    calendlyLink: mission.calendlyLink ?? undefined,
-    calendlyEmbed: mission.calendlyEmbed,
-    scoreThreshold: mission.scoreThreshold,
   }
 
   return (
@@ -63,7 +60,7 @@ export default async function EditMissionPage({ params }: EditMissionPageProps) 
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Modifier la mission</h1>
           <p className="text-muted-foreground">
-            {mission.title} – {mission.client.companyName ?? mission.client.name}
+            {mission.title} – {mission.client.companyName}
           </p>
         </div>
       </div>

@@ -78,13 +78,11 @@ export async function getSkillSuggestions(query: string): Promise<string[]> {
 
   const organizationId = await getOrganizationId()
 
-  // Get hardSkills from candidates
+  // Get hardSkills from candidates (now String[])
   const candidates = await prisma.candidate.findMany({
     where: {
       organizationId,
-      hardSkills: {
-        not: null,
-      },
+      hardSkills: { isEmpty: false },
     },
     select: {
       hardSkills: true,
@@ -92,17 +90,14 @@ export async function getSkillSuggestions(query: string): Promise<string[]> {
     take: 50,
   })
 
-  // Parse semicolon-separated skills
   const allSkills = new Set<string>()
   candidates.forEach(c => {
-    if (c.hardSkills) {
-      c.hardSkills.split(';').forEach(skill => {
-        const trimmed = skill.trim()
-        if (trimmed && trimmed.toLowerCase().includes(query.toLowerCase())) {
-          allSkills.add(trimmed)
-        }
-      })
-    }
+    c.hardSkills.forEach((skill: string) => {
+      const trimmed = skill.trim()
+      if (trimmed && trimmed.toLowerCase().includes(query.toLowerCase())) {
+        allSkills.add(trimmed)
+      }
+    })
   })
 
   return Array.from(allSkills).slice(0, 10).sort()

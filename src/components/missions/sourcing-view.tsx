@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, Upload, UserPlus, Database, Loader2, Plus } from 'lucide-react'
+import { Search, UserPlus, Database, Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -105,21 +105,6 @@ export function MissionSourcingView({ mission }: MissionSourcingViewProps) {
           </Card>
         </Link>
 
-        <Link href={`/import?missionId=${mission.id}`}>
-          <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Upload className="h-5 w-5 text-primary" />
-                Importer CSV
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Importer des candidats depuis un fichier
-              </CardDescription>
-            </CardContent>
-          </Card>
-        </Link>
       </div>
 
       <Card>
@@ -235,12 +220,6 @@ export function MissionSourcingView({ mission }: MissionSourcingViewProps) {
                       {mc.candidate.currentPosition} {mc.candidate.currentCompany && `@ ${mc.candidate.currentCompany}`}
                     </p>
                   </div>
-                  {mc.score != null && (
-                    <div className="text-right">
-                      <p className="font-bold text-lg">{mc.score}%</p>
-                      <p className="text-xs text-muted-foreground">Score</p>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>

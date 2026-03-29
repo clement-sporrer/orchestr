@@ -90,7 +90,6 @@ export async function getCandidate(id: string) {
       organizationId,
     },
     include: {
-      enrichment: true,
       missionCandidates: {
         include: {
           mission: {
@@ -818,9 +817,6 @@ export async function createCandidateWithEnrichment(data: {
           },
         },
       } : {}),
-    },
-    include: {
-      enrichment: true,
     },
   })
 

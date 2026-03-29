@@ -262,26 +262,21 @@ export async function getAllSkills() {
   try {
     const organizationId = await getOrganizationId()
 
-    // Get candidates with enrichment data
-    const enrichments = await prisma.candidateEnrichment.findMany({
+    // Get candidates with hardSkills
+    const candidates = await prisma.candidate.findMany({
       where: {
-        candidate: {
-          organizationId,
-          status: {
-            not: 'DELETED',
-          },
-        },
+        organizationId,
+        status: { not: 'DELETED' },
+        hardSkills: { isEmpty: false },
       },
-      select: {
-        skills: true,
-      },
+      select: { hardSkills: true },
     })
 
     // Flatten and count skills
     const skillCount = new Map<string, number>()
 
-    enrichments.forEach((e) => {
-      e.skills.forEach((skill) => {
+    candidates.forEach((c) => {
+      c.hardSkills.forEach((skill) => {
         skillCount.set(skill, (skillCount.get(skill) || 0) + 1)
       })
     })

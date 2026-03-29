@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, Users, Upload, Briefcase } from 'lucide-react'
+import { Plus, Users, Briefcase } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -115,12 +115,6 @@ export function CandidatesListWithViews({
                   Créer un candidat
                 </Link>
               </Button>
-              <Button variant="outline" asChild size="lg">
-                <Link href="/import">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Importer CSV
-                </Link>
-              </Button>
             </div>
           )}
         </CardContent>
@@ -193,8 +187,10 @@ export function CandidatesListWithViews({
                             {candidate.currentCompany && ` @ ${candidate.currentCompany}`}
                           </p>
                         )}
-                        {candidate.location && (
-                          <p className="text-xs text-muted-foreground truncate">{candidate.location}</p>
+                        {(candidate.city || candidate.country) && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {[candidate.city, candidate.country].filter(Boolean).join(', ')}
+                          </p>
                         )}
                       </div>
                       <Badge className={statusColors[candidate.status]} aria-label={`Statut : ${statusLabels[candidate.status]}`}>
