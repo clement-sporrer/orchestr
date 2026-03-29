@@ -85,13 +85,13 @@ async function main() {
     create: {
       id: 'client_demo_001',
       organizationId: organization.id,
-      name: 'TechCorp Demo',
+      companyName: 'TechCorp Demo',
       sector: 'Technology',
       website: 'https://techcorp.demo',
       notes: 'Client de démonstration',
     },
   })
-  console.log(`✅ Sample client created: ${client.name}`)
+  console.log(`✅ Sample client created: ${client.companyName}`)
 
   // 5. Create a sample contact
   console.log('Creating sample contact...')

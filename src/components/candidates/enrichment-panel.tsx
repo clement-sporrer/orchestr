@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, type ReactNode } from 'react'
 import { 
   Linkedin, 
   Briefcase, 
@@ -19,7 +19,6 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
-import type { CandidateEnrichment } from '@/generated/prisma'
 
 interface Experience {
   company: string
@@ -37,8 +36,10 @@ interface Education {
   year?: string
 }
 
+type EnrichmentData = Record<string, unknown> | null
+
 interface EnrichmentPanelProps {
-  enrichment: CandidateEnrichment | null
+  enrichment: EnrichmentData
   candidateId: string
   onRefresh?: () => void | Promise<void>
   isRefreshing?: boolean
@@ -59,11 +60,11 @@ export function EnrichmentPanel({ enrichment, candidateId: _candidateId, onRefre
   }
 
   // Memoize parsed JSON data to avoid re-parsing on every render (must be before early return)
-  const experiences = useMemo(() => (enrichment?.experiences as Experience[] | null) || [], [enrichment?.experiences])
-  const education = useMemo(() => (enrichment?.education as Education[] | null) || [], [enrichment?.education])
-  const skills = useMemo(() => enrichment?.skills || [], [enrichment?.skills])
-  const languages = useMemo(() => enrichment?.languages || [], [enrichment?.languages])
-  const certifications = useMemo(() => enrichment?.certifications || [], [enrichment?.certifications])
+  const experiences: Experience[] = (enrichment?.experiences as Experience[] | null) ?? []
+  const education: Education[] = (enrichment?.education as Education[] | null) ?? []
+  const skills: string[] = (enrichment?.skills as string[] | null) ?? []
+  const languages: string[] = (enrichment?.languages as string[] | null) ?? []
+  const certifications: string[] = (enrichment?.certifications as string[] | null) ?? []
 
   if (!enrichment) {
     return (
@@ -109,9 +110,9 @@ export function EnrichmentPanel({ enrichment, candidateId: _candidateId, onRefre
             </Button>
           )}
         </div>
-        {enrichment.linkedinUrl && (
-          <a 
-            href={enrichment.linkedinUrl}
+        {!!enrichment.linkedinUrl && (
+          <a
+            href={String(enrichment.linkedinUrl)}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-primary hover:underline flex items-center gap-1"
@@ -121,18 +122,16 @@ export function EnrichmentPanel({ enrichment, candidateId: _candidateId, onRefre
         )}
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Headline */}
-        {enrichment.linkedinHeadline && (
+        {!!enrichment.linkedinHeadline && (
           <div className="p-3 bg-muted rounded-lg">
-            <p className="text-sm">{enrichment.linkedinHeadline}</p>
+            <p className="text-sm">{String(enrichment.linkedinHeadline)}</p>
           </div>
         )}
 
-        {/* Connections */}
-        {enrichment.linkedinConnections && (
+        {!!enrichment.linkedinConnections && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Users className="h-4 w-4" />
-            {enrichment.linkedinConnections.toLocaleString()} connexions
+            {Number(enrichment.linkedinConnections).toLocaleString()} connexions
           </div>
         )}
 
@@ -152,7 +151,7 @@ export function EnrichmentPanel({ enrichment, candidateId: _candidateId, onRefre
                 <div key={idx} className="border-l-2 border-primary/20 pl-3">
                   <p className="font-medium text-sm">{exp.title}</p>
                   <p className="text-sm text-muted-foreground">{exp.company}</p>
-                  {(exp.startDate || exp.endDate) && (
+                  {!!(exp.startDate || exp.endDate) && (
                     <p className="text-xs text-muted-foreground">
                       {exp.startDate} {exp.startDate && exp.endDate ? '-' : ''} {exp.endDate || 'Present'}
                     </p>
@@ -165,29 +164,11 @@ export function EnrichmentPanel({ enrichment, candidateId: _candidateId, onRefre
 
         {/* Education */}
         {education.length > 0 && (
-          <CollapsibleSection
-            title="Formation"
-            icon={GraduationCap}
-            count={education.length}
+          <EducationSection
+            education={education}
             isOpen={expandedSection === 'education'}
             onToggle={() => toggleSection('education')}
-          >
-            <div className="space-y-3">
-              {education.map((edu, idx) => (
-                <div key={idx} className="border-l-2 border-primary/20 pl-3">
-                  <p className="font-medium text-sm">{edu.school}</p>
-                  {edu.degree && (
-                    <p className="text-sm text-muted-foreground">
-                      {edu.degree} {edu.field ? `- ${edu.field}` : ''}
-                    </p>
-                  )}
-                  {edu.year && (
-                    <p className="text-xs text-muted-foreground">{edu.year}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CollapsibleSection>
+          />
         )}
 
         {/* Skills */}
@@ -209,7 +190,6 @@ export function EnrichmentPanel({ enrichment, candidateId: _candidateId, onRefre
           </CollapsibleSection>
         )}
 
-        {/* Languages */}
         {languages.length > 0 && (
           <CollapsibleSection
             title="Langues"
@@ -228,7 +208,6 @@ export function EnrichmentPanel({ enrichment, candidateId: _candidateId, onRefre
           </CollapsibleSection>
         )}
 
-        {/* Certifications */}
         {certifications.length > 0 && (
           <CollapsibleSection
             title="Certifications"
@@ -247,27 +226,54 @@ export function EnrichmentPanel({ enrichment, candidateId: _candidateId, onRefre
           </CollapsibleSection>
         )}
 
-        {/* Summary */}
-        {enrichment.linkedinSummary && (
+        {!!enrichment.linkedinSummary && (
           <CollapsibleSection
             title="A propos"
             icon={Linkedin}
             isOpen={expandedSection === 'summary'}
             onToggle={() => toggleSection('summary')}
           >
-            <p className="text-sm whitespace-pre-wrap">{enrichment.linkedinSummary}</p>
+            <p className="text-sm whitespace-pre-wrap">{String(enrichment.linkedinSummary)}</p>
           </CollapsibleSection>
         )}
 
-        {/* Last enriched */}
-        {enrichment.lastEnrichedAt && (
+        {!!enrichment.lastEnrichedAt && (
           <div className="pt-2 text-xs text-muted-foreground text-center">
-            Derniere mise a jour : {new Date(enrichment.lastEnrichedAt).toLocaleDateString('fr-FR')}
-            {enrichment.enrichmentSource && ` via ${enrichment.enrichmentSource}`}
+            Derniere mise a jour : {new Date(enrichment.lastEnrichedAt as string).toLocaleDateString('fr-FR')}
+            {!!enrichment.enrichmentSource && ` via ${String(enrichment.enrichmentSource)}`}
           </div>
         )}
       </CardContent>
     </Card>
+  )
+}
+
+// Education sub-component — extracts education mapping out of parent JSX to avoid unknown-type inference
+function EducationSection({ education, isOpen, onToggle }: { education: Education[]; isOpen: boolean; onToggle: () => void }) {
+  return (
+    <CollapsibleSection
+      title="Formation"
+      icon={GraduationCap}
+      count={education.length}
+      isOpen={isOpen}
+      onToggle={onToggle}
+    >
+      <div className="space-y-3">
+        {education.map((edu: Education, idx: number) => (
+          <div key={idx} className="border-l-2 border-primary/20 pl-3">
+            <p className="font-medium text-sm">{edu.school}</p>
+            {!!edu.degree && (
+              <p className="text-sm text-muted-foreground">
+                {edu.degree}{edu.field ? ` - ${edu.field}` : ''}
+              </p>
+            )}
+            {!!edu.year && (
+              <p className="text-xs text-muted-foreground">{edu.year}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </CollapsibleSection>
   )
 }
 
@@ -278,7 +284,7 @@ interface CollapsibleSectionProps {
   count?: number
   isOpen: boolean
   onToggle: () => void
-  children: React.ReactNode
+  children: ReactNode
 }
 
 function CollapsibleSection({ 

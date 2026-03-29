@@ -55,15 +55,10 @@ async function getAIUsageToday(organizationId: string): Promise<number> {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  const count = await prisma.event.count({
-    where: {
-      organizationId,
-      name: { startsWith: 'ai.' },
-      createdAt: { gte: today },
-    },
-  })
-
-  return count
+  // Event tracking table removed — AI usage limits not enforced
+  void organizationId
+  void today
+  return 0
 }
 
 // Check plan status and limits
@@ -203,14 +198,8 @@ export async function trackAIUsage(
 
   if (!dbUser) return
 
-  await prisma.event.create({
-    data: {
-      organizationId: dbUser.organizationId,
-      name: `ai.${feature}`,
-      userId: dbUser.id,
-      properties: metadata as any,
-    },
-  })
+  // Event tracking table removed — AI usage event not logged
+  void dbUser
 }
 
 // Higher-order function to wrap AI features with limit checking

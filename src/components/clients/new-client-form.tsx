@@ -28,10 +28,9 @@ export function NewClientForm({ clientCategories }: NewClientFormProps) {
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
-    const name = (formData.get('name') as string)?.trim() ?? ''
+    const companyName = (formData.get('companyName') as string)?.trim() ?? ''
     const data = {
-      name,
-      companyName: name,
+      companyName,
       category: (formData.get('category') as string) || undefined,
       sector: formData.get('sector') as string || undefined,
       website: formData.get('website') as string || undefined,
@@ -81,10 +80,10 @@ export function NewClientForm({ clientCategories }: NewClientFormProps) {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="name">Nom de l&apos;entreprise *</Label>
+              <Label htmlFor="companyName">Nom de l&apos;entreprise *</Label>
               <Input
-                id="name"
-                name="name"
+                id="companyName"
+                name="companyName"
                 placeholder="Ex: ACME Leasing"
                 required
                 disabled={loading}

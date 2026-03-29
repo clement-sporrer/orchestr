@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { Plus, Upload } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { getCandidates, type CandidateWithCount } from '@/lib/actions/candidates'
@@ -157,12 +157,6 @@ export default async function CandidatesPage({ searchParams }: CandidatesPagePro
               } as Partial<CandidateFilters>
             }
           />
-          <Button variant="outline" asChild>
-            <Link href="/import">
-              <Upload className="mr-2 h-4 w-4" />
-              Importer CSV
-            </Link>
-          </Button>
           <Button asChild>
             <Link href="/candidates/new">
               <Plus className="mr-2 h-4 w-4" />

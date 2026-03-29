@@ -25,7 +25,6 @@ const candidateSelect: Prisma.CandidateSelect = {
   phone: true,
   currentPosition: true,
   currentCompany: true,
-  location: true,
   tags: true,
   status: true,
   relationshipLevel: true,
@@ -91,7 +90,6 @@ export async function getCandidate(id: string) {
       organizationId,
     },
     include: {
-      enrichment: true,
       missionCandidates: {
         include: {
           mission: {
@@ -154,17 +152,15 @@ export async function createCandidate(data: CreateCandidateInput) {
       sector: transformed.sector ?? null,
       currentCompany: transformed.currentCompany ?? null,
       currentPosition: transformed.currentPosition ?? null,
-      pastCompanies: transformed.pastCompanies ?? null,
+      pastCompanies: transformed.pastCompanies ?? [],
       jobFamily: transformed.jobFamily ?? null,
-      hardSkills: transformed.hardSkills ?? null,
-      softSkills: transformed.softSkills ?? null,
+      hardSkills: transformed.hardSkills ?? [],
+      softSkills: transformed.softSkills ?? [],
       compensation: transformed.compensation ?? null,
       comments: transformed.comments ?? null,
       references: transformed.references ?? null,
       recruitable: transformed.recruitable ?? 'UNKNOWN',
       files: transformed.files ?? [],
-      cvUrl: transformed.cvUrl ?? null,
-      location: transformed.location ?? null,
       tags: transformed.tags ?? [],
       status: transformed.status ?? 'ACTIVE',
     },
@@ -452,7 +448,6 @@ export async function enrichFromProfileText(profileText: string, linkedInUrl?: s
       source: 'ai_enrichment',
     }
   } catch (error) {
-    console.error('AI enrichment error:', error)
     return {
       success: false,
       error: 'Erreur lors de l\'analyse du profil. Veuillez réessayer.',
@@ -660,7 +655,7 @@ export async function mergeCandidates(targetId: string, sourceId: string) {
     'email', 'linkedin', 'phone', 'age', 'country', 'city', 'region',
     'seniority', 'domain', 'sector', 'currentCompany', 'currentPosition',
     'pastCompanies', 'jobFamily', 'hardSkills', 'softSkills',
-    'compensation', 'comments', 'references', 'cvUrl', 'location',
+    'compensation', 'comments', 'references',
   ] as const
 
   for (const field of fieldsToMerge) {
@@ -741,125 +736,4 @@ export async function mergeCandidates(targetId: string, sourceId: string) {
   return { success: true, mergedInto: targetId }
 }
 
-/** Append entry to candidate solicitation history (e.g. when added to mission). */
-export async function addSolicitationHistoryEntry(
-  candidateId: string,
-  action: string,
-  missionId?: string,
-  missionName?: string
-) {
-  const organizationId = await getOrganizationId()
-  const candidate = await prisma.candidate.findFirst({
-    where: { id: candidateId, organizationId },
-    select: { solicitationHistory: true },
-  })
-  if (!candidate) throw new Error('Candidat non trouvé')
-
-  const history = (candidate.solicitationHistory as { date: string; action: string; missionId?: string; missionName?: string }[]) ?? []
-  const newEntry = {
-    date: new Date().toISOString(),
-    action,
-    ...(missionId && { missionId }),
-    ...(missionName && { missionName }),
-  }
-  await prisma.candidate.update({
-    where: { id: candidateId },
-    data: {
-      solicitationHistory: [...history, newEntry] as unknown as Prisma.InputJsonValue,
-    },
-  })
-  revalidatePath(`/candidates/${candidateId}`)
-}
-
-// Create candidate with enrichment data
-export async function createCandidateWithEnrichment(data: {
-  // Basic info
-  firstName: string
-  lastName: string
-  email?: string
-  phone?: string
-  location?: string
-  currentPosition?: string
-  currentCompany?: string
-  linkedin?: string
-  tags?: string[]
-  sector?: string
-  // Enrichment data
-  linkedinHeadline?: string
-  linkedinSummary?: string
-  experiences?: Array<{
-    company: string
-    title: string
-    startDate?: string
-    endDate?: string
-    description?: string
-  }>
-  education?: Array<{
-    school: string
-    degree?: string
-    field?: string
-    year?: string
-  }>
-  skills?: string[]
-  languages?: string[]
-}) {
-  const organizationId = await getOrganizationId()
-
-  // Check for duplicates
-  if (data.email || data.linkedin) {
-    const existing = await checkCandidateExists({
-      email: data.email,
-      linkedin: data.linkedin,
-      firstName: data.firstName,
-      lastName: data.lastName,
-    })
-    
-    if (existing.exists && existing.candidate) {
-      throw new Error(`Un candidat avec ce profil existe déjà: ${existing.candidate.firstName} ${existing.candidate.lastName}`)
-    }
-  }
-
-  const hasEnrichmentData = data.linkedinHeadline || data.linkedinSummary ||
-    (data.experiences && data.experiences.length > 0) ||
-    (data.education && data.education.length > 0) ||
-    (data.skills && data.skills.length > 0)
-
-  const candidate = await prisma.candidate.create({
-    data: {
-      organizationId,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email || null,
-      phone: data.phone || null,
-      location: data.location || null,
-      currentPosition: data.currentPosition || null,
-      currentCompany: data.currentCompany || null,
-      linkedin: data.linkedin || null,
-      tags: data.tags || [],
-      sector: data.sector || null,
-      status: 'ACTIVE',
-      ...(hasEnrichmentData ? {
-        enrichment: {
-          create: {
-            linkedinUrl: data.linkedin || null,
-            linkedinHeadline: data.linkedinHeadline || null,
-            linkedinSummary: data.linkedinSummary || null,
-            experiences: data.experiences as object || null,
-            education: data.education as object || null,
-            skills: data.skills || [],
-            languages: data.languages || [],
-            lastEnrichedAt: new Date(),
-            enrichmentSource: 'manual',
-          },
-        },
-      } : {}),
-    },
-    include: {
-      enrichment: true,
-    },
-  })
-
-  revalidatePath('/candidates')
-  return candidate
-}
 

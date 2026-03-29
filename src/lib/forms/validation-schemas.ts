@@ -59,8 +59,7 @@ export type CandidateFormData = z.infer<typeof candidateFormSchema>
 
 // Client form schema
 export const clientFormSchema = z.object({
-  name: z.string().min(1, 'Nom obligatoire'),
-  companyName: z.string().optional(),
+  companyName: z.string().min(1, 'Nom obligatoire'),
   category: z.string().optional(),
   sector: z.string().optional(),
   website: urlSchema,
@@ -89,7 +88,6 @@ export const missionFormSchema = z.object({
   title: z.string().min(1, 'Titre obligatoire'),
   
   // Job details
-  jobTitle: z.string().optional(),
   jobFamily: z.string().optional(),
   location: z.string().optional(),
   city: z.string().optional(),
@@ -97,7 +95,6 @@ export const missionFormSchema = z.object({
   isRemote: z.boolean().optional(),
   contractType: z.enum(['CDI', 'CDD', 'FREELANCE', 'INTERNSHIP', 'APPRENTICESHIP', 'OTHER']).optional(),
   seniority: z.enum(['JUNIOR', 'MID', 'SENIOR', 'LEAD', 'EXECUTIVE']).optional(),
-  seniorityLabel: z.string().optional(),
   
   // Salary
   salaryMin: z.number().optional(),
@@ -122,7 +119,6 @@ export const missionFormSchema = z.object({
   
   // Other
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
-  scoreThreshold: z.number().min(0).max(100).optional(),
 })
 
 export type MissionFormData = z.infer<typeof missionFormSchema>

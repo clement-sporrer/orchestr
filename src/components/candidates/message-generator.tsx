@@ -18,12 +18,12 @@ import {
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { generateApproachMessage } from '@/lib/ai/messages'
-import type { Mission, Candidate, CandidateEnrichment } from '@/generated/prisma'
+import type { Mission, Candidate } from '@/generated/prisma'
 
 type MessageFormat = 'linkedin_connection' | 'linkedin_inmail' | 'email'
 
 interface MessageGeneratorProps {
-  candidate: Candidate & { enrichment?: CandidateEnrichment | null }
+  candidate: Candidate
   mission: Mission
   onMessageSent?: (format: MessageFormat, content: string) => void
   trigger?: React.ReactNode

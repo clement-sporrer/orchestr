@@ -8,7 +8,6 @@ const baseMission = {
   location: 'Paris',
   contractType: 'CDI',
   seniority: 'Senior',
-  calendlyLink: null,
   salaryVisible: true,
   salaryMin: 60000,
   salaryMax: 80000,

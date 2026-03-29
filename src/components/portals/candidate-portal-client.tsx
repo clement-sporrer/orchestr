@@ -1,43 +1,39 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, ChevronRight, Briefcase, User, Calendar, FileText, Loader2 } from 'lucide-react'
+import { Check, ChevronRight, Briefcase, User, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Progress } from '@/components/ui/progress'
 import { updateCandidatePortal, completePortal } from '@/lib/actions/portal'
 import { toast } from 'sonner'
-import type { Mission, Candidate, MissionCandidate, Questionnaire, QuestionnaireQuestion } from '@/generated/prisma'
+import type { Mission, Candidate, MissionCandidate } from '@/generated/prisma'
 
 interface CandidatePortalClientProps {
   token: string  // Raw portal token — passed to server actions for re-auth
   missionCandidate: MissionCandidate
   candidate: Candidate
   mission: Mission
-  questionnaire: (Questionnaire & { questions: QuestionnaireQuestion[] }) | null
 }
 
-type Step = 'welcome' | 'profile' | 'job' | 'calendly' | 'questionnaire' | 'confirmation'
+type Step = 'welcome' | 'profile' | 'job' | 'confirmation'
 
-const STEPS: Step[] = ['welcome', 'profile', 'job', 'calendly', 'questionnaire', 'confirmation']
+const STEPS: Step[] = ['welcome', 'profile', 'job', 'confirmation']
 
 export function CandidatePortalClient({
   token,
   missionCandidate,
   candidate,
   mission,
-  questionnaire,
 }: CandidatePortalClientProps) {
   const [currentStep, setCurrentStep] = useState<Step>(
     missionCandidate.portalCompleted ? 'confirmation' : STEPS[missionCandidate.portalStep] || 'welcome'
   )
   const [loading, setLoading] = useState(false)
   const [consent, setConsent] = useState(candidate.consentGiven)
-  const [questionnaireAnswers, setQuestionnaireAnswers] = useState<Record<string, string>>({})
   
   // Form data
   const [profileData, setProfileData] = useState({
@@ -85,18 +81,6 @@ export function CandidatePortalClient({
       toast.error('Veuillez accepter les conditions')
       return
     }
-    
-    // Validate required questionnaire answers
-    if (questionnaire && questionnaire.questions.length > 0) {
-      const missingRequired = questionnaire.questions.filter(
-        q => q.required && !questionnaireAnswers[q.id]?.trim()
-      )
-      if (missingRequired.length > 0) {
-        toast.error(`Veuillez répondre à ${missingRequired.length} question(s) requise(s)`)
-        return
-      }
-    }
-    
     setLoading(true)
     try {
       await completePortal(token)
@@ -108,13 +92,6 @@ export function CandidatePortalClient({
       setLoading(false)
     }
   }
-
-  // Filter steps based on what's available
-  const _availableSteps = STEPS.filter((step) => {
-    if (step === 'calendly' && !mission.calendlyLink) return false
-    if (step === 'questionnaire' && (!questionnaire || questionnaire.questions.length === 0)) return false
-    return true
-  })
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-accent/20">
@@ -167,12 +144,6 @@ export function CandidatePortalClient({
                   <Check className="h-4 w-4 text-primary" />
                   Découvrir le poste en détail
                 </li>
-                {mission.calendlyLink && (
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
-                    Réserver un créneau d&apos;entretien
-                  </li>
-                )}
               </ul>
               <Button onClick={() => goToStep('profile')} disabled={loading} className="w-full max-w-xs">
                 Commencer
@@ -289,122 +260,6 @@ export function CandidatePortalClient({
                   <p className="text-muted-foreground whitespace-pre-wrap">{mission.niceToHave}</p>
                 </div>
               )}
-              <Button 
-                onClick={() => goToStep(mission.calendlyLink ? 'calendly' : questionnaire ? 'questionnaire' : 'confirmation')} 
-                disabled={loading} 
-                className="w-full"
-              >
-                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Continuer
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Calendly */}
-        {currentStep === 'calendly' && mission.calendlyLink && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Calendar className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <CardTitle>Réserver un entretien</CardTitle>
-                  <CardDescription>Choisissez un créneau qui vous convient</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="aspect-video rounded-lg overflow-hidden border">
-                <iframe
-                  src={mission.calendlyLink}
-                  width="100%"
-                  height="100%"
-                  frameBorder="0"
-                />
-              </div>
-              <Button 
-                onClick={() => goToStep(questionnaire ? 'questionnaire' : 'confirmation')} 
-                disabled={loading}
-                variant="outline"
-                className="w-full"
-              >
-                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Passer cette étape
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Questionnaire */}
-        {currentStep === 'questionnaire' && questionnaire && questionnaire.questions.length > 0 && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <CardTitle>Quelques questions</CardTitle>
-                  <CardDescription>Pour mieux vous connaître</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {questionnaire.questions.map((question) => {
-                const answer = questionnaireAnswers[question.id] || ''
-                const isRequired = question.required
-                const hasError = isRequired && !answer.trim()
-                
-                return (
-                  <div key={question.id} className="space-y-2">
-                    <Label htmlFor={question.id}>
-                      {question.text}
-                      {isRequired && <span className="text-destructive ml-1">*</span>}
-                    </Label>
-                    {question.type === 'TEXT' && (
-                      <Textarea
-                        id={question.id}
-                        rows={3}
-                        value={answer}
-                        onChange={(e) => setQuestionnaireAnswers(prev => ({
-                          ...prev,
-                          [question.id]: e.target.value
-                        }))}
-                        className={hasError ? 'border-destructive' : ''}
-                        required={isRequired}
-                      />
-                    )}
-                    {question.type === 'SINGLE_CHOICE' && (
-                      <div className="space-y-2">
-                        {question.options.map((option) => (
-                          <label key={option} className="flex items-center gap-2 p-2 rounded hover:bg-muted cursor-pointer">
-                            <input
-                              type="radio"
-                              name={question.id}
-                              value={option}
-                              checked={answer === option}
-                              onChange={(e) => setQuestionnaireAnswers(prev => ({
-                                ...prev,
-                                [question.id]: e.target.value
-                              }))}
-                              required={isRequired}
-                              className="cursor-pointer"
-                            />
-                            <span>{option}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                    {hasError && (
-                      <p className="text-xs text-destructive">Ce champ est requis</p>
-                    )}
-                  </div>
-                )
-              })}
-
               {/* Consent */}
               <div className="pt-4 border-t">
                 <label className="flex items-start gap-3">
@@ -413,15 +268,14 @@ export function CandidatePortalClient({
                     onCheckedChange={(checked) => setConsent(checked === true)}
                   />
                   <span className="text-sm text-muted-foreground">
-                    J&apos;accepte que mes informations soient utilisées dans le cadre de ce processus de recrutement. 
+                    J&apos;accepte que mes informations soient utilisées dans le cadre de ce processus de recrutement.
                     Je peux demander la suppression de mes données à tout moment.
                   </span>
                 </label>
               </div>
-
-              <Button 
-                onClick={handleComplete} 
-                disabled={loading || !consent || (questionnaire && questionnaire.questions.some(q => q.required && !questionnaireAnswers[q.id]?.trim()))} 
+              <Button
+                onClick={handleComplete}
+                disabled={loading || !consent}
                 className="w-full"
                 size="lg"
               >

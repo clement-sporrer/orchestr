@@ -49,13 +49,13 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
         organizationId,
         OR: [
           { title: { contains: searchTerm, mode: 'insensitive' } },
-          { client: { name: { contains: searchTerm, mode: 'insensitive' } } },
+          { client: { companyName: { contains: searchTerm, mode: 'insensitive' } } },
         ],
       },
       select: {
         id: true,
         title: true,
-        client: { select: { name: true } },
+        client: { select: { companyName: true } },
       },
       take: 5,
     }),
@@ -64,13 +64,13 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
       where: {
         organizationId,
         OR: [
-          { name: { contains: searchTerm, mode: 'insensitive' } },
+          { companyName: { contains: searchTerm, mode: 'insensitive' } },
           { sector: { contains: searchTerm, mode: 'insensitive' } },
         ],
       },
       select: {
         id: true,
-        name: true,
+        companyName: true,
         sector: true,
       },
       take: 5,
@@ -91,13 +91,13 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
       type: 'mission' as const,
       id: m.id,
       title: m.title,
-      subtitle: m.client.name,
+      subtitle: m.client.companyName,
       url: `/missions/${m.id}`,
     })),
     ...clients.map((c) => ({
       type: 'client' as const,
       id: c.id,
-      title: c.name,
+      title: c.companyName,
       subtitle: c.sector || undefined,
       url: `/clients/${c.id}`,
     })),

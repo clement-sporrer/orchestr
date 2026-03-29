@@ -64,10 +64,10 @@ const initialFormData: Partial<CreateCandidateInput> = {
   sector: '',
   currentCompany: '',
   currentPosition: '',
-  pastCompanies: '',
+  pastCompanies: [],
   jobFamily: '',
-  hardSkills: '',
-  softSkills: '',
+  hardSkills: [],
+  softSkills: [],
   compensation: '',
   comments: '',
   references: '',
@@ -153,10 +153,10 @@ export default function NewCandidatePage() {
         sector: formData.sector?.trim() || undefined,
         currentCompany: formData.currentCompany?.trim() || undefined,
         currentPosition: formData.currentPosition?.trim() || undefined,
-        pastCompanies: formData.pastCompanies?.trim() || undefined,
+        pastCompanies: formData.pastCompanies ?? [],
         jobFamily: formData.jobFamily?.trim() || undefined,
-        hardSkills: formData.hardSkills?.trim() || undefined,
-        softSkills: formData.softSkills?.trim() || undefined,
+        hardSkills: formData.hardSkills ?? [],
+        softSkills: formData.softSkills ?? [],
         compensation: formData.compensation?.trim() || undefined,
         comments: formData.comments?.trim() || undefined,
         references: formData.references?.trim() || undefined,
@@ -450,13 +450,12 @@ export default function NewCandidatePage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="pastCompanies">Anciennes entreprises (séparées par ;)</Label>
-                <Input
-                  id="pastCompanies"
-                  value={formData.pastCompanies ?? ''}
-                  onChange={(e) => updateField('pastCompanies', e.target.value)}
+                <SkillsInput
+                  label="Anciennes entreprises"
+                  value={formData.pastCompanies ?? []}
+                  onChange={(v) => updateField('pastCompanies', v)}
                   disabled={loading}
-                  placeholder="Entreprise A; Entreprise B; ..."
+                  placeholder="Ajouter une entreprise..."
                 />
               </div>
             </section>
@@ -468,18 +467,18 @@ export default function NewCandidatePage() {
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <SkillsInput
-                  label="Compétences techniques (point-virgule ou tags)"
-                  value={formData.hardSkills ?? ''}
+                  label="Compétences techniques"
+                  value={formData.hardSkills ?? []}
                   onChange={(v) => updateField('hardSkills', v)}
                   disabled={loading}
-                  placeholder="Ex: Python; SQL; React..."
+                  placeholder="Ex: Python, SQL, React..."
                 />
                 <SkillsInput
-                  label="Compétences relationnelles (point-virgule ou tags)"
-                  value={formData.softSkills ?? ''}
+                  label="Compétences relationnelles"
+                  value={formData.softSkills ?? []}
                   onChange={(v) => updateField('softSkills', v)}
                   disabled={loading}
-                  placeholder="Ex: Leadership; Négociation..."
+                  placeholder="Ex: Leadership, Négociation..."
                 />
               </div>
             </section>

@@ -53,8 +53,6 @@ function OnboardingContent() {
   // Organization data
   const [orgName, setOrgName] = useState('')
   const [orgEmail, setOrgEmail] = useState('')
-  const [calendlyLink, setCalendlyLink] = useState('')
-
   // Client data
   const [clientName, setClientName] = useState('')
   const [clientSector, setClientSector] = useState('')
@@ -84,7 +82,6 @@ function OnboardingContent() {
       await updateOrganization({
         name: orgName,
         contactEmail: orgEmail || undefined,
-        defaultCalendlyLink: calendlyLink || undefined,
       })
       setCurrentStep(1)
     } catch {
@@ -103,7 +100,7 @@ function OnboardingContent() {
     setLoading(true)
     try {
       const result = await createClient({
-        name: clientName,
+        companyName: clientName,
         sector: clientSector || undefined,
         website: clientWebsite || undefined,
       })
@@ -227,19 +224,6 @@ function OnboardingContent() {
                     placeholder="contact@cabinet.com"
                     className="mt-1.5"
                   />
-                </div>
-                <div>
-                  <Label htmlFor="calendly">Lien Calendly par defaut</Label>
-                  <Input
-                    id="calendly"
-                    value={calendlyLink}
-                    onChange={(e) => setCalendlyLink(e.target.value)}
-                    placeholder="https://calendly.com/votre-lien"
-                    className="mt-1.5"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Ce lien sera utilise par defaut pour les prises de RDV
-                  </p>
                 </div>
                 <div className="flex justify-end gap-2 pt-4">
                   <Button onClick={handleOrganizationSubmit} disabled={loading}>

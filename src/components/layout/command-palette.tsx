@@ -18,7 +18,6 @@ import {
   Plus,
   Home,
   Settings,
-  FileUp,
   List,
 } from 'lucide-react'
 
@@ -103,10 +102,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           <CommandItem onSelect={() => runCommand(() => router.push('/clients/new'))}>
             <Plus className="mr-2 h-4 w-4" />
             <span>Nouveau client</span>
-          </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => router.push('/import'))}>
-            <FileUp className="mr-2 h-4 w-4" />
-            <span>Importer CSV</span>
           </CommandItem>
         </CommandGroup>
 

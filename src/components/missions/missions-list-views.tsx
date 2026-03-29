@@ -156,7 +156,7 @@ export function MissionsListWithViews({
                             {statusLabels[mission.status]}
                           </Badge>
                         </div>
-                        <p className="text-muted-foreground">{mission.client.name}</p>
+                        <p className="text-muted-foreground">{mission.client.companyName}</p>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
                           {mission.location && <span>{mission.location}</span>}
                           {mission.contractType && <span>{mission.contractType}</span>}
@@ -210,7 +210,7 @@ export function MissionsListWithViews({
                     />
                   </TableCell>
                   <TableCell className="font-medium">{mission.title}</TableCell>
-                  <TableCell className="text-muted-foreground">{mission.client.name}</TableCell>
+                  <TableCell className="text-muted-foreground">{mission.client.companyName}</TableCell>
                   <TableCell>
                     <Badge className={statusColors[mission.status]}>
                       {statusLabels[mission.status]}

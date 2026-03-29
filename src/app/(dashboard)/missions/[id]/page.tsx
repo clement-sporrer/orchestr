@@ -116,7 +116,7 @@ async function MissionHeader({ id }: { id: string }) {
               className="flex items-center gap-1 hover:text-foreground"
             >
               <Building2 className="h-4 w-4" />
-              {header.client.companyName ?? header.client.name}
+              {header.client.companyName}
             </Link>
             {header.mainContact && (
               <span className="flex items-center gap-1">

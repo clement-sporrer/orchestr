@@ -1,49 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseSemicolonList, joinSemicolonList, transformCandidateInput } from './candidate'
-
-describe('parseSemicolonList', () => {
-  it('should parse semicolon-separated string into array', () => {
-    const result = parseSemicolonList('skill1; skill2; skill3')
-    expect(result).toEqual(['skill1', 'skill2', 'skill3'])
-  })
-
-  it('should trim whitespace from each item', () => {
-    const result = parseSemicolonList('  skill1  ;  skill2  ;  skill3  ')
-    expect(result).toEqual(['skill1', 'skill2', 'skill3'])
-  })
-
-  it('should filter out empty items', () => {
-    const result = parseSemicolonList('skill1;;skill2;  ;skill3')
-    expect(result).toEqual(['skill1', 'skill2', 'skill3'])
-  })
-
-  it('should return empty array for empty string', () => {
-    const result = parseSemicolonList('')
-    expect(result).toEqual([])
-  })
-
-  it('should return empty array for undefined', () => {
-    const result = parseSemicolonList(undefined as any)
-    expect(result).toEqual([])
-  })
-})
-
-describe('joinSemicolonList', () => {
-  it('should join array into semicolon-separated string', () => {
-    const result = joinSemicolonList(['skill1', 'skill2', 'skill3'])
-    expect(result).toBe('skill1; skill2; skill3')
-  })
-
-  it('should handle empty array', () => {
-    const result = joinSemicolonList([])
-    expect(result).toBe('')
-  })
-
-  it('should filter out empty strings', () => {
-    const result = joinSemicolonList(['skill1', '', 'skill2'])
-    expect(result).toBe('skill1; skill2')
-  })
-})
+import { transformCandidateInput } from './candidate'
 
 describe('transformCandidateInput', () => {
   it('should uppercase lastName', () => {

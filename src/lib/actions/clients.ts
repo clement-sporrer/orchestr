@@ -5,10 +5,9 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import type { Prisma } from '@/generated/prisma'
 
-// Schemas (PRD v2: companyName MAJ, category from Settings)
+// Schemas (PRD v2: companyName required + uppercased, no legacy name field)
 const clientSchema = z.object({
-  name: z.string().min(1, 'Le nom est requis'),
-  companyName: z.string().min(1, 'Le nom entreprise est requis').optional(),
+  companyName: z.string().min(1, 'Le nom entreprise est requis').transform(v => v.trim().toUpperCase()),
   category: z.string().optional(),
   sector: z.string().optional(),
   website: z.string().url().optional().or(z.literal('')),
@@ -32,7 +31,6 @@ import { getOrganizationId } from '@/lib/auth/helpers'
 export type ClientWithCount = Prisma.ClientGetPayload<{
   select: {
     id: true
-    name: true
     companyName: true
     category: true
     sector: true
@@ -78,7 +76,6 @@ export async function getClients(
     organizationId,
     ...(search ? {
       OR: [
-        { name: { contains: search, mode: searchMode } },
         { companyName: { contains: search, mode: searchMode } },
         { category: { contains: search, mode: searchMode } },
         { sector: { contains: search, mode: searchMode } },
@@ -91,7 +88,6 @@ export async function getClients(
       where: whereClause,
       select: {
         id: true,
-        name: true,
         companyName: true,
         category: true,
         sector: true,
@@ -115,7 +111,7 @@ export async function getClients(
           },
         },
       },
-      orderBy: [{ companyName: 'asc' }, { name: 'asc' }],
+      orderBy: [{ companyName: 'asc' }],
       skip,
       take: limitNum,
     }),
@@ -179,13 +175,10 @@ export async function getClient(id: string) {
 export async function createClient(data: z.infer<typeof clientSchema>) {
   const organizationId = await getOrganizationId()
   const validated = clientSchema.parse(data)
-  const displayName = (validated.companyName ?? validated.name).trim()
-  const companyNameUpper = displayName.toUpperCase()
 
   const client = await prisma.client.create({
     data: {
-      name: displayName,
-      companyName: companyNameUpper,
+      companyName: validated.companyName,
       category: validated.category || null,
       sector: validated.sector || null,
       website: validated.website || null,
@@ -201,8 +194,6 @@ export async function createClient(data: z.infer<typeof clientSchema>) {
 export async function updateClient(id: string, data: z.infer<typeof clientSchema>) {
   const organizationId = await getOrganizationId()
   const validated = clientSchema.parse(data)
-  const displayName = (validated.companyName ?? validated.name).trim()
-  const companyNameUpper = displayName.toUpperCase()
 
   const existing = await prisma.client.findFirst({
     where: { id, organizationId },
@@ -215,8 +206,7 @@ export async function updateClient(id: string, data: z.infer<typeof clientSchema
   const client = await prisma.client.update({
     where: { id },
     data: {
-      name: displayName,
-      companyName: companyNameUpper,
+      companyName: validated.companyName,
       category: validated.category || null,
       sector: validated.sector || null,
       website: validated.website || null,

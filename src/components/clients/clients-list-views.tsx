@@ -113,7 +113,7 @@ export function ClientsListWithViews({ clients, search }: ClientsListWithViewsPr
                 onCheckedChange={() => toggleSelect(client.id)}
                 onClick={(e) => e.stopPropagation()}
                 className="mt-5 shrink-0"
-                aria-label={`Sélectionner ${client.companyName ?? client.name}`}
+                aria-label={`Sélectionner ${client.companyName}`}
               />
               <Link href={`/clients/${client.id}`} className="flex-1 min-w-0">
                 <Card
@@ -123,7 +123,7 @@ export function ClientsListWithViews({ clients, search }: ClientsListWithViewsPr
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Building2 className="h-5 w-5 text-primary" />
-                      {client.companyName ?? client.name}
+                      {client.companyName}
                     </CardTitle>
                     {(client.category ?? client.sector) && (
                       <CardDescription>{client.category ?? client.sector}</CardDescription>
@@ -177,11 +177,11 @@ export function ClientsListWithViews({ clients, search }: ClientsListWithViewsPr
                     <Checkbox
                       checked={selectedIds.has(client.id)}
                       onCheckedChange={() => toggleSelect(client.id)}
-                      aria-label={`Sélectionner ${client.companyName ?? client.name}`}
+                      aria-label={`Sélectionner ${client.companyName}`}
                     />
                   </TableCell>
                   <TableCell className="font-medium">
-                    {client.companyName ?? client.name}
+                    {client.companyName}
                   </TableCell>
                   <TableCell className="text-muted-foreground hidden sm:table-cell">
                     {[client.category, client.sector].filter(Boolean).join(' / ') || '-'}

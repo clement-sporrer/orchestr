@@ -131,20 +131,15 @@ export function ClientPortalClient({ token, shortlist }: ClientPortalClientProps
                               {candidate.currentCompany && ` @ ${candidate.currentCompany}`}
                             </span>
                           )}
-                          {candidate.location && (
+                          {(candidate.city || candidate.country) && (
                             <span className="flex items-center gap-1">
                               <MapPin className="h-3 w-3" />
-                              {candidate.location}
+                              {[candidate.city, candidate.country].filter(Boolean).join(', ')}
                             </span>
                           )}
                         </div>
                       </div>
                     </div>
-                    {sc.missionCandidate.score && (
-                      <Badge variant="secondary" className="text-lg">
-                        {sc.missionCandidate.score}%
-                      </Badge>
-                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">

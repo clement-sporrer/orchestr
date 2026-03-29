@@ -16,17 +16,7 @@ export default async function CandidatePortalPage({ params }: CandidatePortalPag
     where: { portalToken: tokenHash },
     include: {
       candidate: true,
-      mission: {
-        include: {
-          questionnaire: {
-            include: {
-              questions: {
-                orderBy: { order: 'asc' },
-              },
-            },
-          },
-        },
-      },
+      mission: true,
     },
   })
 
@@ -54,7 +44,6 @@ export default async function CandidatePortalPage({ params }: CandidatePortalPag
       missionCandidate={missionCandidate}
       candidate={missionCandidate.candidate}
       mission={missionCandidate.mission}
-      questionnaire={missionCandidate.mission.questionnaire}
     />
   )
 }

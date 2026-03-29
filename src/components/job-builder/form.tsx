@@ -35,8 +35,7 @@ interface Contact {
 
 interface ClientWithContacts {
   id: string
-  name: string
-  companyName: string | null
+  companyName: string
   contacts: Contact[]
 }
 
@@ -62,9 +61,6 @@ interface MissionInitialData {
   redFlags?: string | null
   process?: string | null
   processVisibility?: Visibility
-  calendlyLink?: string | null
-  calendlyEmbed?: boolean
-  scoreThreshold?: number
 }
 
 interface JobBuilderFormProps {
@@ -98,9 +94,6 @@ interface FormData {
   redFlags: string
   process: string
   processVisibility: Visibility
-  calendlyLink: string
-  calendlyEmbed: boolean
-  scoreThreshold: number
 }
 
 const defaultFormData: FormData = {
@@ -125,9 +118,6 @@ const defaultFormData: FormData = {
   redFlags: '',
   process: '',
   processVisibility: 'INTERNAL_CLIENT',
-  calendlyLink: '',
-  calendlyEmbed: false,
-  scoreThreshold: 60,
 }
 
 export function JobBuilderForm({
@@ -168,9 +158,6 @@ export function JobBuilderForm({
           redFlags: initialData.redFlags ?? '',
           process: initialData.process ?? '',
           processVisibility: (initialData.processVisibility ?? 'INTERNAL_CLIENT') as Visibility,
-          calendlyLink: initialData.calendlyLink ?? '',
-          calendlyEmbed: initialData.calendlyEmbed ?? false,
-          scoreThreshold: initialData.scoreThreshold ?? 60,
         }
       : { ...defaultFormData, clientId: defaultClientId || '', mainContactId: '' }
     return base
@@ -215,9 +202,6 @@ export function JobBuilderForm({
         redFlags: formData.redFlags || undefined,
         process: formData.process || undefined,
         processVisibility: formData.processVisibility,
-        calendlyLink: formData.calendlyLink || undefined,
-        calendlyEmbed: formData.calendlyEmbed,
-        scoreThreshold: formData.scoreThreshold,
       }
 
       if (isEdit && missionId) {
@@ -276,7 +260,7 @@ export function JobBuilderForm({
                         <SelectContent>
                           {list.map((client) => (
                             <SelectItem key={client.id} value={client.id}>
-                              {client.companyName ?? client.name}
+                              {client.companyName}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -517,37 +501,6 @@ export function JobBuilderForm({
                       placeholder="Étapes du processus..."
                       rows={3}
                     />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Settings */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Paramètres</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="calendlyLink">Lien Calendly</Label>
-                      <Input
-                        id="calendlyLink"
-                        value={formData.calendlyLink}
-                        onChange={(e) => updateField('calendlyLink', e.target.value)}
-                        placeholder="https://calendly.com/..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="scoreThreshold">Seuil de score (%)</Label>
-                      <Input
-                        id="scoreThreshold"
-                        type="number"
-                        min={0}
-                        max={100}
-                        value={formData.scoreThreshold}
-                        onChange={(e) => updateField('scoreThreshold', parseInt(e.target.value) || 60)}
-                      />
-                    </div>
                   </div>
                 </CardContent>
               </Card>

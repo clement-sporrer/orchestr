@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import type { TaskPriority } from '@/generated/prisma'
-import { getCurrentUserId } from '@/lib/auth/helpers'
+import { getCurrentUserId, getOrganizationId } from '@/lib/auth/helpers'
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Titre requis'),
@@ -19,9 +19,11 @@ export async function getTasks(filters?: {
   priority?: TaskPriority
 }) {
   const userId = await getCurrentUserId()
+  const organizationId = await getOrganizationId()
 
   const tasks = await prisma.task.findMany({
     where: {
+      organizationId,
       userId,
       ...(filters?.completed === true ? { completedAt: { not: null } } : {}),
       ...(filters?.completed === false ? { completedAt: null } : {}),
@@ -39,12 +41,14 @@ export async function getTasks(filters?: {
 
 export async function createTask(data: z.infer<typeof taskSchema>) {
   const userId = await getCurrentUserId()
+  const organizationId = await getOrganizationId()
   const validated = taskSchema.parse(data)
 
   const task = await prisma.task.create({
     data: {
       ...validated,
       userId,
+      organizationId,
     },
   })
 
@@ -55,9 +59,10 @@ export async function createTask(data: z.infer<typeof taskSchema>) {
 
 export async function updateTask(id: string, data: Partial<z.infer<typeof taskSchema>>) {
   const userId = await getCurrentUserId()
+  const organizationId = await getOrganizationId()
 
   const existing = await prisma.task.findFirst({
-    where: { id, userId },
+    where: { id, userId, organizationId },
   })
 
   if (!existing) {
@@ -76,9 +81,10 @@ export async function updateTask(id: string, data: Partial<z.infer<typeof taskSc
 
 export async function completeTask(id: string) {
   const userId = await getCurrentUserId()
+  const organizationId = await getOrganizationId()
 
   const existing = await prisma.task.findFirst({
-    where: { id, userId },
+    where: { id, userId, organizationId },
   })
 
   if (!existing) {
@@ -97,9 +103,10 @@ export async function completeTask(id: string) {
 
 export async function uncompleteTask(id: string) {
   const userId = await getCurrentUserId()
+  const organizationId = await getOrganizationId()
 
   const existing = await prisma.task.findFirst({
-    where: { id, userId },
+    where: { id, userId, organizationId },
   })
 
   if (!existing) {
@@ -118,9 +125,10 @@ export async function uncompleteTask(id: string) {
 
 export async function deleteTask(id: string) {
   const userId = await getCurrentUserId()
+  const organizationId = await getOrganizationId()
 
   const existing = await prisma.task.findFirst({
-    where: { id, userId },
+    where: { id, userId, organizationId },
   })
 
   if (!existing) {

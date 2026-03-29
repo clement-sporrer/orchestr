@@ -90,10 +90,10 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
                   {candidate.currentCompany}
                 </span>
               )}
-              {candidate.location && (
+              {(candidate.city || candidate.country) && (
                 <span className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
-                  {candidate.location}
+                  {[candidate.city, candidate.country].filter(Boolean).join(', ')}
                 </span>
               )}
             </div>
@@ -214,7 +214,7 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
                       <div className="space-y-1">
                         <p className="font-medium">{mc.mission.title}</p>
                         <p className="text-sm text-muted-foreground">
-                          {mc.mission.client.name}
+                          {mc.mission.client.companyName}
                         </p>
                       </div>
                       <Badge variant="outline">
@@ -237,8 +237,8 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Enrichment */}
-          <EnrichmentPanel 
-            enrichment={candidate.enrichment} 
+          <EnrichmentPanel
+            enrichment={null}
             candidateId={candidate.id}
           />
 

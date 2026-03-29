@@ -39,18 +39,6 @@ export const languageSchema = z.object({
 
 export type LanguageEntry = z.infer<typeof languageSchema>
 
-// Solicitation History entry
-export const solicitationHistoryEntrySchema = z.object({
-  date: z.string(), // ISO date string
-  action: z.string(), // "Applied", "Contacted", "Interviewed", etc.
-  missionId: z.string().optional(),
-  missionName: z.string().optional(),
-})
-
-export type SolicitationHistoryEntry = z.infer<
-  typeof solicitationHistoryEntrySchema
->
-
 // ============================================
 // VALIDATION HELPERS
 // ============================================
@@ -105,12 +93,12 @@ const baseCandidateSchema = z.object({
   sector: z.string().optional().or(z.literal('')),
   currentCompany: z.string().optional().or(z.literal('')),
   currentPosition: z.string().optional().or(z.literal('')),
-  pastCompanies: z.string().optional().or(z.literal('')), // semicolon-separated
+  pastCompanies: z.array(z.string()).default([]),
   jobFamily: z.string().optional().or(z.literal('')),
 
-  // Skills (optional, semicolon-separated)
-  hardSkills: z.string().optional().or(z.literal('')),
-  softSkills: z.string().optional().or(z.literal('')),
+  // Skills (optional, arrays)
+  hardSkills: z.array(z.string()).default([]),
+  softSkills: z.array(z.string()).default([]),
 
   // Additional info (optional)
   compensation: z.string().optional().or(z.literal('')),
@@ -121,9 +109,6 @@ const baseCandidateSchema = z.object({
   // Files (optional, array of storage paths)
   files: z.array(z.string()).default([]),
 
-  // Legacy fields (backward compatibility)
-  cvUrl: z.string().optional().or(z.literal('')),
-  location: z.string().optional().or(z.literal('')),
   tags: z.array(z.string()).default([]),
   status: CandidateStatusEnum.default('ACTIVE'),
 })
@@ -195,24 +180,6 @@ export type UpdateOrganizationSettingsInput = z.infer<
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
-
-/**
- * Parse semicolon-separated string to array
- */
-export function parseSemicolonList(input: string | null | undefined): string[] {
-  if (!input || input.trim() === '') return []
-  return input
-    .split(';')
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-}
-
-/**
- * Join array to semicolon-separated string
- */
-export function joinSemicolonList(items: string[]): string {
-  return items.filter((item) => item.trim().length > 0).join('; ')
-}
 
 /**
  * Auto-format lastName to UPPERCASE
